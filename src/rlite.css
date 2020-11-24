@@ -1,0 +1,518 @@
+body {
+    background-color: #fff;
+    font-weight: 300;
+}
+body, p {
+    padding: 0;
+    margin: 0;
+}
+a {
+    text-decoration: none;
+}
+.block {
+    position: relative;
+    font-family: Helvetica, Arial, sans-serif;
+    margin: 10px 0;
+}
+
+.block.__1 {
+    font-size: 13px;
+    min-height: 13px;
+    padding: 0 10px;
+}
+
+.block.__2 {
+    position: relative;
+    min-height: 100px;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+.block.__2 img {
+    max-width: 100%;
+}
+.block.__2 .__blur {
+    cursor: pointer;
+}
+.block.__2 .__blur img {
+    filter: blur(15px);
+}
+.block.__2 .cur {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    cursor: pointer;
+    width: 82px;
+    height: 97px;
+    line-height: normal;
+    animation: clickhint 4s infinite;
+}
+.block.__2 .__blur .cur {
+    display: block;
+}
+
+.block.__6 {
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 8px 15px;
+    min-width: 100px;
+    cursor: pointer;
+}
+.btn:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.ic {
+    text-align: center;
+}
+
+.flip_inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+.flip_inner.__flipped {
+    transform: rotateY(180deg);
+}
+.flip_side {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+.flip_side.__back {
+    transform: rotateY(180deg);
+}
+
+.hint {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 20px;
+    color: #fff;
+    padding: 10px 18px;
+    cursor: pointer;
+    white-space: nowrap
+}
+.hint p {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0;
+    margin: 0;
+}
+
+.text-area {
+    transform: translateY(-50%);
+    box-sizing: border-box;
+    position: absolute;
+    color: #333;
+    padding: 3%;
+    background: transparent;
+    resize: none !important;
+    width: 90%;
+    top: 50%;
+    left: 5%;
+}
+.text-area-cnt {
+    position: absolute;
+    color: #fff;
+    background: transparent;
+    overflow: visible;
+    width: 100%;
+    height: 100%;
+}
+
+.vc {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 30px;
+    height: 0;
+    overflow: hidden;
+}
+.vc iframe, .vc object, .vc embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.z_cnt {
+    display: inline-block;
+    position: relative;
+    background-color: #eee;
+    min-height: 100px;
+    background-position: center;
+    background-size: cover;
+}
+.z_cnt > img {
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.z_pin {
+    position: absolute;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background-position: center;
+    background-size: contain;
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 1s;
+}
+.z_pin.im {
+    border-radius: 0;
+    border: none;
+    background-color: transparent !important;
+}
+.z_pin.hid {
+    opacity: 0;
+    cursor: initial;
+}
+.z_pin.rev {
+    animation: pop 1s;
+}
+.mow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.3);
+}
+.mo {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    max-height: 100%;
+    overflow-y: auto;
+    background-color: #fff;
+    min-width: 250px;
+    width: 80%;
+    max-width: 800px;
+}
+/* .mo:before {
+    content: '';
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='16.2427' y1='7.75748' x2='7.75739' y2='16.2428' stroke='%23787878' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='16.2425' y1='16.2427' x2='7.75724' y2='7.75739' stroke='%23787878' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E%0A");
+    position: absolute;
+    top: 0;
+    right: -40px;
+    width: 40px;
+    height: 40px;
+} */
+.msgi {
+    flex: 1;
+    background-size: cover;
+    background-position: center;
+    min-height: 100px;
+}
+.msgi.no_text {
+    min-height: 200px;
+}
+.msg {
+    padding: 15px;
+    color: #333;
+    flex: 1;
+}
+.msg h2 {
+    margin: 0;
+}
+.msg h2+p {
+    margin-top: 10px;
+}
+.msg p {
+    font-size: 13px;
+}
+@media only screen and (max-width: 390px) {
+    .mo {
+        display: block;
+    }
+    .msgi {
+        width: 100%;
+        height: 120px;
+    }
+    .msgi.no_text {
+        min-height: 120px;
+    }
+}
+
+@keyframes clickhint {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    90% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    95% {
+        transform: translate(-50%, -50%) scale(0.88);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes pop {
+    0% { transform: scale(0.2, 0.2) }
+    60% { transform: scale(1.3, 1.3) }
+    75% { transform: scale(0.9, 0.9) }
+    90% { transform: scale(1.1, 1.1) }
+    100% { transform: scale(1, 1) }
+}
+
+/* text formatting */
+.ql-align-center {
+    text-align: center;
+}
+.ql-align-right {
+    text-align: right;
+}
+.ql-align-justify {
+    text-align: justify;
+}
+.ql-size-small {
+    font-size: 0.75em;
+}
+.ql-size-large {
+    font-size: 1.5em;
+}
+.ql-size-huge {
+    font-size: 2.5em;
+}
+/* text formatting */
+
+
+/* quill custom fonts */
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto'); */
+/* text=Roboto */
+.ql-font span[data-value='Roboto']::before {
+    font-family: 'Roboto';
+    content: 'Roboto' !important;
+}
+.ql-font-Roboto {
+    font-family: 'Roboto';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto Condensed'); */
+/* text=Roboto Condensed */
+.ql-font span[data-value='RobotoCondensed']::before {
+    font-family: 'Roboto Condensed';
+    content: 'Roboto Condensed' !important;
+}
+.ql-font-RobotoCondensed {
+    font-family: 'Roboto Condensed';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Open Sans'); */
+/* text=Open Sans */
+.ql-font span[data-value='OpenSans']::before {
+    font-family: 'Open Sans';
+    content: 'Open Sans' !important;
+}
+.ql-font-OpenSans {
+    font-family: 'Open Sans';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Lato'); */
+/* text=Lato */
+.ql-font span[data-value='Lato']::before {
+    font-family: 'Lato';
+    content: 'Lato' !important;
+}
+.ql-font-Lato {
+    font-family: 'Lato';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Montserrat'); */
+/* text=Montserrat */
+.ql-font span[data-value='Montserrat']::before {
+    font-family: 'Montserrat';
+    content: 'Montserrat' !important;
+}
+.ql-font-Montserrat {
+    font-family: 'Montserrat';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Oswald'); */
+/* text=Oswald */
+.ql-font span[data-value='Oswald']::before {
+    font-family: 'Oswald';
+    content: 'Oswald' !important;
+}
+.ql-font-Oswald {
+    font-family: 'Oswald';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Merriweather'); */
+/* text=Merriweather */
+.ql-font span[data-value='Merriweather']::before {
+    font-family: 'Merriweather';
+    content: 'Merriweather' !important;
+}
+.ql-font-Merriweather {
+    font-family: 'Merriweather';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Ubuntu'); */
+/* text=Ubuntu */
+.ql-font span[data-value='Ubuntu']::before {
+    font-family: 'Ubuntu';
+    content: 'Ubuntu' !important;
+}
+.ql-font-Ubuntu {
+    font-family: 'Ubuntu';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Lobster'); */
+/* text=Lobster */
+.ql-font span[data-value='Lobster']::before {
+    font-family: 'Lobster';
+    content: 'Lobster' !important;
+}
+.ql-font-Lobster {
+    font-family: 'Lobster';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Pacifico'); */
+/* text=Pacifico */
+.ql-font span[data-value='Pacifico']::before {
+    font-family: 'Pacifico';
+    content: 'Pacifico' !important;
+}
+.ql-font-Pacifico {
+    font-family: 'Pacifico';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Vollkorn'); */
+/* text=Vollkorn */
+.ql-font span[data-value='Vollkorn']::before {
+    font-family: 'Vollkorn';
+    content: 'Vollkorn' !important;
+}
+.ql-font-Vollkorn {
+    font-family: 'Vollkorn';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Cuprum'); */
+/* text=Cuprum */
+.ql-font span[data-value='Cuprum']::before {
+    font-family: 'Cuprum';
+    content: 'Cuprum' !important;
+}
+.ql-font-Cuprum {
+    font-family: 'Cuprum';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Alegreya Sans'); */
+/* text=Alegreya Sans */
+.ql-font span[data-value='AlegreyaSans']::before {
+    font-family: 'Alegreya Sans';
+    content: 'Alegreya Sans' !important;
+}
+.ql-font-AlegreyaSans {
+    font-family: 'Alegreya Sans';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Russo One'); */
+/* text=Russo One */
+.ql-font span[data-value='RussoOne']::before {
+    font-family: 'Russo One';
+    content: 'Russo One' !important;
+}
+.ql-font-RussoOne {
+    font-family: 'Russo One';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Playfair Display SC'); */
+/* text=Playfair Display SC */
+.ql-font span[data-value='PlayfairDisplaySC']::before {
+    font-family: 'Playfair Display SC';
+    content: 'Playfair Display SC' !important;
+}
+.ql-font-PlayfairDisplaySC {
+    font-family: 'Playfair Display SC';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Alice'); */
+/* text=Alice */
+.ql-font span[data-value='Alice']::before {
+    font-family: 'Alice';
+    content: 'Alice' !important;
+}
+.ql-font-Alice {
+    font-family: 'Alice';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Press Start 2P'); */
+/* text=Press Start 2P */
+.ql-font span[data-value='PressStart2P']::before {
+    font-family: 'Press Start 2P';
+    content: 'Press Start 2P' !important;
+}
+.ql-font-PressStart2P {
+    font-family: 'Press Start 2P';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Bad Script'); */
+/* text=Bad Script */
+.ql-font span[data-value='BadScript']::before {
+    font-family: 'Bad Script';
+    content: 'Bad Script' !important;
+}
+.ql-font-BadScript {
+    font-family: 'Bad Script';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Yeseva One'); */
+/* text=Yeseva One */
+.ql-font span[data-value='YesevaOne']::before {
+    font-family: 'Yeseva One';
+    content: 'Yeseva One' !important;
+}
+.ql-font-YesevaOne {
+    font-family: 'Yeseva One';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Marmelad'); */
+/* text=Marmelad */
+.ql-font span[data-value='Marmelad']::before {
+    font-family: 'Marmelad';
+    content: 'Marmelad' !important;
+}
+.ql-font-Marmelad {
+    font-family: 'Marmelad';
+}
+
+/* @import url('https://fonts.googleapis.com/css2?family=Rubik Mono One'); */
+/* text=Rubik Mono One */
+.ql-font span[data-value='RubikMonoOne']::before {
+    font-family: 'Rubik Mono One';
+    content: 'Rubik Mono One' !important;
+}
+.ql-font-RubikMonoOne {
+    font-family: 'Rubik Mono One';
+}
+/* /quill custom fonts */
