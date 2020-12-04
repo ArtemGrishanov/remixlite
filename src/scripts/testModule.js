@@ -1,0 +1,1 @@
+export const f = val => console.log(val)

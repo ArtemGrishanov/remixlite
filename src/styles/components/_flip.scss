@@ -1,0 +1,30 @@
+.flip {
+  &_inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    &.__flipped {
+      transform: rotateY(180deg);
+    }
+  }
+  &_side {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    &.__back {
+      transform: rotateY(180deg);
+    }
+  }
+}

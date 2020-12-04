@@ -1,0 +1,292 @@
+.ql-align-center {
+  text-align: center;
+}
+.ql-align-right {
+  text-align: right;
+}
+.ql-align-justify {
+  text-align: justify;
+}
+.ql-size-small {
+  font-size: 0.75em;
+}
+.ql-size-large {
+  font-size: 1.5em;
+}
+.ql-size-huge {
+  font-size: 2.5em;
+}
+
+/* * Fonts * */
+/* Roboto */
+.ql-font span[data-value='Roboto']::before {
+  font-family: 'Roboto', sans-serif;
+  content: 'Roboto' !important;
+}
+.ql-font-Roboto {
+  font-family: 'Roboto', sans-serif;
+}
+/* Roboto Condensed */
+.ql-font span[data-value='RobotoCondensed']::before {
+  font-family: 'Roboto Condensed', sans-serif;
+  content: 'Roboto Condensed' !important;
+}
+.ql-font-RobotoCondensed {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+/* Open Sans */
+.ql-font span[data-value='OpenSans']::before {
+  font-family: 'Open Sans', sans-serif;
+  content: 'Open Sans' !important;
+}
+.ql-font-OpenSans {
+  font-family: 'Open Sans', sans-serif;
+}
+/* Open Sans Condensed */
+.ql-font span[data-value='OpenSansCondensed']::before {
+  font-family: 'Open Sans Condensed', sans-serif;
+  content: 'Open Sans Condensed' !important;
+}
+.ql-font-OpenSansCondensed {
+  font-family: 'Open Sans Condensed', sans-serif;
+}
+/* Lato */
+.ql-font span[data-value='Lato']::before {
+  font-family: 'Lato', sans-serif;
+  content: 'Lato' !important;
+}
+.ql-font-Lato {
+  font-family: 'Lato', sans-serif;
+}
+/* Montserrat */
+.ql-font span[data-value='Montserrat']::before {
+  font-family: 'Montserrat', sans-serif;
+  content: 'Montserrat' !important;
+}
+.ql-font-Montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+/* Oswald */
+.ql-font span[data-value='Oswald']::before {
+  font-family: 'Oswald', sans-serif;
+  content: 'Oswald' !important;
+}
+.ql-font-Oswald {
+  font-family: 'Oswald', sans-serif;
+}
+/* Merriweather */
+.ql-font span[data-value='Merriweather']::before {
+  font-family: 'Merriweather', sans-serif;
+  content: 'Merriweather' !important;
+}
+.ql-font-Merriweather {
+  font-family: 'Merriweather', sans-serif;
+}
+/* Ubuntu */
+.ql-font span[data-value='Ubuntu']::before {
+  font-family: 'Ubuntu', sans-serif;
+  content: 'Ubuntu' !important;
+}
+.ql-font-Ubuntu {
+  font-family: 'Ubuntu', sans-serif;
+}
+/* Lobster */
+.ql-font span[data-value='Lobster']::before {
+  font-family: 'Lobster', sans-serif;
+  content: 'Lobster' !important;
+}
+.ql-font-Lobster {
+  font-family: 'Lobster', sans-serif;
+}
+/* Pacifico */
+.ql-font span[data-value='Pacifico']::before {
+  font-family: 'Pacifico', sans-serif;
+  content: 'Pacifico' !important;
+}
+.ql-font-Pacifico {
+  font-family: 'Pacifico', sans-serif;
+}
+/* Vollkorn */
+.ql-font span[data-value='Vollkorn']::before {
+  font-family: 'Vollkorn', sans-serif;
+  content: 'Vollkorn' !important;
+}
+.ql-font-Vollkorn {
+  font-family: 'Vollkorn', sans-serif;
+}
+/* Cuprum */
+.ql-font span[data-value='Cuprum']::before {
+  font-family: 'Cuprum', sans-serif;
+  content: 'Cuprum' !important;
+}
+.ql-font-Cuprum {
+  font-family: 'Cuprum', sans-serif;
+}
+/* Alegreya Sans */
+.ql-font span[data-value='AlegreyaSans']::before {
+  font-family: 'Alegreya Sans', sans-serif;
+  content: 'Alegreya Sans' !important;
+}
+.ql-font-AlegreyaSans {
+  font-family: 'Alegreya Sans', sans-serif;
+}
+/* Russo One */
+.ql-font span[data-value='RussoOne']::before {
+  font-family: 'Russo One', sans-serif;
+  content: 'Russo One' !important;
+}
+.ql-font-RussoOne {
+  font-family: 'Russo One', sans-serif;
+}
+/* Playfair Display SC */
+.ql-font span[data-value='PlayfairDisplaySC']::before {
+  font-family: 'Playfair Display SC', sans-serif;
+  content: 'Playfair Display SC' !important;
+}
+.ql-font-PlayfairDisplaySC {
+  font-family: 'Playfair Display SC', sans-serif;
+}
+/* Alice */
+.ql-font span[data-value='Alice']::before {
+  font-family: 'Alice', sans-serif;
+  content: 'Alice' !important;
+}
+.ql-font-Alice {
+  font-family: 'Alice', sans-serif;
+}
+/* Press Start 2P */
+.ql-font span[data-value='PressStart2P']::before {
+  font-family: 'Press Start 2P', sans-serif;
+  content: 'Press Start 2P' !important;
+}
+.ql-font-PressStart2P {
+  font-family: 'Press Start 2P', sans-serif;
+}
+/* Bad Script */
+.ql-font span[data-value='BadScript']::before {
+  font-family: 'Bad Script', sans-serif;
+  content: 'Bad Script' !important;
+}
+.ql-font-BadScript {
+  font-family: 'Bad Script', sans-serif;
+}
+/* Yeseva One */
+.ql-font span[data-value='YesevaOne']::before {
+  font-family: 'Yeseva One', sans-serif;
+  content: 'Yeseva One' !important;
+}
+.ql-font-YesevaOne {
+  font-family: 'Yeseva One', sans-serif;
+}
+/* Marmelad */
+.ql-font span[data-value='Marmelad']::before {
+  font-family: 'Marmelad', sans-serif;
+  content: 'Marmelad' !important;
+}
+.ql-font-Marmelad {
+  font-family: 'Marmelad', sans-serif;
+}
+/* Rubik Mono One */
+.ql-font span[data-value='RubikMonoOne']::before {
+  font-family: 'Rubik Mono One', sans-serif;
+  content: 'Rubik Mono One' !important;
+}
+.ql-font-RubikMonoOne {
+  font-family: 'Rubik Mono One', sans-serif;
+}
+/* Raleway */
+.ql-font span[data-value='Raleway']::before {
+  font-family: 'Raleway', sans-serif;
+  content: 'Raleway' !important;
+}
+.ql-font-Raleway {
+  font-family: 'Raleway', sans-serif;
+}
+/* Roboto Slab */
+.ql-font span[data-value='RobotoSlab']::before {
+  font-family: 'Roboto Slab', sans-serif;
+  content: 'Roboto Slab' !important;
+}
+.ql-font-RobotoSlab {
+  font-family: 'Roboto Slab', sans-serif;
+}
+/* Lora */
+.ql-font span[data-value='Lora']::before {
+  font-family: 'Lora', sans-serif;
+  content: 'Lora' !important;
+}
+.ql-font-Lora {
+  font-family: 'Lora', sans-serif;
+}
+/* Seymour One */
+.ql-font span[data-value='SeymourOne']::before {
+  font-family: 'Seymour One', sans-serif;
+  content: 'Seymour One' !important;
+}
+.ql-font-SeymourOne {
+  font-family: 'Seymour One', sans-serif;
+}
+/* Cormorant SC */
+.ql-font span[data-value='CormorantSC']::before {
+  font-family: 'Cormorant SC', sans-serif;
+  content: 'Cormorant SC' !important;
+}
+.ql-font-CormorantSC {
+  font-family: 'Cormorant SC', sans-serif;
+}
+/* Literata */
+.ql-font span[data-value='Literata']::before {
+  font-family: 'Literata', sans-serif;
+  content: 'Literata' !important;
+}
+.ql-font-Literata {
+  font-family: 'Literata', sans-serif;
+}
+/* Spectral */
+.ql-font span[data-value='Spectral']::before {
+  font-family: 'Spectral', sans-serif;
+  content: 'Spectral' !important;
+}
+.ql-font-Spectral {
+  font-family: 'Spectral', sans-serif;
+}
+/* Alegreya */
+.ql-font span[data-value='Alegreya']::before {
+  font-family: 'Alegreya', sans-serif;
+  content: 'Alegreya' !important;
+}
+.ql-font-Alegreya {
+  font-family: 'Alegreya', sans-serif;
+}
+/* EB Garamond */
+.ql-font span[data-value='EBGaramond']::before {
+  font-family: 'EB Garamond', sans-serif;
+  content: 'EB Garamond' !important;
+}
+.ql-font-EBGaramond {
+  font-family: 'EB Garamond', sans-serif;
+}
+/* Bitter */
+.ql-font span[data-value='Bitter']::before {
+  font-family: 'Bitter', sans-serif;
+  content: 'Bitter' !important;
+}
+.ql-font-Bitter {
+  font-family: 'Bitter', sans-serif;
+}
+/* PT Serif */
+.ql-font span[data-value='PTSerif']::before {
+  font-family: 'PT Serif', sans-serif;
+  content: 'PT Serif' !important;
+}
+.ql-font-PTSerif {
+  font-family: 'PT Serif', sans-serif;
+}
+/* Noto Sans */
+.ql-font span[data-value='NotoSans']::before {
+  font-family: 'Noto Sans', sans-serif;
+  content: 'Noto Sans' !important;
+}
+.ql-font-NotoSans {
+  font-family: 'Noto Sans', sans-serif;
+}

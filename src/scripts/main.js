@@ -1,6 +1,10 @@
 const RL = window.RemixLite || {};
+window.RemixLite = RL;
+
+// import { f } from './testModule'
 
 (function(rl) {
+    // f('hello world')
 
     var data = null,
         cnt = null
@@ -79,10 +83,7 @@ const RL = window.RemixLite || {};
     rl.setData = setData
     rl.getData = getData
     rl.serialize = serialize
-
-
 })(RL)
-window.RemixLite = RL;
 
 RL.Blocks = {}
 RL.T = {}
@@ -156,32 +157,45 @@ RL.U = {
 }
 
 RL.U.Fonts = [
-        'Roboto',
-        'Roboto Condensed',
-        'Open Sans',
-        'Lato',
-        'Montserrat',
-        'Oswald',
-        'Merriweather',
-        'Ubuntu',
-        'Lobster',
-        'Pacifico',
-        'Vollkorn',
-        'Cuprum',
-        'Alegreya Sans',
-        'Russo One',
-        'Playfair Display SC',
-        'Alice',
-        'Press Start 2P',
-        'Bad Script',
-        'Yeseva One',
-        'Marmelad',
-        'Rubik Mono One',
-    ];
+    'Roboto',
+    'Roboto Condensed',
+    'Open Sans',
+    "Open Sans Condensed",
+    'Lato',
+    'Montserrat',
+    'Oswald',
+    'Merriweather',
+    'Ubuntu',
+    'Lobster',
+    'Pacifico',
+    'Vollkorn',
+    'Cuprum',
+    'Alegreya Sans',
+    'Russo One',
+    'Playfair Display SC',
+    'Alice',
+    'Press Start 2P',
+    'Bad Script',
+    'Yeseva One',
+    'Marmelad',
+    'Rubik Mono One',
+    'Raleway',
+    'Roboto Slab',
+    'Lora',
+    'Seymour One',
+    'Cormorant SC',
+    'Literata',
+    "Spectral",
+    "Alegreya",
+    "EB Garamond",
+    "Bitter",
+    "PT Serif",
+    "Noto Sans"
+];
 RL.U.importedFonts = {
-        // 'Ubuntu': true | false
-        // ...
-    };
+    // 'Ubuntu': true | false
+    // ...
+};
 
 /**
  * Text

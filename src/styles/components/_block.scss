@@ -1,0 +1,44 @@
+.block {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  position: relative;
+  margin: 10px 0;
+  &.__1 {
+    font-size: 13px;
+    min-height: 13px;
+    padding: 0 10px;
+  }
+  &.__2 {
+    position: relative;
+    min-height: 100px;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    img {
+      max-width: 100%;
+    }
+    .cur {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      cursor: pointer;
+      width: 82px;
+      height: 97px;
+      line-height: normal;
+      animation: clickhint 4s infinite;
+    }
+    .__blur {
+      cursor: pointer;
+      img {
+        filter: blur(15px);
+      }
+      .cur {
+        display: block;
+      }
+    }
+  }
+  &.__6 {
+    text-align: center;
+  }
+}
