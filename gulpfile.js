@@ -123,9 +123,9 @@ function jsLight() {
 }
 
 function watchFiles() {
-    gulp.watch([path.watch.html], html)
-    gulp.watch([path.watch.css], css)
-    gulp.watch([path.watch.js], js)
+    gulp.watch([path.watch.html], htmlLight)
+    gulp.watch([path.watch.css], cssLight)
+    gulp.watch([path.watch.js], jsLight)
 }
 
 function browserSync() {
