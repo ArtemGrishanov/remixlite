@@ -1,7 +1,7 @@
-**Install the gulp command line utility**
-`npm install --global gulp-cli`
+#### Install the gulp command line utility
+`npm i -g gulp-cli`
 
-### Development
+## Development
 `npm start`
 
 Files serve on: http://127.0.0.1:8090 (hot reload)
@@ -10,7 +10,7 @@ Files serve on: http://127.0.0.1:8090 (hot reload)
 - css: `http://127.0.0.1:8090/rlite.css`
 - js: `http://127.0.0.1:8090/rlite.js`
 
-### Build
+## Build
 `npm run build`
 
 Files build in `dist` folder

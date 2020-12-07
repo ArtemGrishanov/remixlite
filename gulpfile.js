@@ -49,6 +49,16 @@ function html() {
         )
         .pipe(htmlmin({collapseWhitespace: true}))
         .pipe(gulp.dest(path.build.html))
+}
+function htmlLight() {
+    return gulp.src(path.src.html)
+        .pipe(
+            rename({
+                basename: "rlite",
+                extname: '.html'
+            })
+        )
+        .pipe(gulp.dest(path.build.html))
         .pipe(browser_sync.stream())
 }
 function css() {
@@ -75,6 +85,21 @@ function css() {
         .pipe(gulp.dest(path.build.css))
         .pipe(browser_sync.stream())
 }
+function cssLight() {
+    return gulp.src(path.src.css)
+        .pipe(
+            scss({
+                outputStyle: 'expanded'
+            })
+        )
+        .pipe(
+            rename({
+                basename: "rlite",
+                extname: '.css'
+            })
+        )
+        .pipe(gulp.dest(path.build.css))
+}
 function js() {
     return browserify(path.src.js)
         .transform(babelify.configure({
@@ -86,6 +111,15 @@ function js() {
         .pipe(uglify())
         .pipe(gulp.dest(path.build.js))
         .pipe(browser_sync.stream());
+}
+function jsLight() {
+    return browserify(path.src.js)
+        .transform(babelify.configure({
+            presets: ['@babel/env']
+        }))
+        .bundle()
+        .pipe(source('rlite.js'))
+        .pipe(gulp.dest(path.build.js))
 }
 
 function watchFiles() {
@@ -107,11 +141,8 @@ function browserSync() {
 }
 
 const build = gulp.series(clean, gulp.parallel(html, css, js));
-const watch = gulp.parallel(build, watchFiles, browserSync);
-
-exports.html = html
-exports.css = css
-exports.js = js
+const buildLight = gulp.series(clean, gulp.parallel(htmlLight, cssLight, jsLight));
+const watch = gulp.parallel(buildLight, watchFiles, browserSync);
 
 exports.build = build
 exports.watch = watch
