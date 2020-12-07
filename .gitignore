@@ -3,7 +3,5 @@
 
 /.idea
 
-/public
-
 # production
 /dist
