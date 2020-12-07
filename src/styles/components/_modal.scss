@@ -31,17 +31,16 @@
         height: 120px;
       }
       &.no_text {
-            position: relative;
-            min-height: 200px;
-            @media only screen and (max-width: 390px) {
-                min-height: 120px;
-            }
-
-        & .btn {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+        position: relative;
+        min-height: 200px;
+        @media only screen and (max-width: 390px) {
+          min-height: 120px;
+        }
+        .btn {
+          position: absolute;
+          bottom: 10px;
+          left: 50%;
+          transform: translateX(-50%);
         }
       }
     }
@@ -49,16 +48,20 @@
       padding: 15px;
       color: #333;
       flex: 1;
+      //text-align: center;
       h2 {
         margin: 0;
-        &+p {
-            margin-top: 10px;
+        & + p {
+          margin-top: 10px;
+        }
+        & + a {
+          margin-top: 15px;
         }
       }
       p {
         font-size: 13px;
-        &+a {
-            margin-top: 10px;
+        & + a {
+          margin-top: 15px;
         }
       }
     }
