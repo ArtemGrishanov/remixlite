@@ -7,15 +7,18 @@ window.RemixLite = RL;
     // f('hello world')
 
     var data = null,
-        cnt = null
+        cnt = null,
+        nor
 
     function init({
         container,
+        noRender,
         defaultProperties,
         origin,
         source
     }) {
         cnt = container
+        nor = noRender
         setData(defaultProperties)
     }
 
@@ -46,7 +49,9 @@ window.RemixLite = RL;
             if (!data.app) data.app = {};
             data.app.share = { previewHtml:RL.U.defPreview(), entities:[] };
         }
-        render()
+        if (!nor) {
+            render()
+        }
     }
 
     function getData() {
@@ -317,14 +322,12 @@ RL.Blocks.B5 = function(cnt) {
 /**
  * CTA button
  */
+RL.T.T6 = `<a href="{{href}}" target="_blank" class="btn" style="border-radius:{{brad}}px;background-color:{{bc}};color:{{color}}">
+<p>{{text}}</p>
+</a>`
 RL.Blocks.B6 = function(cnt) {
-    const tt =
-        `<a href="{{href}}" target="_blank" class="btn" style="border-radius:{{brad}}px;background-color:{{bc}};">
-            <p>{{text}}</p>
-        </a>`
-
     this.render = function(data) {
-        RL.U.add(cnt, RL.U.parse(tt, data), data.t)
+        RL.U.add(cnt, RL.U.parse(RL.T.T6, data), data.t)
     }
 }
 
@@ -334,8 +337,9 @@ RL.Blocks.B6 = function(cnt) {
 RL.T.T7 = `<div datai={{ind}} class="z_pin {{cl}}" style="width:{{psize}}px;height:{{psize}}px;left:{{l}}%;top:{{t}}%;background-color:{{pcl}};margin:-{{tr}}px -{{tr}}px;background-image:url({{pimg}})"></div>`
 RL.T.T71 = `<div class="z_cnt">{{rpins}}<img src="{{bimg}}"></div>`
 RL.Blocks.B7 = function(cnt) {
-    var d, m, pins
+    var d, dt, pins
     this.render = function(data) {
+        dt = data
         if (data.bimg) {
             pins = data.pins
             data.rpins = ''
@@ -360,13 +364,7 @@ RL.Blocks.B7 = function(cnt) {
                 p[i].addEventListener('click', function(e) {
                     var i = e.target.getAttribute('datai'), pin = pins[i]
                     if (pin.h || pin.d || pin.i) {
-                        m = RL.H.showModal(d, pin.h, pin.d, pin.i)
-                        m.addEventListener('click', function() {
-                            d.removeChild(m)
-                        })
-                        m.querySelector('.mo').addEventListener('click', function(ev) {
-                            ev.stopPropagation()
-                        })
+                        RL.H.showModal(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor)
                     }
                 })
             }
@@ -378,7 +376,7 @@ RL.Blocks.B7 = function(cnt) {
  * Find object
  */
 RL.Blocks.B8 = function(cnt) {
-    var d, m, pins, self = this, oc = 0, fs;
+    var d, dt, pins, self = this, oc = 0, fs;
 
     this.render = function(data) {
         if (data.bimg) {
@@ -411,37 +409,26 @@ RL.Blocks.B8 = function(cnt) {
                         e.target.classList.add('rev')
                         setTimeout(function() {
                             if (pin.h || pin.d || pin.i) {
-                                m = RL.H.showModal(d, pin.h, pin.d, pin.i)
-                                self.setModListrs()
+                                RL.H.showModal(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, function() {
+                                    self.showFinal()
+                                })
                             }
                             else self.showFinal()
                         }, 1200)
                     }
                     else {
-                        m = RL.H.showModal(d, pin.h, pin.d, pin.i)
-                        self.setModListrs()
+                        RL.H.showModal(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, function() {
+                            self.showFinal()
+                        })
                     }
                 })
             }
         }
     }
 
-    this.setModListrs = function(modal) {
-        modal = modal || m
-        if (modal) {
-            modal.addEventListener('click', function() {
-                d.removeChild(modal)
-                self.showFinal()
-            })
-            modal.querySelector('.mo').addEventListener('click', function(ev) {
-                ev.stopPropagation()
-            })
-        }
-    }
-
     this.showFinal = function() {
         if (!fs && oc === dt.count && (dt.suct || dt.sucd)) {
-            self.setModListrs(RL.H.showModal(d, dt.suct, dt.sucd))
+            RL.H.showModal(d, dt.suct, dt.sucd, undefined, dt.sucBtext, dt.sucBlink, dt.pcl, dt.btcolor)
             fs = true
         }
     }
@@ -451,20 +438,58 @@ RL.Blocks.B8 = function(cnt) {
  * UI Helpers
  */
 RL.H = {}
-RL.H.showModal = function(cnt,h,d,i) {
+
+/**
+ *
+ * @param {*} cnt dom element to add
+ * @param {*} h header
+ * @param {*} d description
+ * @param {*} i image
+ * @param {*} bt button text
+ * @param {*} bl buton link
+ * @param {*} bc button color
+ * @param {*} btc button text color
+ * @param {*} onClose on close callback
+ */
+RL.H.showModal = function(cnt,h,d,i,bt,bl,bc,btc,onClose) {
     if (h || d || i) {
-        var tm, o = { h:h, d:d, i:i, cl:'' }
+        var tm, ntc = '', o = { h:h, d:d, i:i, cl:'', href:bl, bc:bc, text:bt, color:btc, brad:4}
         if (h || d) {
             tm = `<div class="msg">` +
                 (h ? `<h2>{{h}}</h2>`: ``) +
                 (d ? `<p>{{d}}</p>`: ``) +
+                (bt ? RL.T.T6: ``) +
                 `</div>`
         }
-        else o.cl = 'no_text'
+        else {
+            o.cl = 'no_text'
+            ntc = bt ? RL.T.T6: ``
+        }
         var t = `<div class="mo">` +
-                (o.i ? `<div class="msgi {{cl}}" style="background-image:url({{i}})"></div>`: ``) +
+                (o.i ? (`<div class="msgi {{cl}}" style="background-image:url({{i}})">`+ntc+`</div>`): ``) +
                 (tm ? tm: '') +
                 `</div>`
-        return RL.U.add(cnt, RL.U.parse(t, o), null, 'mow')
+        var d = RL.U.add(cnt, RL.U.parse(t, o), null, 'mow')
+        if (!bl) {
+            // если ссылка на кнопке не задана, то поведение по умолчанию - закрыть модалку
+            var b = d.querySelector('.btn')
+            if (b) {
+                b.addEventListener('click', function(e) {
+                    d.remove()
+                    e.stopPropagation()
+                    e.preventDefault()
+                    if (onClose) onClose()
+                })
+            }
+        }
+        d.addEventListener('click', function() {
+            // закрытие по клику на затемненный фон
+            d.remove()
+            if (onClose) onClose()
+        })
+        d.querySelector('.mo').addEventListener('click', function(e) {
+            e.stopPropagation()
+        })
+        return d
     }
 }
