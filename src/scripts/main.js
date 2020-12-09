@@ -18,7 +18,7 @@ window.RemixLite = RL;
 (function(rl) {
     let data = null,
         cnt = null,
-        nor
+        nor;
 
     function init({
         container,
@@ -103,14 +103,19 @@ window.RemixLite = RL;
  * Methods
  */
 RL.Methods = {
-    add: (cnt, html, btype, cls) => {
+    add: (cnt, html, btype, cls, styles = {}) => {
         const div = document.createElement('div')
+
         if (btype) {
             div.classList = 'block __' + btype
         }
         if (cls) {
             div.classList += cls
         }
+        for (const [key, value] of Object.entries(styles)) {
+            div.style[key] = value;
+        }
+
         div.innerHTML = html
         cnt.appendChild(div)
         return div
@@ -163,7 +168,7 @@ RL.Methods = {
         return '<div style="width:1200px;height:630px;background-image:url(//p.testix.me/images/common/sh.jpg);background-size:cover;background-position:center"></div>'
     },
     extend(o, p) {
-        for (var k in p) {
+        for (const k in p) {
             if (p.hasOwnProperty(k)) o[k] = p[k]
         }
         return o
