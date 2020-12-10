@@ -1,9 +1,10 @@
 export default function(cnt, { methods, ui }) {
     let d, dt, pins, oc = 0, fs;
+    const modal = ui.modal();
 
     const showFinal = () => {
         if (!fs && oc === dt.count && (dt.suct || dt.sucd)) {
-            ui.modal().variant_1(d, dt.suct, dt.sucd, undefined, dt.sucBtext, dt.sucBlink, dt.pcl, dt.btcolor)
+            modal.variant_1(d, dt.suct, dt.sucd, undefined, dt.sucBtext, dt.sucBlink, dt.pcl, dt.btcolor)
             fs = true
         }
     }
@@ -39,13 +40,13 @@ export default function(cnt, { methods, ui }) {
                             e.target.classList.add('rev')
                             setTimeout(function() {
                                 if (pin.h || pin.d || pin.i) {
-                                    ui.modal().variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, () => {
+                                    modal.variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, () => {
                                         showFinal()
                                     })
                                 } else showFinal()
                             }, 1200)
                         } else {
-                            ui.modal().variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, () => {
+                            modal.variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor, () => {
                                 showFinal()
                             })
                         }

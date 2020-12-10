@@ -1,5 +1,6 @@
 export default function(cnt, { methods, ui }) {
     let d, dt, pins;
+    const modal = ui.modal();
 
     return {
         render: data => {
@@ -29,7 +30,7 @@ export default function(cnt, { methods, ui }) {
                     p[i].addEventListener('click', function(e) {
                         const i = e.target.getAttribute('datai'), pin = pins[i]
                         if (pin.h || pin.d || pin.i) {
-                            ui.modal().variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor)
+                            modal.variant_1(d, pin.h, pin.d, pin.i, pin.btext, pin.blink, dt.pcl, dt.btcolor)
                         }
                     })
                 }

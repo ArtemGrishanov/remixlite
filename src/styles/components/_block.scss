@@ -41,4 +41,11 @@
   &.__6, &.__7, &.__8 {
     text-align: center;
   }
+  &.__9 {
+    font-size: 13px;
+    padding: 12px 15px;
+    span {
+      font-weight: bold;
+    }
+  }
 }

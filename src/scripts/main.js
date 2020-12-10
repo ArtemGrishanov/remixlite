@@ -7,6 +7,7 @@ import blockEmbedYoutubeVideo from './blocks/embedYoutubeVideo'
 import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
+import blockTriviaQuiz from './blocks/triviaQuiz'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -316,5 +317,12 @@ RL.Blocks = {
             modal: RL.UI.modal,
             pins: RL.UI.pins,
         }
+    }),
+    //  Trivia quiz
+    B9: cnt => blockTriviaQuiz(cnt, {
+        methods: {
+            add: RL.Methods.add,
+            parse: RL.Methods.parse,
+        },
     })
 }
