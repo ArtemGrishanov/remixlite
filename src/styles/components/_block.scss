@@ -75,23 +75,26 @@
             color: #000;
             margin-bottom: 20px;
           }
-          > div.button-block {
-            margin-bottom: 24px;
-            > button {
-              outline: none;
-              cursor: pointer;
-              border: 0;
-              padding: 0 44px;
-              height: 50px;
-              white-space: nowrap;
-              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-              border-radius: 4px;
-              color: #fff;
-              font-size: 20px;
-              line-height: 24px;
-              @include transition(0.1s, ease-in-out, 0s, (opacity));
-              &:hover {
-                opacity: .8;
+          > div.btn-wrap {
+            overflow: hidden;
+            > div.button-block {
+              margin-bottom: 24px;
+              > button {
+                outline: none;
+                cursor: pointer;
+                border: 0;
+                padding: 0 44px;
+                height: 50px;
+                white-space: nowrap;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+                border-radius: 4px;
+                color: #fff;
+                font-size: 20px;
+                line-height: 24px;
+                @include transition(0.1s, ease-in-out, 0s, (opacity));
+                &:hover {
+                  opacity: .8;
+                }
               }
             }
           }
@@ -330,26 +333,29 @@
             color: #000;
             margin-bottom: 20px;
           }
-          > div.button-block {
-            margin-bottom: 24px;
-            > button {
-              outline: none;
-              height: 50px;
-              background-color: #fff;
-              border: 1px solid #D8D8D8;
-              box-sizing: border-box;
-              border-radius: 4px;
-              font-size: 20px;
-              line-height: 24px;
-              color: #787878;
-              cursor: pointer;
-              padding: 0 40px 0 66px;
-              background-repeat: no-repeat;
-              background-position: 40px 50%;
-              background-image: url("data:image/svg+xml,%3Csvg width='16' height='20' viewBox='0 0 16 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 12C15 15.866 11.866 19 8 19C4.13401 19 1 15.866 1 12C1 8.13401 4.13401 5 8 5H10' stroke='%23787878' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M7 9L11 5L7 1' stroke='%23787878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-              @include transition(0.1s, ease-in-out, 0s, (opacity));
-              &:hover {
-                opacity: .8;
+          > div.btn-wrap {
+            overflow: hidden;
+            > div.button-block {
+              margin-bottom: 24px;
+              > button {
+                outline: none;
+                height: 50px;
+                background-color: #fff;
+                border: 1px solid #D8D8D8;
+                box-sizing: border-box;
+                border-radius: 4px;
+                font-size: 20px;
+                line-height: 24px;
+                color: #787878;
+                cursor: pointer;
+                padding: 0 40px 0 66px;
+                background-repeat: no-repeat;
+                background-position: 40px 50%;
+                background-image: url("data:image/svg+xml,%3Csvg width='16' height='20' viewBox='0 0 16 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 12C15 15.866 11.866 19 8 19C4.13401 19 1 15.866 1 12C1 8.13401 4.13401 5 8 5H10' stroke='%23787878' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M7 9L11 5L7 1' stroke='%23787878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+                @include transition(0.1s, ease-in-out, 0s, (opacity));
+                &:hover {
+                  opacity: .8;
+                }
               }
             }
           }

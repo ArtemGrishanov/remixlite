@@ -18,10 +18,12 @@ const templates = {
             <div class="box">
                 <div class="header">{{cover.h}}</div>
                 <div class="description">{{cover.d}}</div>
-                <div class="button-block">
-                    <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">
-                        {{cover.bT}}
-                    </button>
+                <div class="btn-wrap">
+                    <div class="button-block">
+                        <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">
+                            {{cover.bT}}
+                        </button>
+                    </div>
                 </div>
                 {{#cover.iD}}
                     <div class="image-disclaimer">
@@ -92,10 +94,12 @@ const templates = {
                 {{/showScores}}
                 <div class="header">{{result.h}}</div>
                 <div class="description">{{result.d}}</div>
-                <div class="button-block">
-                    <button class="is-handled" data-handlers="click" data-initiator="result.restart">
-                       Restart
-                    </button>
+                <div class="btn-wrap">
+                    <div class="button-block">
+                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">
+                           Restart
+                        </button>
+                    </div>
                 </div>
                 {{#result.iD}}
                     <div class="image-disclaimer">
