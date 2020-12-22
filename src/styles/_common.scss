@@ -2,10 +2,8 @@ body {
   background-color: #fff;
   font-weight: normal;
   color: #000;
-  p {
-    padding: 0;
-    margin: 0;
-  }
+  line-height: 1.42;
+  overflow: hidden;
 }
 a {
   text-decoration: none;

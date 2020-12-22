@@ -1,3 +1,6 @@
+// https://github.com/janl/mustache.js
+import Mustache from 'mustache'
+
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -320,6 +323,7 @@ RL.Blocks = {
     }),
     //  Trivia quiz
     B9: cnt => blockTriviaQuiz(cnt, {
+        M: Mustache,
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
