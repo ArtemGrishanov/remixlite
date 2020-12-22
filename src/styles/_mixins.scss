@@ -4,3 +4,15 @@
   transition-delay: $transition-delay;
   transition-property: $transition-property;
 }
+
+// Adaptation
+@mixin minWidth($screen) {
+  @media (min-width: $screen+'px') {
+    @content;
+  }
+}
+@mixin maxWidth($screen) {
+  @media (max-width: $screen+'px') {
+    @content;
+  }
+}

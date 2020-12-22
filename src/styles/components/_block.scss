@@ -43,6 +43,9 @@
   }
   &.__9 {
     padding: 60px 0;
+    @include maxWidth(799) {
+      // Adapt there
+    }
     > div.wrapper {
       font-family: 'Roboto', sans-serif;
       font-style: normal;

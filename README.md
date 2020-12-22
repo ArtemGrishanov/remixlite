@@ -1,4 +1,4 @@
-#### Install the gulp command line utility if not already installed
+#### Install the gulp command line utility (if not already installed)
 `npm i -g gulp-cli`
 
 #### Install project dependencies
