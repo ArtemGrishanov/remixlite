@@ -71,12 +71,14 @@
             line-height: 42px;
             color: #000;
             margin-bottom: 16px;
+            white-space: pre-line;
           }
           > div.description {
             font-size: 20px;
             line-height: 28px;
             color: #000;
             margin-bottom: 20px;
+            white-space: pre-line;
           }
           > div.btn-wrap {
             overflow: hidden;
@@ -161,6 +163,7 @@
             width: fit-content;
             max-width: calc(100% - 40px);
             box-sizing: border-box;
+            white-space: pre-line;
           }
         }
         > div.no-img {
@@ -184,6 +187,7 @@
             text-align: center;
             font-weight: 500;
             color: #000;
+            white-space: pre-line;
           }
         }
         > ul.list {
@@ -292,6 +296,7 @@
           top: 15px;
           left: 50%;
           transform: translateX(-50%);
+          white-space: pre-line;
         }
         > img {
           width: 100%;
@@ -329,12 +334,14 @@
             line-height: 42px;
             color: #000;
             margin-bottom: 16px;
+            white-space: pre-line;
           }
           > div.description {
             font-size: 20px;
             line-height: 28px;
             color: #000;
             margin-bottom: 20px;
+            white-space: pre-line;
           }
           > div.btn-wrap {
             overflow: hidden;

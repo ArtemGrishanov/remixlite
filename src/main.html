@@ -118,6 +118,11 @@
                     catch(err) {}
                 }
 
+                const bg = data.defaults && data.defaults.app && data.defaults.app.bg ? data.defaults.app.bg : null;
+                if (bg) {
+                  root.style.backgroundColor = bg;
+                }
+
                 RemixLite.init({
                     container: root,
                     noRender: data.noRender,

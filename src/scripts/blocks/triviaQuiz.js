@@ -271,7 +271,7 @@ export default function(cnt, { M, methods }) {
                     lastAnsweredIndex = null
 
                     let additionalPayload = {}
-                    if (jsonStruct._s.c && initiator === 'start') { // need initiator === 'start' ?
+                    if (jsonStruct._s.c) {
                         setScreen('cover' )
                     } else {
                         setScreen('question', {index: 0})
