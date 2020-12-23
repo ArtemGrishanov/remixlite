@@ -6,223 +6,195 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <meta name="theme-color" content="#000000" />
-    <title>RemixLite Lite App</title>
     <style>
-        html, body {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-            margin: 0;
-        }
-        #remix-app-root {
-            overflow-x: hidden;
-            margin: 0px auto;
-            width: 100%;
-            /* height: 100%; Высота определяется контентом блоков, автовысота */
-        }
-    </style>
-    <style>
-        /* styles for preview generation */
+        /* Styles for preview generation */
         {{STYLES}}
     </style>
   </head>
   <body>
-    <script>
-        var __REMIX_DEFAULT_PROPERTIES__ = '{{PROJECT_STRUCTURE_JSON}}';
-    </script>
+    <!-- Root element -->
     <div id="remix-app-root"></div>
+
     <script>
-        var appId, height;
-        try {
-            window.localStorage.getItem("REMIX_APP_ID") || window.localStorage.setItem("REMIX_APP_ID", generateUUID());
-            appId = window.localStorage.getItem("REMIX_APP_ID");
-        } catch (err) {
-            appId = generateUUID();
+      let loadStatus = 0, loadStuff = 0, cntOrigin, cntSource, inited = false;
+      let clientId = null
+
+      if (window && window.localStorage) {
+        clientId = window.localStorage.getItem("CLIENT_ID");
+        if (!clientId) {
+          clientId = getRandomId(16)
+          window.localStorage.setItem("CLIENT_ID", clientId)
         }
+      }
 
-        var loadStatus = 0, loadStuff = 0, cntOrigin, cntSource, inited = false;
+      window.addEventListener("message", receiveMessage, false);
 
-        function checkAndReply(loaded) {
-            if (loaded) loadStatus++;
-            // send 'embedded' back to RemixContainer
-            if (cntSource && loadStatus === loadStuff) {
-              send({method:'embedded', appId:appId})
-            }
-        }
-        function receiveMessage({origin = null, data = {}, source = null}) {
-            if (data.method) {
-                //console.log('App index.html says: ' + data.method + ' message received');
-            }
-            var EXPECTED_CONTAINER_ORIGIN = null; //TODO define origin for production
-            if (EXPECTED_CONTAINER_ORIGIN && origin !== EXPECTED_CONTAINER_ORIGIN) {
-                return;
-            }
-            if (data.method === 'embed') {
-                if (data.script) {
-                    loadStuff++;
-                    // add additional script into loaded app iframe
-                    var sc = document.createElement('script');
-                    sc.onload = checkAndReply.bind(this, true);
-                    sc.setAttribute('src', data.script);
-                    document.body.appendChild(sc);
-                }
-                if (data.css) {
-                    loadStuff++;
-                    var st = document.createElement('link');
-                    st.onload = checkAndReply.bind(this, true);
-                    st.setAttribute('rel', 'stylesheet');
-                    st.setAttribute('type', 'text/css');
-                    st.setAttribute('href', data.css);
-                    document.body.appendChild(st);
-                }
-                cntSource = source;
-                // origin null on local 'file//' launch
-                cntOrigin = (!origin || origin==='null') ? '*': origin;
-                checkAndReply();
-            }
-            else if (data.method === 'init' && !inited) {
-                if (!window.RemixLite) {
-                    throw new Error('RemixLite app not loaded! Be sure you passed correct script url.');
-                }
-                inited = true;
-                var root = document.getElementById('remix-app-root');
-                if (data.fixedRootWidth) {
-                    // special params for 'edit' mode only (artboard functionality)
-                    root.style.width = data.fixedRootWidth + 'px';
-                }
-                if (data.fixedRootHeight) {
-                    root.style.height = data.fixedRootHeight + 'px';
-                }
-                if (data.marginTop) {
-                    root.style.marginTop = data.marginTop + 'px';
-                }
-                if (data.marginBottom) {
-                    root.style.marginBottom = data.marginBottom + 'px';
-                }
-                if (data.lng) {
-                    try {
-                        window.localStorage.setItem('lng', data.lng)
-                    } catch (err) {
-                        console.error(err)
-                    }
-                }
+      function receiveMessage({origin = null, data = {}, source = null}) {
+        switch (data.method) {
+          case 'init': {
+            if (!inited) {
+              if (!window.RemixLite) {
+                throw new Error('RemixLite app not loaded! Be sure you passed correct script url.');
+              }
 
-                if (!data.defaults) {
-                    data.defaults = __REMIX_DEFAULT_PROPERTIES__
-                }
-                if (typeof data.defaults === 'string') {
-                    try {
-                        data.defaults = JSON.parse(data.defaults)
-                    }
-                    catch(err) {}
-                }
+              inited = true;
 
-                const bg = data.defaults && data.defaults.app && data.defaults.app.bg ? data.defaults.app.bg : null;
-                if (bg) {
-                  root.style.backgroundColor = bg;
-                }
+              const root = document.getElementById('remix-app-root');
 
-                RemixLite.init({
-                    container: root,
-                    noRender: data.noRender,
-                    mode: data.mode,
-                    log: data.log,
-                    defaultProperties: data.defaults,
-                    origin: origin,
-                    source: source
-                });
-                height = document.body.scrollHeight;
-                const mw = data.defaults && data.defaults.app && data.defaults.app.maxWidth ? data.defaults.app.maxWidth : 800;
-                send({method: 'inited', appId: appId, maxWidth: mw, height: height})
-                setInterval(() => {
-                    if (height !== document.body.scrollHeight) {
-                        height = document.body.scrollHeight
-                        send({method:'requestSetSize', size:{height: height}})
-                    }
-                }, 1000)
-                const evt = ['mousemove', 'keydown']
-                evt.forEach(e => {
-                    const activity = () => send({method: 'user-activity'})
-                    window.addEventListener(e, callOncePerTime(activity, 5000))
+              if (data.fixedRootWidth) {
+                root.style.width = data.fixedRootWidth + 'px';
+              }
+              if (data.fixedRootHeight) {
+                root.style.height = data.fixedRootHeight + 'px';
+              }
+              if (data.marginTop) {
+                root.style.marginTop = data.marginTop + 'px';
+              }
+              if (data.marginBottom) {
+                root.style.marginBottom = data.marginBottom + 'px';
+              }
+              if (data.lng) {
+                try {
+                  window.localStorage.setItem('lng', data.lng)
+                } catch (err) {
+                  console.error(err)
+                }
+              }
+
+              if (data.defaults) {
+                data.appStructure = data.defaults
+              } else {
+                data.appStructure = '{{PROJECT_STRUCTURE_JSON}}'
+              }
+              try {
+                data.appStructure = JSON.parse(data.appStructure)
+              } catch(err) {
+                throw new Error('RemixLite cannot parse structure field to JSON');
+              }
+
+              if (data.appStructure.app.bg) {
+                document.body.style.backgroundColor = data.appStructure.app.bg;
+              }
+
+              RemixLite.init({
+                container: root,
+                noRender: data.noRender,
+                appStructure: data.appStructure
+              });
+
+              sendMessage({
+                method: 'inited',
+                appId: clientId,
+                maxWidth: data.appStructure.app.maxWidth ? data.appStructure.app.maxWidth : 800,
+                height: root.scrollHeight
+              })
+
+              const resizeObserver = new ResizeObserver(entries => {
+                sendMessage({
+                  method:'requestSetSize',
+                  size: {
+                    height: entries[0].target.scrollHeight
+                  }
                 })
+              })
+              resizeObserver.observe(root);
+
+              ['mousemove', 'keydown'].forEach(evt => {
+                window.addEventListener(evt, throttle(() => sendMessage({method: 'user-activity'}), 5000))
+              })
             }
-            else if (data.method === 'setdata') {
-                RemixLite.setData(data.data)
-                send({method:'properties_updated'})
+            break;
+          }
+          case 'embed': {
+            if (data.script) {
+              loadStuff++;
+              const script = document.createElement('script');
+              script.onload = checkAndReply.bind(this, true);
+              script.setAttribute('src', data.script);
+              document.body.appendChild(script);
             }
-            else if (data.method === 'serialize') {
-                send({method: 'serialized', state: RemixLite.serialize()})
+            if (data.css) {
+              loadStuff++;
+              const styles = document.createElement('link');
+              styles.onload = checkAndReply.bind(this, true);
+              styles.setAttribute('rel', 'stylesheet');
+              styles.setAttribute('type', 'text/css');
+              styles.setAttribute('href', data.css);
+              document.body.appendChild(styles);
             }
-            else if (data.method === 'setshareentities') {
-                RemixLite.setData(data.data)
-            }
-            else if (data.method === 'getshareentities') {
-                send({method: 'share_entities', share: RemixLite.getData().app.share})
-            }
+            cntSource = source;
+            cntOrigin = !origin ? '*' : origin;
+            checkAndReply();
+            break;
+          }
+          case 'setdata': {
+            RemixLite.setData(data.data)
+            sendMessage({
+              method:'properties_updated'
+            })
+            break;
+          }
+          case 'serialize': {
+            sendMessage({
+              method: 'serialized',
+              state: RemixLite.serialize()
+            })
+            break;
+          }
+          case 'setshareentities': {
+            RemixLite.setData(data.data)
+            break;
+          }
+          case 'getshareentities': {
+            sendMessage({method: 'share_entities', share: RemixLite.getData().app.share})
+            break;
+          }
+          default:
+            break;
         }
-        // if (window.location.search.indexOf('testlocal') >= 0) {
-        //     // run in browser 'http://localhost:8082/?testlocal'
-        //     // runs as single app, no editor. Expect main + defaults on the same host
-        //     receiveMessage({data:{
-        //         method: 'embed',
-        //         script: window.location.origin+'/main.js'
-        //     }})
-        //     setTimeout(function() {
-        //         var xhr = new XMLHttpRequest();
-        //         xhr.open('GET', window.location.origin+'/defaults.json');
-        //         xhr.send()
-        //         xhr.onload = function() {
-        //             if (xhr.status === 200) {
-        //                 receiveMessage({data:{
-        //                     method: 'init',
-        //                     defaults: xhr.responseText
-        //                 }});
-        //             }
-        //         }
-        //     },500)
-        // }
-        // else {
-            // normal launch in RContainer
-            window.addEventListener("message", receiveMessage, false);
-        // }
-        function send(data) {
-            if (cntSource) {
-                cntSource.postMessage(data, cntOrigin);
-            }
+      }
+      function sendMessage(data) {
+        if (cntSource) {
+          cntSource.postMessage(data, cntOrigin);
         }
-        function generateUUID() {
-            var d = new Date().getTime();
-            var d2 = (performance && performance.now && (performance.now()*1000)) || 0;
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16;
-                if(d > 0){
-                    r = (d + r)%16 | 0;
-                    d = Math.floor(d/16);
-                } else {
-                    r = (d2 + r)%16 | 0;
-                    d2 = Math.floor(d2/16);
-                }
-                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-            });
+      }
+
+      function checkAndReply(loaded) {
+        if (loaded) loadStatus++;
+        if (cntSource && loadStatus === loadStuff) {
+          sendMessage({
+            method:'embedded',
+            appId: clientId,
+          })
         }
-        function callOncePerTime(func, wait) {
-            let timeout = null
-            return function (...args) {
-                if (timeout === null) {
-                    func.apply(this, args)
-                    timeout = setTimeout(() => (timeout = null), wait)
-                }
-            }
+      }
+      function getRandomId(t = 21) {
+        let s = '',
+                r = crypto.getRandomValues(new Uint8Array(t))
+        for (; t--; ) {
+          const n = 63 & r[t]
+          s += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? '_' : '-'
         }
+        return s
+      }
+      function throttle(func, waitTime) {
+          let timeout = null
+          return function (...args) {
+              if (timeout === null) {
+                  func.apply(this, args)
+                  timeout = setTimeout(() => (timeout = null), waitTime)
+              }
+          }
+      }
     </script>
+
     <script>
-        // scripts for preview generation
-        try {
-            {{SCRIPTS}}
-            receiveMessage({data:{method:'init'}})
-        }
-        catch(err) {}
+      // Scripts for preview generation
+      try {
+        {{SCRIPTS}}
+        receiveMessage({data:{method:'init'}})
+      }
+      catch(err) {}
     </script>
   </body>
 </html>

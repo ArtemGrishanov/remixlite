@@ -310,7 +310,7 @@ export default function(cnt, { M, methods }) {
                     log('warn', data.id, 'Block will not render because "data.struct._isV" is FALSE.')
                 }
             } catch (err) {
-                log('warn', data.id, 'Block will not render because "data.struct" not JSON.')
+                log('warn', data.id, 'Block will not render because cannot parse "data.struct" to JSON.')
             }
         },
         postRender: null

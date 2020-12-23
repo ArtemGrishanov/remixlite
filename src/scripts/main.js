@@ -27,13 +27,11 @@ window.RemixLite = RL;
     function init({
         container,
         noRender,
-        defaultProperties,
-        // origin,
-        // source
+        appStructure
     }) {
         cnt = container
         nor = noRender
-        setData(defaultProperties)
+        setData(appStructure)
     }
 
     function setData(d) {
