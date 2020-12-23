@@ -4,11 +4,16 @@ body {
   color: #000;
   line-height: 1.42;
   overflow: hidden;
+  > div.root {
+    overflow: hidden;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .ic {
+    text-align: center;
+  }
 }
-a {
-  text-decoration: none;
-  color: inherit;
-}
-.ic {
-  text-align: center;
-}
+
+
