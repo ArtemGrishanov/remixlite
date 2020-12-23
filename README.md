@@ -9,9 +9,12 @@
 
 Files serve on: http://127.0.0.1:8090 (hot reload)
 
-- html: `http://127.0.0.1:8090/rlite.html`
-- css: `http://127.0.0.1:8090/rlite.css`
-- js: `http://127.0.0.1:8090/rlite.js`
+##### Type files
+- html: `http://127.0.0.1:8090/typeFiles/main.html`
+- css: `http://127.0.0.1:8090/typeFiles/main.css`
+- js: `http://127.0.0.1:8090/typeFiles/main.js`
+##### Loader
+`http://127.0.0.1:8090/loader/index.js`
 
 ## Build
 `npm run build`
