@@ -41,58 +41,38 @@
 
               const root = document.getElementById('remix-app-root');
 
-              if (data.fixedRootWidth) {
-                root.style.width = data.fixedRootWidth + 'px';
-              }
-              if (data.fixedRootHeight) {
-                root.style.height = data.fixedRootHeight + 'px';
-              }
-              if (data.marginTop) {
-                root.style.marginTop = data.marginTop + 'px';
-              }
-              if (data.marginBottom) {
-                root.style.marginBottom = data.marginBottom + 'px';
-              }
-              if (data.lng) {
-                try {
-                  window.localStorage.setItem('lng', data.lng)
-                } catch (err) {
-                  console.error(err)
-                }
+              if (!data.projectStructure) {
+                data.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
               }
 
-              if (data.defaults) {
-                data.appStructure = data.defaults
-              } else {
-                data.appStructure = '{{PROJECT_STRUCTURE_JSON}}'
-              }
               try {
-                data.appStructure = JSON.parse(data.appStructure)
+                data.projectStructure = JSON.parse(data.projectStructure)
               } catch(err) {
                 throw new Error('RemixLite cannot parse structure field to JSON');
               }
 
-              if (data.appStructure.app.bg) {
-                document.body.style.backgroundColor = data.appStructure.app.bg;
+              if (data.projectStructure.app.bg) {
+                document.body.style.backgroundColor = data.projectStructure.app.bg;
               }
 
               RemixLite.init({
                 container: root,
-                noRender: data.noRender,
-                appStructure: data.appStructure
+                projectStructure: data.projectStructure
               });
 
               sendMessage({
-                method: 'inited',
-                appId: clientId,
-                maxWidth: data.appStructure.app.maxWidth ? data.appStructure.app.maxWidth : 800,
-                height: root.scrollHeight
+                method: 'initialized',
+                clientId,
+                sizes: {
+                  maxWidth: data.projectStructure.app.maxWidth ? data.projectStructure.app.maxWidth : 800,
+                  height: root.scrollHeight
+                },
               })
 
               const resizeObserver = new ResizeObserver(entries => {
                 sendMessage({
-                  method:'requestSetSize',
-                  size: {
+                  method: 'setSize',
+                  sizes: {
                     height: entries[0].target.scrollHeight
                   }
                 })
@@ -125,28 +105,6 @@
             cntSource = source;
             cntOrigin = !origin ? '*' : origin;
             checkAndReply();
-            break;
-          }
-          case 'setdata': {
-            RemixLite.setData(data.data)
-            sendMessage({
-              method:'properties_updated'
-            })
-            break;
-          }
-          case 'serialize': {
-            sendMessage({
-              method: 'serialized',
-              state: RemixLite.serialize()
-            })
-            break;
-          }
-          case 'setshareentities': {
-            RemixLite.setData(data.data)
-            break;
-          }
-          case 'getshareentities': {
-            sendMessage({method: 'share_entities', share: RemixLite.getData().app.share})
             break;
           }
           default:

@@ -1,4 +1,3 @@
-// https://github.com/janl/mustache.js
 import Mustache from 'mustache'
 
 // Import blocks
@@ -20,18 +19,14 @@ const RL = window.RemixLite || {};
 window.RemixLite = RL;
 
 (function(rl) {
-    let data = null,
-        cnt = null,
-        nor;
+    let data = null, cnt = null;
 
     function init({
         container,
-        noRender,
-        appStructure
+        projectStructure
     }) {
         cnt = container
-        nor = noRender
-        setData(appStructure)
+        setData(projectStructure)
     }
 
     function setData(d) {
@@ -41,37 +36,20 @@ window.RemixLite = RL;
             d = RL.Methods.htmlDecode(d)
             try {
                 dd = JSON.parse(d)
-            }
-            catch(err) {
+            } catch(err) {
                 console.error(err)
             }
-        }
-        else if (typeof d === 'object') {
+        } else if (typeof d === 'object') {
             RL.Methods.forAllStringProperties(d, RL.Methods.htmlDecode)
             dd = d
         }
-        // установить только те данные, которые поддеержвает приложение. В обычном ремикс приложении приходит гораздо больше данных
         if (dd && dd.hasOwnProperty('blocks')) {
             data.blocks = dd.blocks
         }
         if (dd && dd.hasOwnProperty('app')) {
             data.app = dd.app
         }
-        if (!data.share) {
-            if (!data.app) data.app = {};
-            data.app.share = { previewHtml: RL.Methods.defPreview(), entities:[] };
-        }
-        if (!nor) {
-            render()
-        }
-    }
-
-    function getData() {
-        return data
-    }
-
-    function serialize() {
-        return JSON.stringify(data)
+        render()
     }
 
     function render() {
@@ -96,9 +74,6 @@ window.RemixLite = RL;
 
     // public API
     rl.init = init
-    rl.setData = setData
-    rl.getData = getData
-    rl.serialize = serialize
 })(RL)
 
 /**
@@ -165,9 +140,6 @@ RL.Methods = {
                 }
             })
         }
-    },
-    defPreview() {
-        return '<div style="width:1200px;height:630px;background-image:url(//p.testix.me/images/common/sh.jpg);background-size:cover;background-position:center"></div>'
     },
     extend(o, p) {
         for (const k in p) {
