@@ -41,37 +41,35 @@
 
               const root = document.getElementById('remix-app-root');
 
-              if (!data.projectStructure) {
-                data.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
+              if (!data.payload.projectStructure) {
+                data.payload.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
               }
 
               try {
-                data.projectStructure = JSON.parse(data.projectStructure)
+                data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
               } catch(err) {
                 throw new Error('RemixLite cannot parse structure field to JSON');
               }
 
-              if (data.projectStructure.app.bg) {
-                document.body.style.backgroundColor = data.projectStructure.app.bg;
+              if (data.payload.projectStructure.app.bg) {
+                document.body.style.backgroundColor = data.payload.projectStructure.app.bg;
               }
 
               RemixLite.init({
                 container: root,
-                projectStructure: data.projectStructure
+                projectStructure: data.payload.projectStructure
               });
 
-              sendMessage({
-                method: 'initialized',
+              sendMessage('initialized', {
                 clientId,
                 sizes: {
-                  maxWidth: data.projectStructure.app.maxWidth ? data.projectStructure.app.maxWidth : 800,
+                  maxWidth: data.payload.projectStructure.app.maxWidth ? data.payload.projectStructure.app.maxWidth : 800,
                   height: root.scrollHeight
                 },
               })
 
               const resizeObserver = new ResizeObserver(entries => {
-                sendMessage({
-                  method: 'setSize',
+                sendMessage('setSize', {
                   sizes: {
                     height: entries[0].target.scrollHeight
                   }
@@ -80,26 +78,26 @@
               resizeObserver.observe(root);
 
               ['mousemove', 'keydown'].forEach(evt => {
-                window.addEventListener(evt, throttle(() => sendMessage({method: 'user-activity'}), 5000))
+                window.addEventListener(evt, throttle(() => sendMessage('user-activity'), 5000))
               })
             }
             break;
           }
           case 'embed': {
-            if (data.script) {
+            if (data.payload.js) {
               loadStuff++;
               const script = document.createElement('script');
               script.onload = checkAndReply.bind(this, true);
-              script.setAttribute('src', data.script);
+              script.setAttribute('src', data.payload.js);
               document.body.appendChild(script);
             }
-            if (data.css) {
+            if (data.payload.css) {
               loadStuff++;
               const styles = document.createElement('link');
               styles.onload = checkAndReply.bind(this, true);
               styles.setAttribute('rel', 'stylesheet');
               styles.setAttribute('type', 'text/css');
-              styles.setAttribute('href', data.css);
+              styles.setAttribute('href', data.payload.css);
               document.body.appendChild(styles);
             }
             cntSource = source;
@@ -111,18 +109,20 @@
             break;
         }
       }
-      function sendMessage(data) {
+      function sendMessage(method, payload = null) {
         if (cntSource) {
-          cntSource.postMessage(data, cntOrigin);
+          cntSource.postMessage({
+            method,
+            payload
+          }, cntOrigin);
         }
       }
 
       function checkAndReply(loaded) {
         if (loaded) loadStatus++;
         if (cntSource && loadStatus === loadStuff) {
-          sendMessage({
-            method:'embedded',
-            appId: clientId,
+          sendMessage('embedded', {
+            clientId
           })
         }
       }

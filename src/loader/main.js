@@ -8,121 +8,46 @@ import isFunction from 'type/function/is'
 
 // import { getRandomId } from './_utils'
 
-if (window.R === undefined) {
-    window.R = {}
-    ;(function (global) {
-        const classes = 'r_app'
-        const initializedAttrName = 'data-initialized'
-
-        // const gaTrackerName = 'interactyTracker'
-        // const statCategory = 'InteractyLoader'
-        // const analytics = new Analytics()
-        // const userActivity = new UserActivity()
-        // const userData = new UserData()
-        // function createSession(projectId, clientKey) {
-        //     setClientKey(clientKey)
-        //     sessionInitialize({ projectId })
-        // }
-
-        async function init() {
-            const elements = document.getElementsByClassName(classes)
-            for (const element of elements) {
-                const initialized = element.getAttribute(initializedAttrName)
-                if (!initialized) {
-                    element.setAttribute(initializedAttrName, 'true')
-                    const contentUrl = element.getAttribute('data-content')
-                    const initialWidth = element.getAttribute('data-initialWidth')
-                    const initialHeight = element.getAttribute('data-initialHeight')
-
-                    // sendStatToGA(gaTrackerName, {category: statCategory, action: 'content_requested'})
-
-                    let content;
-                    try {
-                        const response = await fetch(contentUrl)
-                        content = await response.json()
-                    } catch (err) {
-                        throw new Error(`Cannot get content from ${contentUrl}`)
-                    }
-                    
-                    console.log('content:', content);
-
-                    const htmlFile = content.files.find(el => el.mediaType === 'text/html')
-                    if (!htmlFile) {
-                        throw new Error(`Cannot get HTML file from ${contentUrl}`)
-                    }
-                    const cssFile = content.files.find(el => el.mediaType === 'text/css')
-                    if (!cssFile) {
-                        throw new Error(`Cannot get CSS file from ${contentUrl}`)
-                    }
-                    const jsFile = content.files.find(el => el.mediaType === 'text/javascript')
-                    if (!jsFile) {
-                        throw new Error(`Cannot get JS file from ${contentUrl}`)
-                    }
-
-                    new window.RC({
-                        mode: 'published',
-                        nodeElement: element,
-                        htmlUrl: htmlFile.url,
-                        cssUrl: cssFile.url,
-                        jsUrl: jsFile.url,
-                        initialWidth,
-                        initialHeight,
-                        features: content.features,
-                        projectStructure: null,
-                        onEvent: (name, data) => {
-                            console.log('--- onEvent (loader) ---');
-                            console.log('method:', data.method);
-                            console.log('data:', data);
-                            
-                            // Sessions + activity
-        
-                            // data => data.method === 'user-activity' && userActivity.makeActivity(),
-                            // data => data.method.indexOf('analytics') !== -1 && analytics.trigger(data),
-                            // if (data.method === 'user-data') {userData.push(data)}
-                        },
-                    }).createIframe()
-
-                    // sendStatToGA(gaTrackerName, {category: statCategory, action: 'container_created'})
-                    
-                    // analytics.setConversionActionIds(
-                    //     Object.fromEntries(
-                    //         (json.projectActions || []).map(({ actionType, id }) => [actionType, id]),
-                    //     ),
-                    // )
-                    // userData.formTemplate = json.projectForms
-                }
-            }
-        }
-
-        // public
-        global.init = init
-    })(window.R)
-}
-window.R.init()
-
 /**
- * _RC
+ * R Class
  */
 window.RC = class RC {
-    constructor({mode, nodeElement, htmlUrl, jsUrl, cssUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
-        this.mode = this.validateConstructorParam('mode', mode, true)
-        this.nodeElement = this.validateConstructorParam('nodeElement', nodeElement, true)
-        this.htmlUrl = this.validateConstructorParam('htmlUrl', htmlUrl, false)
-        this.jsUrl = this.validateConstructorParam('jsUrl', jsUrl, true)
-        this.cssUrl = this.validateConstructorParam('cssUrl', cssUrl, true)
-        this.features = this.validateConstructorParam('features', features, true)
-        this.projectStructure = this.validateConstructorParam('projectStructure', projectStructure, false, null)
-        this.initialWidth = this.validateConstructorParam('initialWidth', initialWidth, false, 800)
-        this.initialHeight = this.validateConstructorParam('initialHeight', initialHeight, false, 600)
-        this.lng = this.validateConstructorParam('lng', lng, false, 'en')
-        this.onEvent = this.validateConstructorParam('onEvent', onEvent, true)
+    #mode
+    #nodeElement
+    #htmlUrl
+    #cssUrl
+    #jsUrl
+    #features
+    #projectStructure
+    #initialWidth
+    #initialHeight
+    #lng
+    #onEvent
 
-        this.appOrigin = new URL(htmlUrl).origin;
-        this.preloader = this.createPreloader()
-        this.iframe = null
+    #appOrigin
+    #preloader
+    #iframe
+
+    constructor({mode, nodeElement, htmlUrl, cssUrl, jsUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
+        this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
+        this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
+        this.#htmlUrl = this.#validateConstructorParam('htmlUrl', htmlUrl, true)
+        this.#cssUrl = this.#validateConstructorParam('cssUrl', cssUrl, true)
+        this.#jsUrl = this.#validateConstructorParam('jsUrl', jsUrl, true)
+        this.#features = this.#validateConstructorParam('features', features, false, [])
+        this.#projectStructure = this.#validateConstructorParam('projectStructure', projectStructure, false, null)
+        this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
+        this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
+        this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getLanguage())
+        this.#onEvent = this.#validateConstructorParam('onEvent', onEvent, false, null)
+
+        this.#appOrigin = new URL(htmlUrl).origin;
+        this.#preloader = this.#createPreloader()
+        this.#iframe = null
     }
 
-    validateConstructorParam = ((key, value, required = true, defaultValue) => {
+    // [PRIVATE]
+    #validateConstructorParam = ((key, value, required = true, defaultValue) => {
         try {
             const check = (key, value) => {
                 switch (key) {
@@ -132,61 +57,57 @@ window.RC = class RC {
                             if (available.indexOf(value) !== -1) {
                                 return value
                             }
-                            return this.throwExceptionManually('cv', { type: 'value', key, value, expected: available })
+                            return this.#throwExceptionManually('CV', { type: 'value', key, value, expected: available })
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'String' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'nodeElement': {
                         if (value instanceof Element || value instanceof HTMLDocument) {
                             return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'HTMLElement' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'HTMLElement' })
                     }
                     case 'htmlUrl':
                     case 'jsUrl':
                     case 'cssUrl': {
-                        if (isURL(value)) {
+                        if (typeof value === 'string' && isURL(value)) {
                             return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'URL' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (URL)' })
                     }
                     case 'features': {
                         if (isArray(value)) {
                             return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'Array' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Array' })
                     }
                     case 'projectStructure': {
-                        if (isJSON(value)) {
+                        if (typeof value === 'string' && isJSON(value)) {
                             return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'JSON' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
                     }
                     case 'initialWidth':
                     case 'initialHeight': {
-                        if (isInt(value.toString())) {
+                        if ((typeof value === 'number' && isInt(value.toString())) || (typeof value === 'string' && isInt(value))) {
                             return parseInt(value)
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'Number (INT)' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
                     }
                     case 'lng': {
                         if (typeof value === 'string') {
-                            const available = ['ru', 'en']
-                            if (available.indexOf(value) !== -1) {
-                                return value
-                            }
-                            return this.throwExceptionManually('cv', { type: 'value', key, value, expected: available })
+                            return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'String' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'onEvent': {
                         if (isFunction(value)) {
                             return value
                         }
-                        return this.throwExceptionManually('cv', { type: 'format', key, value, expected: 'Function' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Function' })
                     }
                     default:
-                        return this.throwExceptionManually('cv', { type: 'unknown', key })
+                        return this.#throwExceptionManually('CV', { type: 'unknown', key })
                 }
             }
 
@@ -196,75 +117,87 @@ window.RC = class RC {
             }
             // value required and not defined - throw error
             if (required) {
-                return this.throwExceptionManually('cv', { type: 'undefined', key, value })
+                return this.#throwExceptionManually('CV', { type: 'undefined', key, value })
             }
             // return defaultValue
             return defaultValue
         } catch (err) {
-            return this.throwExceptionManually('cv', { type: 'internal', key, err })
+            if (err.name === 'ManuallyException') {
+                throw err;
+            } else {
+                return this.#throwExceptionManually('CV', { type: 'internal', key, err })
+            }
         }
     })
 
-    // Create iframe for container instance
+    // [PUBLIC] Create iframe for container instance
     createIframe = () => {
-        this.nodeElement.innerHTML = ''
-        this.nodeElement.className = 'remix_cnt'
-        this.nodeElement.style.position = 'relative'
-        this.nodeElement.style.margin = '0 auto'
-        this.nodeElement.style.overflow = 'hidden'
+        this.#nodeElement.innerHTML = ''
+        this.#nodeElement.className = 'remix_cnt'
+        this.#nodeElement.style.position = 'relative'
+        this.#nodeElement.style.margin = '0 auto'
+        this.#nodeElement.style.overflow = 'hidden'
 
         // initial sizes, changes after "initialized" message
-        this.nodeElement.style.width = `${this.initialWidth}px`
-        this.nodeElement.style.height = `${this.initialHeight}px`
+        this.#nodeElement.style.width = `${this.#initialWidth}px`
+        this.#nodeElement.style.height = `${this.#initialHeight}px`
 
         window.addEventListener('message', this.receiveMessage, false)
 
-        this.nodeElement.appendChild(this.preloader.render())
-        if (this.mode === 'published' && !this.features.includes('NO_LOGO')) {
-            this.nodeElement.appendChild(this.createPoweredLabel())
+        this.#nodeElement.appendChild(this.#preloader.render())
+        if (this.#mode === 'published' && !this.#features.includes('NO_LOGO')) {
+            this.#nodeElement.appendChild(this.#createPoweredLabel())
         }
 
         const iframe = document.createElement('iframe')
         iframe.id = 'remix-iframe'
-        iframe.setAttribute('allowFullScreen', '')
         iframe.style.border = 0
         iframe.style.width = '100%'
         iframe.style.height = '100%'
         iframe.style.overflow = 'hidden'
-        const self = this
+        iframe.setAttribute('allowFullScreen', '')
         iframe.onload = evt => {
-            self.parentNode = this.nodeElement
-            self.iframe = iframe
-            self.iframe.contentWindow.postMessage(
+            iframe.contentWindow.postMessage(
                 {
                     method: 'embed',
-                    script: this.jsUrl,
-                    css: this.cssUrl
+                    payload: {
+                        js: this.#jsUrl,
+                        css: this.#cssUrl
+                    }
                 },
-                self.appOrigin,
+                this.#appOrigin,
             )
         }
-        iframe.src = this.htmlUrl
-        this.nodeElement.appendChild(iframe)
-        this.iframe = iframe
+        iframe.src = this.#htmlUrl
+        this.#nodeElement.appendChild(iframe)
+        this.#iframe = iframe
     }
 
-    // Set nodeElement size
-    setSize = ({ width, height, maxWidth }) => {
+    // [PRIVATE] Get language form window.navigator
+    #getLanguage = () => {
+        const language = window.navigator ? (
+            window.navigator.language ||
+            window.navigator.systemLanguage ||
+            window.navigator.userLanguage
+        ) : null;
+        return language ? language.slice(0, 2).toLowerCase() : null
+    }
+
+    // [PRIVATE] Set nodeElement size
+    #setSize = ({ width, height, maxWidth }) => {
         if (isValue(width) && width === 'maxWidth') {
-            this.nodeElement.style.width = '100%'
+            this.#nodeElement.style.width = '100%'
         }
         if (isValue(maxWidth) && isInt(maxWidth.toString())) {
-            this.nodeElement.style.maxWidth = maxWidth + 'px'
-            this.maxWidth = maxWidth
+            this.#nodeElement.style.maxWidth = maxWidth + 'px'
         }
         if (isValue(maxWidth) && isInt(maxWidth.toString())) {
-            this.nodeElement.style.height = height + 'px'
-            this.height = height
+            this.#nodeElement.style.height = height + 'px'
         }
     }
 
-    createPreloader = () => {
+    // [PRIVATE]
+    #createPreloader = () => {
         const MIN_ANIMATION_DELAY = 1000
         const ANIMATION_DURATION = 500
 
@@ -306,78 +239,94 @@ window.RC = class RC {
             },
         }
     }
-    createPoweredLabel = () => {
+    // [PRIVATE]
+    #createPoweredLabel = () => {
         const html = `
-            <a href="${process.env.REACT_APP_STATIC_URL}" target="_blank">
-                <img src="https://interacty.me/static/media/powered_by.svg" style="position: absolute; bottom: 0; right: 0;" alt="powered by interacty" />
+            <a href="https://google.com" target="_blank">
+                <img src="https://interacty.me/static/media/powered_by.svg" style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" />
             </a>
         `
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
+        div.firstChild.addEventListener('click', evt => this.#sendEventToContainerInstance('createPoweredLabel clicked', null))
         return div.firstChild;
     }
 
-    // Receive message from remix app
+    // [PRIVATE] Receive message from remix app
     receiveMessage = ({ origin = null, data = {}, source = null }) => {
-        if (!this.iframe || this.iframe.contentWindow !== source || origin !== this.appOrigin) {
+        if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
             return
         }
 
-        console.log('--- receiveMessage (loader) ---');
+        console.log('--- receiveMessage (RC) ---');
         console.log('method:', data.method);
         console.log('data:', data);
 
         switch (data.method) {
             case 'embedded': {
-                // this.sendEventToContainerInstance(data.method, data)
-                this.iframe.contentWindow.postMessage({
+                this.#iframe.contentWindow.postMessage({
                     method: 'init',
-                    mode: this.mode,
-                    projectStructure: this.projectStructure
-                }, this.appOrigin)
+                    payload: {
+                        mode: this.#mode,
+                        projectStructure: this.#projectStructure
+                    }
+                }, this.#appOrigin)
                 break;
             }
             case 'initialized': {
-                this.preloader.hideAndDestroy()
-                this.setSize({ ...data.sizes, width: 'maxWidth'})
+                this.#preloader.hideAndDestroy()
+                this.#setSize({
+                    ...data.payload.sizes,
+                    width: 'maxWidth'
+                })
                 break;
             }
             case 'setSize': {
-                this.setSize(data.sizes)
+                this.#setSize(data.payload.sizes)
                 break;
             }
             default:
                 break;
         }
+
+        this.#sendEventToContainerInstance(data.method, data)
     }
 
-    // Send event to container instance
-    sendEventToContainerInstance = (name, data) => {
-        if (this.onEvent) {
-            this.onEvent(name, data)
+    // [PRIVATE] Send event to container instance
+    #sendEventToContainerInstance = (name, data) => {
+        if (this.#onEvent) {
+            this.#onEvent(name, data)
         }
     }
 
-    throwExceptionManually = (initiator, data) => {
+    // [PRIVATE]
+    #throwExceptionManually = (initiator, data) => {
+        let errorMessage = '[REMIX CONTAINER] Unhandled exception';
+
         switch (initiator) {
-            case 'cv': {
+            case 'CV': {
+                const errorPrefix = '[CONSTRUCTOR VALIDATOR]'
                 switch (data.type) {
                     case 'undefined': {
-                        throw new Error(`[CONSTRUCTOR VALIDATOR] Field "${data.key}" is required. Received value: "${data.value}"`)
+                        errorMessage = `${errorPrefix} Field "${data.key}" is required. Received value: "${data.value}"`
+                        break;
                     }
                     case 'unknown': {
-                        throw new Error(`[CONSTRUCTOR VALIDATOR] Unknown field: "${data.key}"`)
+                        errorMessage = `${errorPrefix} Unknown field: "${data.key}"`
+                        break;
                     }
                     case 'format': {
-                        throw new Error(`[CONSTRUCTOR VALIDATOR] Invalid field "${data.key}" format! Expected type: "${data.expected}". Received type: "${typeof data.value}", value: "${data.value}"`)
+                        errorMessage = `${errorPrefix} Invalid field "${data.key}" format! Expected type: "${data.expected}". Received type: "${typeof data.value}", value: "${data.value}"`
+                        break;
                     }
                     case 'value': {
-                        throw new Error(`[CONSTRUCTOR VALIDATOR] Invalid field "${data.key}" value! Expected values: "${data.expected.join(', ')}". Received value: "${data.value}"`)
+                        errorMessage = `${errorPrefix} Invalid field "${data.key}" value! Expected values: "${data.expected.join(', ')}". Received value: "${data.value}"`
+                        break;
                     }
                     case 'internal': {
-                        console.error(data.err);
-                        throw new Error(`[CONSTRUCTOR VALIDATOR] Internal error! Validating field: "${data.key}". Received value: "${data.value}"`)
+                        errorMessage = `${errorPrefix} Internal error! Validating field: "${data.key}". Received value: "${data.value}"`
+                        break;
                     }
                     default:
                         break;
@@ -387,6 +336,96 @@ window.RC = class RC {
             default:
                 break;
         }
-        throw new Error(`[REMIX CONTAINER] Unhandled exception`)
+
+        const error = new Error(errorMessage)
+        error.name = 'ManuallyException'
+        throw error
     }
-}
+};
+
+/**
+ * R Class BOOTLOADER (For embedded projects)
+ */
+(async () => {
+    if (window.RC) {
+        const classes = 'r_app'
+        const initializedAttrName = 'data-initialized'
+
+        const elements = document.getElementsByClassName(classes)
+        for (const element of elements) {
+            const initialized = element.getAttribute(initializedAttrName)
+            if (!initialized) {
+                element.setAttribute(initializedAttrName, 'true')
+                const contentUrl = element.getAttribute('data-content')
+                const initialWidth = element.getAttribute('data-initialWidth')
+                const initialHeight = element.getAttribute('data-initialHeight')
+
+                // sendStatToGA(gaTrackerName, {category: statCategory, action: 'content_requested'})
+
+                let content;
+                try {
+                    const response = await fetch(contentUrl)
+                    content = await response.json()
+                } catch (err) {
+                    throw new Error(`Cannot get content from ${contentUrl}`)
+                }
+
+                const htmlFile = content.files.find(el => el.mediaType === 'text/html')
+                if (!htmlFile) {
+                    throw new Error(`Cannot get HTML file from ${contentUrl}`)
+                }
+                const cssFile = content.files.find(el => el.mediaType === 'text/css')
+                if (!cssFile) {
+                    throw new Error(`Cannot get CSS file from ${contentUrl}`)
+                }
+                const jsFile = content.files.find(el => el.mediaType === 'text/javascript')
+                if (!jsFile) {
+                    throw new Error(`Cannot get JS file from ${contentUrl}`)
+                }
+
+                new window.RC({
+                    mode: 'published',
+                    nodeElement: element,
+                    htmlUrl: htmlFile.url,
+                    cssUrl: cssFile.url,
+                    jsUrl: jsFile.url,
+                    features: content.features,
+                    projectStructure: null,
+                    initialWidth,
+                    initialHeight,
+                    lng: null,
+                    onEvent: (name, data) => {
+                        console.log('--- onEvent (BOOTLOADER) ---');
+                        console.log('method:', data.method);
+                        console.log('data:', data);
+
+                        // Sessions + activity
+
+                        // data => data.method === 'user-activity' && userActivity.makeActivity(),
+                        // data => data.method.indexOf('analytics') !== -1 && analytics.trigger(data),
+                        // if (data.method === 'user-data') {userData.push(data)}
+                    },
+                }).createIframe()
+
+                // sendStatToGA(gaTrackerName, {category: statCategory, action: 'container_created'})
+
+                // analytics.setConversionActionIds(
+                //     Object.fromEntries(
+                //         (json.projectActions || []).map(({ actionType, id }) => [actionType, id]),
+                //     ),
+                // )
+                // userData.formTemplate = json.projectForms
+            }
+        }
+
+        // const gaTrackerName = 'interactyTracker'
+        // const statCategory = 'InteractyLoader'
+        // const analytics = new Analytics()
+        // const userActivity = new UserActivity()
+        // const userData = new UserData()
+        // function createSession(projectId, clientKey) {
+        //     setClientKey(clientKey)
+        //     sessionInitialize({ projectId })
+        // }
+    }
+})()

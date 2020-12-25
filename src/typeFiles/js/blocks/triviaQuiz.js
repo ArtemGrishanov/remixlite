@@ -121,6 +121,16 @@ export default function(cnt, { M, methods }) {
     let scores = 0
     let lastAnsweredIndex = null
 
+    // TODO
+    // Allowed method (from main.html) - to send some data to RC
+    // sendMessage({
+    //     method: 'test method',
+    //     data: {
+    //         data1: "test data1",
+    //         data2: "test data2"
+    //     }
+    // })
+
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
         M.parse(template)
