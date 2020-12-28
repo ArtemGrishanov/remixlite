@@ -1,12 +1,40 @@
-import isJSON from 'validator/lib/isJSON'
-import isURL from "validator/lib/isURL"
-import isInt from "validator/lib/isInt"
-
-import isValue from 'type/value/is'
-import isArray from 'type/array/is'
-import isFunction from 'type/function/is'
-
 // import { getRandomId } from './_utils'
+
+const UTILS = {
+    validator: {
+        isValue: value => {
+            try {
+                return value !== void 0 && value !== null
+            } catch (err) {
+                return false
+            }
+        },
+        isJSON: value => {
+            try {
+                return (JSON.parse(value) && !!value);
+            } catch (e) {
+                return false;
+            }
+        },
+        isURL: value => {
+            try {
+                const regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+                return regexp.test(value)
+            } catch (err) {
+                return false;
+            }
+        },
+        isInt: value => {
+            try {
+                const regexp = /^[-+]?[0-9]+$/
+                return regexp.test(value)
+            } catch (err) {
+                return false
+            }
+        }
+    }
+}
+
 
 /**
  * R Class
@@ -49,11 +77,12 @@ window.RC = class RC {
     // [PRIVATE]
     #validateConstructorParam = ((key, value, required = true, defaultValue) => {
         try {
-            const check = (key, value) => {
+            // check value and return (formatted or error)
+            if (UTILS.validator.isValue(value)) {
                 switch (key) {
                     case 'mode': {
                         if (typeof value === 'string') {
-                            const available = ['preview', 'published']
+                            const available = ['dev', 'preview', 'published']
                             if (available.indexOf(value) !== -1) {
                                 return value
                             }
@@ -70,26 +99,26 @@ window.RC = class RC {
                     case 'htmlUrl':
                     case 'jsUrl':
                     case 'cssUrl': {
-                        if (typeof value === 'string' && isURL(value)) {
+                        if (UTILS.validator.isURL(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (URL)' })
                     }
                     case 'features': {
-                        if (isArray(value)) {
+                        if (Array.isArray(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Array' })
                     }
                     case 'projectStructure': {
-                        if (typeof value === 'string' && isJSON(value)) {
+                        if (UTILS.validator.isJSON(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
                     }
                     case 'initialWidth':
                     case 'initialHeight': {
-                        if ((typeof value === 'number' && isInt(value.toString())) || (typeof value === 'string' && isInt(value))) {
+                        if (UTILS.validator.isInt(value)) {
                             return parseInt(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
@@ -101,7 +130,7 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'onEvent': {
-                        if (isFunction(value)) {
+                        if (typeof value === 'function') {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Function' })
@@ -110,16 +139,11 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'unknown', key })
                 }
             }
-
-            // check value
-            if (isValue(value)) {
-                return check(key, value)
-            }
             // value required and not defined - throw error
             if (required) {
                 return this.#throwExceptionManually('CV', { type: 'undefined', key, value })
             }
-            // return defaultValue
+            // return default value
             return defaultValue
         } catch (err) {
             if (err.name === 'ManuallyException') {
@@ -185,13 +209,13 @@ window.RC = class RC {
 
     // [PRIVATE] Set nodeElement size
     #setSize = ({ width, height, maxWidth }) => {
-        if (isValue(width) && width === 'maxWidth') {
+        if (UTILS.validator.isValue(width) && width === 'maxWidth') {
             this.#nodeElement.style.width = '100%'
         }
-        if (isValue(maxWidth) && isInt(maxWidth.toString())) {
+        if (UTILS.validator.isValue(maxWidth) && UTILS.validator.isInt(maxWidth)) {
             this.#nodeElement.style.maxWidth = maxWidth + 'px'
         }
-        if (isValue(maxWidth) && isInt(maxWidth.toString())) {
+        if (UTILS.validator.isValue(maxWidth) && UTILS.validator.isInt(maxWidth)) {
             this.#nodeElement.style.height = height + 'px'
         }
     }

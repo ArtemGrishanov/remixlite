@@ -80,7 +80,7 @@ window.RemixLite = RL;
  * Methods
  */
 RL.Methods = {
-    add: (cnt, html, btype, cls, styles = {}) => {
+    add: (cnt, html, btype, cls, props = null) => {
         const div = document.createElement('div')
 
         if (btype) {
@@ -89,8 +89,11 @@ RL.Methods = {
         if (cls) {
             div.classList += cls
         }
-        for (const [key, value] of Object.entries(styles)) {
-            div.style[key] = value;
+
+        if (props && props.styles) {
+            for (const [key, value] of Object.entries(props.styles)) {
+                div.style[key] = value;
+            }
         }
 
         div.innerHTML = html
