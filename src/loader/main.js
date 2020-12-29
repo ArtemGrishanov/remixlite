@@ -37,7 +37,7 @@ const UTILS = {
 
 
 /**
- * R Class
+ * "R Class"
  */
 window.RC = class RC {
     #mode
@@ -54,6 +54,7 @@ window.RC = class RC {
 
     #appOrigin
     #preloader
+    #error
     #iframe
 
     constructor({mode, nodeElement, htmlUrl, cssUrl, jsUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
@@ -71,6 +72,7 @@ window.RC = class RC {
 
         this.#appOrigin = new URL(htmlUrl).origin;
         this.#preloader = this.#createPreloader()
+        this.#error = this.#createError()
         this.#iframe = null
     }
 
@@ -228,9 +230,9 @@ window.RC = class RC {
         const html = `
         <div
             data-remix-preloader
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1;"
+            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
         >
-            <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="display: block; width: 100%; max-width: 380px; margin: 130px auto 0;" />
+            <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="width: 100%; max-width: 380px;" />
          </div>`
 
         const div = document.createElement('div');
@@ -276,6 +278,26 @@ window.RC = class RC {
         div.firstChild.addEventListener('click', evt => this.#sendEventToContainerInstance('createPoweredLabel clicked', null))
         return div.firstChild;
     }
+    // [PRIVATE]
+    #createError = () => {
+        const html = `
+        <div
+            data-remix-preloader
+            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
+        >
+            <span style="font-size: 16px;">Oops! Some error occurred &#128532;</span>
+         </div>`
+
+        const div = document.createElement('div');
+        div.innerHTML = html.trim();
+        const element = div.firstChild;
+
+        return {
+            render: function () {
+                return element
+            }
+        }
+    }
 
     // [PRIVATE] Receive message from remix app
     receiveMessage = ({ origin = null, data = {}, source = null }) => {
@@ -296,6 +318,11 @@ window.RC = class RC {
                         projectStructure: this.#projectStructure
                     }
                 }, this.#appOrigin)
+                break;
+            }
+            case 'init_error': {
+                this.#preloader.hideAndDestroy()
+                this.#nodeElement.appendChild(this.#error.render())
                 break;
             }
             case 'initialized': {
@@ -368,7 +395,7 @@ window.RC = class RC {
 };
 
 /**
- * R Class BOOTLOADER (For embedded projects)
+ * "R Class" BOOTLOADER (For embedded projects)
  */
 (async () => {
     if (window.RC) {

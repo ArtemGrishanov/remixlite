@@ -34,7 +34,8 @@
           case 'init': {
             if (!inited) {
               if (!window.RemixLite) {
-                throw new Error('RemixLite app not loaded! Be sure you passed correct script url.');
+                sendMessage('init_error')
+                throw new Error('RemixLite app not loaded!');
               }
 
               inited = true;

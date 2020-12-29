@@ -2,6 +2,14 @@
   font-family: 'Helvetica', 'Arial', sans-serif;
   position: relative;
   margin: 10px 0;
+
+  a {
+    color: #06c;
+  }
+  strong {
+    font-weight: bold;
+  }
+
   &.__1 {
     font-size: 13px;
     min-height: 13px;
