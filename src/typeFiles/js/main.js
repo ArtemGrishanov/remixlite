@@ -15,8 +15,8 @@ import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
 
-const RL = window.RemixLite || {};
-window.RemixLite = RL;
+const RL = window.Remix || {};
+window.Remix = RL;
 
 (function(rl) {
     let data = null, cnt = null;
@@ -75,6 +75,108 @@ window.RemixLite = RL;
     // public API
     rl.init = init
 })(RL)
+
+/**
+ * Firestarter
+ */
+let cntOrigin, cntSource, inited = false;
+let clientId = null
+if (window && window.localStorage) {
+    clientId = window.localStorage.getItem("CLIENT_ID");
+    if (!clientId) {
+        clientId = getRandomId(16)
+        window.localStorage.setItem("CLIENT_ID", clientId)
+    }
+}
+window.addEventListener("message", receiveMessage, false);
+function receiveMessage({origin = null, data = {}, source = null}) {
+    switch (data.method) {
+        case 'init': {
+            cntSource = source;
+            cntOrigin = !origin ? '*' : origin;
+
+            if (!inited) {
+                if (!window.Remix) {
+                    sendMessage('init_error')
+                    throw new Error('Remix app not loaded!');
+                }
+
+                inited = true;
+
+                const root = document.getElementById('remix-app-root');
+
+                if (!data.payload.projectStructure) {
+                    data.payload.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
+                }
+
+                try {
+                    data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
+                } catch(err) {
+                    throw new Error('Remix cannot parse structure field to JSON');
+                }
+
+                if (data.payload.projectStructure.app.bg) {
+                    document.body.style.backgroundColor = data.payload.projectStructure.app.bg;
+                }
+
+                Remix.init({
+                    container: root,
+                    projectStructure: data.payload.projectStructure
+                });
+
+                sendMessage('initialized', {
+                    clientId,
+                    sizes: {
+                        maxWidth: data.payload.projectStructure.app.maxWidth ? data.payload.projectStructure.app.maxWidth : 800,
+                        height: root.scrollHeight
+                    },
+                })
+
+                const resizeObserver = new ResizeObserver(entries => {
+                    sendMessage('setSize', {
+                        sizes: {
+                            height: entries[0].target.scrollHeight
+                        }
+                    })
+                })
+                resizeObserver.observe(root);
+
+                ['mousemove', 'keydown'].forEach(evt => {
+                    window.addEventListener(evt, throttle(() => sendMessage('user-activity'), 5000))
+                })
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+function sendMessage(method, payload = null) {
+    if (cntSource) {
+        cntSource.postMessage({
+            method,
+            payload
+        }, cntOrigin);
+    }
+}
+function getRandomId(t = 21) {
+    let s = '',
+        r = crypto.getRandomValues(new Uint8Array(t))
+    for (; t--; ) {
+        const n = 63 & r[t]
+        s += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? '_' : '-'
+    }
+    return s
+}
+function throttle(func, waitTime) {
+    let timeout = null
+    return function (...args) {
+        if (timeout === null) {
+            func.apply(this, args)
+            timeout = setTimeout(() => (timeout = null), waitTime)
+        }
+    }
+}
 
 /**
  * Methods

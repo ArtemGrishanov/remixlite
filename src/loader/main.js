@@ -42,9 +42,7 @@ const UTILS = {
 window.RC = class RC {
     #mode
     #nodeElement
-    #htmlUrl
-    #cssUrl
-    #jsUrl
+    #remixUrl
     #features
     #projectStructure
     #initialWidth
@@ -57,12 +55,10 @@ window.RC = class RC {
     #error
     #iframe
 
-    constructor({mode, nodeElement, htmlUrl, cssUrl, jsUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
+    constructor({mode, nodeElement, remixUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
         this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
-        this.#htmlUrl = this.#validateConstructorParam('htmlUrl', htmlUrl, true)
-        this.#cssUrl = this.#validateConstructorParam('cssUrl', cssUrl, true)
-        this.#jsUrl = this.#validateConstructorParam('jsUrl', jsUrl, true)
+        this.#remixUrl = this.#validateConstructorParam('remixUrl', remixUrl, true)
         this.#features = this.#validateConstructorParam('features', features, false, [])
         this.#projectStructure = this.#validateConstructorParam('projectStructure', projectStructure, false, null)
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
@@ -70,7 +66,7 @@ window.RC = class RC {
         this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getLanguage())
         this.#onEvent = this.#validateConstructorParam('onEvent', onEvent, false, null)
 
-        this.#appOrigin = new URL(htmlUrl).origin;
+        this.#appOrigin = new URL(remixUrl).origin;
         this.#preloader = this.#createPreloader()
         this.#error = this.#createError()
         this.#iframe = null
@@ -98,9 +94,7 @@ window.RC = class RC {
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'HTMLElement' })
                     }
-                    case 'htmlUrl':
-                    case 'jsUrl':
-                    case 'cssUrl': {
+                    case 'remixUrl': {
                         if (UTILS.validator.isURL(value)) {
                             return value
                         }
@@ -183,18 +177,15 @@ window.RC = class RC {
         iframe.style.overflow = 'hidden'
         iframe.setAttribute('allowFullScreen', '')
         iframe.onload = evt => {
-            iframe.contentWindow.postMessage(
-                {
-                    method: 'embed',
-                    payload: {
-                        js: this.#jsUrl,
-                        css: this.#cssUrl
-                    }
-                },
-                this.#appOrigin,
-            )
+            iframe.contentWindow.postMessage({
+                method: 'init',
+                payload: {
+                    mode: this.#mode,
+                    projectStructure: this.#projectStructure
+                }
+            }, this.#appOrigin)
         }
-        iframe.src = this.#htmlUrl
+        iframe.src = this.#remixUrl
         this.#nodeElement.appendChild(iframe)
         this.#iframe = iframe
     }
@@ -224,7 +215,7 @@ window.RC = class RC {
 
     // [PRIVATE]
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 1000
+        const MIN_ANIMATION_DELAY = 0
         const ANIMATION_DURATION = 500
 
         const html = `
@@ -310,16 +301,6 @@ window.RC = class RC {
         console.log('data:', data);
 
         switch (data.method) {
-            case 'embedded': {
-                this.#iframe.contentWindow.postMessage({
-                    method: 'init',
-                    payload: {
-                        mode: this.#mode,
-                        projectStructure: this.#projectStructure
-                    }
-                }, this.#appOrigin)
-                break;
-            }
             case 'init_error': {
                 this.#preloader.hideAndDestroy()
                 this.#nodeElement.appendChild(this.#error.render())
@@ -425,21 +406,11 @@ window.RC = class RC {
                 if (!htmlFile) {
                     throw new Error(`Cannot get HTML file from ${contentUrl}`)
                 }
-                const cssFile = content.files.find(el => el.mediaType === 'text/css')
-                if (!cssFile) {
-                    throw new Error(`Cannot get CSS file from ${contentUrl}`)
-                }
-                const jsFile = content.files.find(el => el.mediaType === 'text/javascript')
-                if (!jsFile) {
-                    throw new Error(`Cannot get JS file from ${contentUrl}`)
-                }
 
                 new window.RC({
                     mode: 'published',
                     nodeElement: element,
-                    htmlUrl: htmlFile.url,
-                    cssUrl: cssFile.url,
-                    jsUrl: jsFile.url,
+                    remixUrl: htmlFile.url,
                     features: content.features,
                     projectStructure: null,
                     initialWidth,

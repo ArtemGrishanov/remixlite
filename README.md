@@ -9,12 +9,10 @@
 
 Files serve on: http://127.0.0.1:8090 (hot reload)
 
-##### Type files
-- html: `http://127.0.0.1:8090/typeFiles/main.html`
-- css: `http://127.0.0.1:8090/typeFiles/main.css`
-- js: `http://127.0.0.1:8090/typeFiles/main.js`
+##### Remix
+`http://127.0.0.1:8090/remix.html`
 ##### Loader
-`http://127.0.0.1:8090/loader/index.js`
+`http://127.0.0.1:8090/loader.js`
 
 ## Build
 `npm run build`

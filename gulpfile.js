@@ -1,14 +1,14 @@
 const projectFolder = 'dist';
+const projectFolderTmp = 'dist/tmp';
 const sourceFolder = 'src';
 
 const path = {
     build: {
-        typeFiles: {
-            html: `${projectFolder}/typeFiles/`,
-            css: `${projectFolder}/typeFiles/`,
-            js: `${projectFolder}/typeFiles/`,
+        _tmp: {
+            typeFiles: `${projectFolderTmp}/typeFiles`,
         },
-        loader: `${projectFolder}/loader/`,
+        remix: `${projectFolder}/`,
+        loader: `${projectFolder}/`,
     },
     src: {
         typeFiles: {
@@ -26,7 +26,10 @@ const path = {
         },
         loader: `${sourceFolder}/loader/**/*.js`,
     },
-    clean: `./${projectFolder}/`
+    clean: {
+        projectFolder: `./${projectFolder}/`,
+        projectFolderTmp: `./${projectFolderTmp}/`
+    }
 }
 
 const gulp = require('gulp'),
@@ -42,7 +45,8 @@ const gulp = require('gulp'),
     browserify = require('browserify'),
     babelify = require('babelify'),
     source = require('vinyl-source-stream'),
-    buffer = require('vinyl-buffer');
+    buffer = require('vinyl-buffer'),
+    inject = require('gulp-inject');
 
 const fConstants = {
     typeFiles: {
@@ -77,7 +81,7 @@ const f = {
                         })
                     )
                     .pipe(htmlmin({collapseWhitespace: true}))
-                    .pipe(gulp.dest(path.build.typeFiles.html))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
             },
             [fConstants.typeFiles.html.watch]: () => {
                 return gulp.src(path.src.typeFiles.html)
@@ -87,7 +91,7 @@ const f = {
                             extname: '.html'
                         })
                     )
-                    .pipe(gulp.dest(path.build.typeFiles.html))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
             }
         },
         css: {
@@ -112,7 +116,7 @@ const f = {
                             extname: '.css'
                         })
                     )
-                    .pipe(gulp.dest(path.build.typeFiles.css))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
             },
             [fConstants.typeFiles.css.watch]: () => {
                 return gulp.src(path.src.typeFiles.css)
@@ -127,7 +131,7 @@ const f = {
                             extname: '.css'
                         })
                     )
-                    .pipe(gulp.dest(path.build.typeFiles.css))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
                     .pipe(browserSync.stream())
             }
         },
@@ -141,7 +145,7 @@ const f = {
                     .pipe(source('main.js'))
                     .pipe(buffer())
                     .pipe(uglify())
-                    .pipe(gulp.dest(path.build.typeFiles.js))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
             },
             [fConstants.typeFiles.js.watch]: () => {
                 return browserify(path.src.typeFiles.js)
@@ -150,7 +154,7 @@ const f = {
                     }))
                     .bundle()
                     .pipe(source('main.js'))
-                    .pipe(gulp.dest(path.build.typeFiles.js))
+                    .pipe(gulp.dest(path.build._tmp.typeFiles))
                     .pipe(browserSync.stream())
             }
         },
@@ -164,7 +168,7 @@ const f = {
                     plugins: [['@babel/plugin-proposal-class-properties']]
                 }))
                 .bundle()
-                .pipe(source('index.js'))
+                .pipe(source('loader.js'))
                 .pipe(buffer())
                 .pipe(uglify())
                 .pipe(gulp.dest(path.build.loader))
@@ -176,24 +180,71 @@ const f = {
                     plugins: [['@babel/plugin-proposal-class-properties']]
                 }))
                 .bundle()
-                .pipe(source('index.js'))
+                .pipe(source('loader.js'))
                 .pipe(gulp.dest(path.build.loader))
                 .pipe(browserSync.stream());
         }
     }
 }
 
+const bundleRemix = () => {
+    const styles = gulp.src(`${path.build._tmp.typeFiles}/main.css`)
+    const scripts = gulp.src(`${path.build._tmp.typeFiles}/main.js`)
+
+    return gulp.src(`${path.build._tmp.typeFiles}/main.html`)
+        .pipe(inject(styles, {
+            starttag: '<!-- inject:css -->',
+            transform: function (filePath, file) {
+                return file.contents.toString('utf8')
+            }
+        }))
+        .pipe(inject(scripts, {
+            starttag: '<!-- inject:js -->',
+            transform: function (filePath, file) {
+                return file.contents.toString('utf8')
+            }
+        }))
+        .pipe(
+            rename({
+                basename: "remix",
+                extname: '.html'
+            })
+        )
+        .pipe(gulp.dest(path.build.remix));
+}
+
 function watchFiles() {
-    gulp.watch([path.watch.typeFiles.html], f.typeFiles.html[fConstants.typeFiles.html.watch])
-    gulp.watch([path.watch.typeFiles.css], f.typeFiles.css[fConstants.typeFiles.css.watch])
-    gulp.watch([path.watch.typeFiles.js], f.typeFiles.js[fConstants.typeFiles.js.watch])
-    gulp.watch([path.watch.loader], f.loader[fConstants.loader.watch])
+    gulp.watch(
+        [path.watch.typeFiles.html],
+        gulp.series(
+            f.typeFiles.html[fConstants.typeFiles.html.watch],
+            bundleRemix,
+        )
+    )
+    gulp.watch(
+        [path.watch.typeFiles.css],
+        gulp.series(
+            f.typeFiles.css[fConstants.typeFiles.css.watch],
+            bundleRemix,
+        )
+    )
+    gulp.watch(
+        [path.watch.typeFiles.js],
+        gulp.series(
+            f.typeFiles.js[fConstants.typeFiles.js.watch],
+            bundleRemix,
+        )
+    )
+    gulp.watch(
+        [path.watch.loader],
+        f.loader[fConstants.loader.watch]
+    )
 }
 
 function sync() {
     browserSync.init({
         server: {
-            baseDir: path.clean
+            baseDir: path.clean.projectFolder
         },
         port: 8090,
         notify: false,
@@ -202,28 +253,34 @@ function sync() {
     })
 }
 
-function clean() {
-    return del(path.clean)
+function cleanProjectFolder() {
+    return del(path.clean.projectFolder)
+}
+function cleanProjectFolderTmp() {
+    return del(path.clean.projectFolderTmp)
 }
 
 const build = gulp.series(
-    clean,
+    cleanProjectFolder,
     gulp.parallel(
         f.typeFiles.html[fConstants.typeFiles.html.build],
         f.typeFiles.css[fConstants.typeFiles.css.build],
         f.typeFiles.js[fConstants.typeFiles.js.build],
         f.loader[fConstants.loader.build]
-    )
+    ),
+    bundleRemix,
+    cleanProjectFolderTmp,
 );
 const watch = gulp.parallel(
     gulp.series(
-        clean,
+        cleanProjectFolder,
         gulp.parallel(
             f.typeFiles.html[fConstants.typeFiles.html.watch],
             f.typeFiles.css[fConstants.typeFiles.css.watch],
             f.typeFiles.js[fConstants.typeFiles.js.watch],
             f.loader[fConstants.loader.watch]
-        )
+        ),
+        bundleRemix
     ),
     watchFiles,
     sync
