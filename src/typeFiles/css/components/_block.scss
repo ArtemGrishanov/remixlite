@@ -51,8 +51,9 @@
   }
   &.__9 {
     padding: 60px 0;
+    background-color: #fff;
     @include maxWidth(799) {
-      // Adapt there
+      padding: 40px 0;
     }
     > div.wrapper {
       font-family: 'Roboto', sans-serif;
@@ -64,6 +65,10 @@
           width: 100%;
           height: 600px;
           object-fit: cover;
+          @include maxWidth(799) {
+            height: 320px;
+            padding-bottom: 24px;
+          }
         }
         > div.box {
           position: relative;
@@ -73,6 +78,16 @@
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
           border-radius: 8px;
           text-align: center;
+          @include maxWidth(799) {
+            margin: 0;
+            border-radius: 0;
+            background-color: transparent;
+            box-shadow: none;
+            padding: 0 12px 0;
+          }
+          &.no-image {
+            margin-top: 0 !important;
+          }
           > div.header {
             font-weight: 500;
             font-size: 36px;
@@ -80,6 +95,11 @@
             color: #000;
             margin-bottom: 16px;
             white-space: pre-line;
+            @include maxWidth(799) {
+              font-size: 24px;
+              line-height: 28px;
+              margin-bottom: 20px;
+            }
           }
           > div.description {
             font-size: 20px;
@@ -87,6 +107,11 @@
             color: #000;
             margin-bottom: 20px;
             white-space: pre-line;
+            @include maxWidth(799) {
+              font-size: 18px;
+              line-height: 28px;
+              margin-bottom: 28px;
+            }
           }
           > div.btn-wrap {
             overflow: hidden;
@@ -103,10 +128,13 @@
                 border-radius: 4px;
                 color: #fff;
                 font-size: 20px;
-                line-height: 24px;
                 @include transition(0.1s, ease-in-out, 0s, (opacity));
                 &:hover {
                   opacity: .8;
+                }
+                @include maxWidth(799) {
+                  height: 46px;
+                  font-size: 18px;
                 }
               }
             }
@@ -116,31 +144,51 @@
             font-size: 14px;
             line-height: 16px;
             color: #B7B7B7;
+            @include maxWidth(799) {
+              font-size: 12px;
+              line-height: 14px;
+              padding-bottom: 0;
+            }
           }
         }
       }
       > div.question {
         padding: 0 20px;
+        @include maxWidth(799) {
+          padding: 0 12px;
+        }
         .size {
           &--big {
             font-size: 36px;
             line-height: 42px;
+            @include maxWidth(799) {
+              font-size: 24px;
+              line-height: 28px;
+            }
           }
           &--medium {
             font-size: 28px;
             line-height: 32px;
+            @include maxWidth(799) {
+              font-size: 18px;
+              line-height: 28px;
+            }
           }
           &--small {
             font-size: 24px;
             line-height: 32px;
+            @include maxWidth(799) {
+              font-size: 18px;
+              line-height: 28px;
+            }
           }
         }
         > div.img {
           position: relative;
           > span.counter {
-            background: #FFF;
+            background-color: #fff;
             border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .25);
             padding: 5px 16px 3px;
             font-size: 16px;
             font-style: italic;
@@ -148,6 +196,16 @@
             position: absolute;
             top: 16px;
             left: 16px;
+            @include maxWidth(799) {
+              position: static;
+              font-size: 14px;
+              display: flex;
+              align-items: center;
+              padding: 0 0 14px;
+              border-radius: 0;
+              box-shadow: none;
+              background-color: transparent;
+            }
           }
           > img {
             width: 100%;
@@ -155,6 +213,12 @@
             object-fit: cover;
             border-radius: 8px;
             overflow: hidden;
+            @include maxWidth(799) {
+              height: 274px;
+              border-radius: 0;
+              margin: 0 -12px;
+              width: calc(100% + 24px);
+            }
           }
           > div.text {
             text-align: center;
@@ -172,6 +236,15 @@
             max-width: calc(100% - 40px);
             box-sizing: border-box;
             white-space: pre-line;
+            @include maxWidth(799) {
+              position: static;
+              margin: 24px 0 0;
+              box-shadow: none;
+              width: 100%;
+              background-color: transparent;
+              transform: none;
+              max-width: 100%;
+            }
           }
         }
         > div.no-img {
@@ -180,6 +253,11 @@
           background-color: #fff;
           border: 1px solid #AB9393;
           border-radius: 8px;
+          @include maxWidth(799) {
+            border: 0;
+            padding: 0;
+            border-radius: 0;
+          }
           > span.counter {
             background: #FFF;
             border-radius: 20px;
@@ -190,6 +268,14 @@
             position: absolute;
             top: 16px;
             left: 16px;
+            @include maxWidth(799) {
+              position: static;
+              font-size: 14px;
+              display: flex;
+              align-items: center;
+              padding: 0 0 14px;
+              border-radius: 0;
+            }
           }
           > div.text {
             text-align: center;
@@ -202,15 +288,15 @@
           margin-top: 20px;
           > li.item {
             cursor: pointer;
-            font-size: 20px;
-            line-height: 28px;
-            color: #000;
             padding: 20px 80px 20px 40px;
             background: #FFF;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
             border-radius: 4px;
             margin-bottom: 10px;
             position: relative;
+            @include maxWidth(799) {
+              padding: 20px 16px;
+            }
             &:last-child {
               margin-bottom: 0;
             }
@@ -222,13 +308,17 @@
               content: '';
               position: absolute;
               right: 24px;
-              top: 50%;
-              transform: translateY(-50%);
+              top: 24px;
+              //top: 50%;
+              //transform: translateY(-50%);
               width: 28px;
               height: 28px;
               border-radius: 50%;
               background-repeat: no-repeat;
               background-position: center;
+              @include maxWidth(799) {
+                display: none;
+              }
             }
             &.is-disabled {
               pointer-events: none;
@@ -240,6 +330,12 @@
               }
               > p.description {
                 color: #86BD73;
+                @include maxWidth(799) {
+                  &:before {
+                    background-color: #86BD73;
+                    background-image: url("data:image/svg+xml,%3Csvg width='18' height='13' viewBox='0 0 18 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.81641 5.99995L7.83317 11.8333L16.6236 1.05249' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+                  }
+                }
               }
             }
             &.is-incorrect {
@@ -249,14 +345,47 @@
               }
               > p.description {
                 color: #EE7171;
+                @include maxWidth(799) {
+                  &:before {
+                    background-color: #EE7171;
+                    background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.16699 1.16675L12.8337 12.8334' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12.834 1.16675L1.16732 12.8334' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+                  }
+                }
+              }
+            }
+            > div.text {
+              font-size: 20px;
+              line-height: 28px;
+              color: #000;
+              white-space: pre-line;
+              @include maxWidth(799) {
+                font-size: 18px;
+                line-height: 24px;
               }
             }
             > p.description {
-              display: block;
               font-size: 16px;
               line-height: 18px;
               color: transparent;
               margin-top: 8px;
+              white-space: pre-line;
+              @include maxWidth(799) {
+                line-height: 16px;
+                padding-left: 28px;
+                position: relative;
+                &:before {
+                  content: '';
+                  width: 20px;
+                  height: 20px;
+                  position: absolute;
+                  top: -2px;
+                  left: 0;
+                  background-repeat: no-repeat;
+                  background-position: center;
+                  background-size: 10px;
+                  border-radius: 50%;
+                }
+              }
             }
           }
         }
@@ -305,20 +434,51 @@
           left: 50%;
           transform: translateX(-50%);
           white-space: pre-line;
+          width: fit-content;
+          max-width: calc(100% - 24px);
+          box-sizing: border-box;
+          &.no-image {
+            @include maxWidth(799) {
+              position: static;
+              transform: none;
+              margin: 0 auto;
+            }
+          }
         }
         > img {
           width: 100%;
           height: 600px;
           object-fit: cover;
+          @include maxWidth(799) {
+            height: 314px;
+          }
         }
         > div.box {
           position: relative;
           padding: 54px 60px 0;
           margin: -112px 20px 0;
-          background: #fff;
+          background-color: #fff;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
           border-radius: 8px;
           text-align: center;
+          @include maxWidth(799) {
+            box-shadow: none;
+            margin: 0;
+            background-color: transparent;
+            border-radius: 0;
+            padding: 46px 12px 0;
+          }
+          &.no-image {
+            margin-top: 0 !important;
+            padding-top: 40px;
+            > div.counter {
+              @include maxWidth(799) {
+                position: static;
+                transform: none;
+                margin: 0 auto 24px;
+              }
+            }
+          }
           > div.counter {
             background: #fff;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
@@ -335,6 +495,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            @include maxWidth(799) {
+              width: 114px;
+              height: 48px;
+              font-size: 28px;
+            }
           }
           > div.header {
             font-weight: 500;
@@ -343,6 +508,10 @@
             color: #000;
             margin-bottom: 16px;
             white-space: pre-line;
+            @include maxWidth(799) {
+              font-size: 24px;
+              line-height: 28px;
+            }
           }
           > div.description {
             font-size: 20px;
@@ -350,9 +519,44 @@
             color: #000;
             margin-bottom: 20px;
             white-space: pre-line;
+            @include maxWidth(799) {
+              font-size: 16px;
+              line-height: 24px;
+            }
           }
           > div.btn-wrap {
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            > div.link-block {
+              margin-bottom: 12px;
+              > a {
+                font-family: 'Roboto', sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 20px;
+                display: flex;
+                outline: none;
+                cursor: pointer;
+                border: 0;
+                padding: 0 44px;
+                height: 52px;
+                align-items: center;
+                white-space: nowrap;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+                border-radius: 4px;
+                color: #fff;
+                @include transition(0.1s, ease-in-out, 0s, (opacity));
+                &:hover {
+                  opacity: .8;
+                }
+                @include maxWidth(799) {
+                  height: 46px;
+                  font-size: 18px;
+                }
+              }
+            }
             > div.button-block {
               margin-bottom: 24px;
               > button {
@@ -373,6 +577,10 @@
                 @include transition(0.1s, ease-in-out, 0s, (opacity));
                 &:hover {
                   opacity: .8;
+                }
+                @include maxWidth(799) {
+                  height: 46px;
+                  font-size: 18px;
                 }
               }
             }

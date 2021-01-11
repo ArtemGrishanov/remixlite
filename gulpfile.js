@@ -132,7 +132,6 @@ const f = {
                         })
                     )
                     .pipe(gulp.dest(path.build._tmp.typeFiles))
-                    .pipe(browserSync.stream())
             }
         },
         js: {
@@ -155,7 +154,6 @@ const f = {
                     .bundle()
                     .pipe(source('main.js'))
                     .pipe(gulp.dest(path.build._tmp.typeFiles))
-                    .pipe(browserSync.stream())
             }
         },
     },
@@ -187,19 +185,18 @@ const f = {
     }
 }
 
-const bundleRemix = () => {
-    const styles = gulp.src(`${path.build._tmp.typeFiles}/main.css`)
-    const scripts = gulp.src(`${path.build._tmp.typeFiles}/main.js`)
-
-    return gulp.src(`${path.build._tmp.typeFiles}/main.html`)
-        .pipe(inject(styles, {
-            starttag: '<!-- inject:css -->',
+const bundleRemix = () => (
+    gulp.src(`${path.build._tmp.typeFiles}/main.html`)
+        .pipe(inject(gulp.src(`${path.build._tmp.typeFiles}/main.css`), {
+            starttag: '/* start-inject:css */',
+            endtag: '/* end-inject:css */',
             transform: function (filePath, file) {
                 return file.contents.toString('utf8')
             }
         }))
-        .pipe(inject(scripts, {
-            starttag: '<!-- inject:js -->',
+        .pipe(inject(gulp.src(`${path.build._tmp.typeFiles}/main.js`), {
+            starttag: '/* start-inject:js */',
+            endtag: '/* end-inject:js */',
             transform: function (filePath, file) {
                 return file.contents.toString('utf8')
             }
@@ -210,28 +207,34 @@ const bundleRemix = () => {
                 extname: '.html'
             })
         )
-        .pipe(gulp.dest(path.build.remix));
-}
+        .pipe(gulp.dest(path.build.remix))
+)
 
 function watchFiles() {
     gulp.watch(
         [path.watch.typeFiles.html],
         gulp.series(
-            f.typeFiles.html[fConstants.typeFiles.html.watch],
+            gulp.parallel(
+                f.typeFiles.html[fConstants.typeFiles.html.watch]
+            ),
             bundleRemix,
         )
     )
     gulp.watch(
         [path.watch.typeFiles.css],
         gulp.series(
-            f.typeFiles.css[fConstants.typeFiles.css.watch],
+            gulp.parallel(
+                f.typeFiles.css[fConstants.typeFiles.css.watch]
+            ),
             bundleRemix,
         )
     )
     gulp.watch(
         [path.watch.typeFiles.js],
         gulp.series(
-            f.typeFiles.js[fConstants.typeFiles.js.watch],
+            gulp.parallel(
+                f.typeFiles.js[fConstants.typeFiles.js.watch]
+            ),
             bundleRemix,
         )
     )

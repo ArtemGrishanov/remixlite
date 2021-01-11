@@ -15,20 +15,16 @@ const templates = {
             {{#cover.i}}
                 <img src="{{cover.i}}" alt="Cover image">
             {{/cover.i}}
-            <div class="box">
+            <div class="box {{_classes.box}}">
                 <div class="header">{{cover.h}}</div>
                 <div class="description">{{cover.d}}</div>
                 <div class="btn-wrap">
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">
-                            {{cover.bT}}
-                        </button>
+                        <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{cover.bT}}</button>
                     </div>
                 </div>
                 {{#cover.iD}}
-                    <div class="image-disclaimer">
-                        {{cover.iD}}
-                    </div>
+                    <div class="image-disclaimer">{{cover.iD}}</div>
                 {{/cover.iD}}
             </div>
         </div>
@@ -55,56 +51,51 @@ const templates = {
             <ul class="list">
                 {{#question.a}}
                     <li class="item is-handled" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
-                        {{t}}
+                        <div class="text">{{t}}</div>
                     </li>
                 {{/question.a}}
             </ul>
             {{#question.i}}
                 {{#question.iD}}
-                    <div class="image-disclaimer">
-                        {{question.iD}}
-                    </div>
+                    <div class="image-disclaimer">{{question.iD}}</div>
                 {{/question.iD}}
             {{/question.i}}
         </div>
     `,
     'question.answer.description': `
-        <p class="description">
-            {{.}}
-        </p>
+        <p class="description">{{.}}</p>
     `,
     'question.next': `
         <div class="button-block">
-            <button class="is-handled" data-handlers="click" data-initiator="question.next" style="background-color: {{colorTheme}}; color: {{buttonColor}}">
-                {{text}}
-            </button>
+            <button class="is-handled" data-handlers="click" data-initiator="question.next" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{text}}</button>
         </div>
     `,
     result: `
         <div class="result" id="{{result.id}}">
             {{#header}}
-                <div class="head">{{header}}</div>
+                <div class="head {{_classes.head}}">{{header}}</div>
             {{/header}}
             {{#result.i}}
                 <img src="{{result.i}}" alt="Result image">
             {{/result.i}}
-            <div class="box">
+            <div class="box {{_classes.box}}">
                 {{#showScores}}
                     <div class="counter">{{scores.current}}/{{scores.all}}</div>
                 {{/showScores}}
                 <div class="header">{{result.h}}</div>
                 <div class="description">{{result.d}}</div>
                 <div class="btn-wrap">
+                    {{#callToActionButton}}
+                        <div class="link-block">
+                            <a href="{{callToActionButtonLink}}" target="_blank" rel="noopener noreferrer" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{callToActionButtonText}}</a>
+                        </div>
+                    {{/callToActionButton}}
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">
-                           Restart
-                        </button>
+                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">Restart</button>
                     </div>
                 </div>
                 {{#result.iD}}
-                    <div class="image-disclaimer">
-                        {{result.iD}}
-                    </div>
+                    <div class="image-disclaimer">{{result.iD}}</div>
                 {{/result.iD}}
             </div>
         </div>
@@ -159,7 +150,10 @@ export default function(cnt, { M, methods }) {
                 wrapperElement.innerHTML = getParsedHTML(M, 'cover', {
                     cover: jsonStruct.c,
                     colorTheme: initialData.cT,
-                    buttonColor: invertColor(initialData.cT, true)
+                    buttonColor: invertColor(initialData.cT, true),
+                    _classes: {
+                        box: jsonStruct.c.i ? '' : 'no-image'
+                    }
                 });
                 break;
             }
@@ -183,10 +177,18 @@ export default function(cnt, { M, methods }) {
                     result: jsonStruct.r[payload.index],
                     header: jsonStruct._s.c ? jsonStruct.c.h : null,
                     colorTheme: initialData.cT,
+                    buttonColor: invertColor(initialData.cT, true),
                     showScores: initialData.sR,
+                    callToActionButton: initialData.cA,
+                    callToActionButtonText: initialData.cA_t,
+                    callToActionButtonLink: initialData.cA_l,
                     scores: {
                         current: scores,
                         all: jsonStruct.q.length
+                    },
+                    _classes: {
+                        head: jsonStruct.r[payload.index].i ? '' : 'no-image',
+                        box: jsonStruct.r[payload.index].i ? '' : 'no-image'
                     }
                 });
                 break;

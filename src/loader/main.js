@@ -159,6 +159,7 @@ window.RC = class RC {
         this.#nodeElement.style.overflow = 'hidden'
 
         // initial sizes, changes after "initialized" message
+        this.#nodeElement.style.maxWidth = `100%`
         this.#nodeElement.style.width = `${this.#initialWidth}px`
         this.#nodeElement.style.height = `${this.#initialHeight}px`
 
@@ -208,7 +209,7 @@ window.RC = class RC {
         if (UTILS.validator.isValue(maxWidth) && UTILS.validator.isInt(maxWidth)) {
             this.#nodeElement.style.maxWidth = maxWidth + 'px'
         }
-        if (UTILS.validator.isValue(maxWidth) && UTILS.validator.isInt(maxWidth)) {
+        if (UTILS.validator.isValue(height) && UTILS.validator.isInt(height)) {
             this.#nodeElement.style.height = height + 'px'
         }
     }
@@ -296,10 +297,6 @@ window.RC = class RC {
             return
         }
 
-        console.log('--- receiveMessage (RC) ---');
-        console.log('method:', data.method);
-        console.log('data:', data);
-
         switch (data.method) {
             case 'init_error': {
                 this.#preloader.hideAndDestroy()
@@ -319,10 +316,9 @@ window.RC = class RC {
                 break;
             }
             default:
+                this.#sendEventToContainerInstance(data.method, data)
                 break;
         }
-
-        this.#sendEventToContainerInstance(data.method, data)
     }
 
     // [PRIVATE] Send event to container instance
