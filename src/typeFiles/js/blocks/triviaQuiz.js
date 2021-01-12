@@ -108,7 +108,7 @@ function getParsedHTML(M, templateName, view) {
 
 export default function(cnt, { M, methods }) {
     let wrapperElement = null
-    let initialData, jsonStruct
+    let initialData = {}
     let scores = 0
     let lastAnsweredIndex = null
 
@@ -148,34 +148,34 @@ export default function(cnt, { M, methods }) {
         switch (type) {
             case 'cover': {
                 wrapperElement.innerHTML = getParsedHTML(M, 'cover', {
-                    cover: jsonStruct.c,
+                    cover: initialData.struct.c,
                     colorTheme: initialData.cT,
                     buttonColor: invertColor(initialData.cT, true),
                     _classes: {
-                        box: jsonStruct.c.i ? '' : 'no-image'
+                        box: initialData.struct.c.i ? '' : 'no-image'
                     }
                 });
                 break;
             }
             case 'question': {
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
-                    question: jsonStruct.q[payload.index],
+                    question: initialData.struct.q[payload.index],
                     sizes: {
-                        t: jsonStruct.q[payload.index].t.length <= 100 ? 'big' : jsonStruct.q[payload.index].i ? 'small' : 'medium'
+                        t: initialData.struct.q[payload.index].t.length <= 100 ? 'big' : initialData.struct.q[payload.index].i ? 'small' : 'medium'
                     },
                     colorTheme: initialData.cT,
                     progressBar: initialData.pB,
                     counter: {
                         current: payload.index + 1,
-                        all: jsonStruct.q.length
+                        all: initialData.struct.q.length
                     }
                 });
                 break;
             }
             case 'result': {
                 wrapperElement.innerHTML = getParsedHTML(M, 'result', {
-                    result: jsonStruct.r[payload.index],
-                    header: jsonStruct._s.c ? jsonStruct.c.h : null,
+                    result: initialData.struct.r[payload.index],
+                    header: initialData.struct._s.c ? initialData.struct.c.h : null,
                     colorTheme: initialData.cT,
                     buttonColor: invertColor(initialData.cT, true),
                     showScores: initialData.sR,
@@ -184,11 +184,11 @@ export default function(cnt, { M, methods }) {
                     callToActionButtonLink: initialData.cA_l,
                     scores: {
                         current: scores,
-                        all: jsonStruct.q.length
+                        all: initialData.struct.q.length
                     },
                     _classes: {
-                        head: jsonStruct.r[payload.index].i ? '' : 'no-image',
-                        box: jsonStruct.r[payload.index].i ? '' : 'no-image'
+                        head: initialData.struct.r[payload.index].i ? '' : 'no-image',
+                        box: initialData.struct.r[payload.index].i ? '' : 'no-image'
                     }
                 });
                 break;
@@ -221,7 +221,7 @@ export default function(cnt, { M, methods }) {
                         el.classList.add("is-disabled");
                     }
 
-                    const selectedAnswer = jsonStruct.q[payload.qIndex].a.find(el => el.id === payload.answerId)
+                    const selectedAnswer = initialData.struct.q[payload.qIndex].a.find(el => el.id === payload.answerId)
                     const selectedAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === payload.answerId)[0];
                     selectedAnswerElement.classList.add("is-selected");
 
@@ -230,7 +230,7 @@ export default function(cnt, { M, methods }) {
                         scores ++
                     } else {
                         selectedAnswerElement.classList.add("is-incorrect")
-                        const correctAnswers = jsonStruct.q[payload.qIndex].a.filter(el => el.isC)
+                        const correctAnswers = initialData.struct.q[payload.qIndex].a.filter(el => el.isC)
                         for (const correctAnswer of correctAnswers) {
                             const correctAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === correctAnswer.id)[0];
                             correctAnswerElement.classList.add("is-correct");
@@ -242,7 +242,7 @@ export default function(cnt, { M, methods }) {
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
-                        text: payload.qIndex === (jsonStruct.q.length - 1) ? "See result" : "Next",
+                        text: payload.qIndex === (initialData.struct.q.length - 1) ? "See result" : "Next",
                         colorTheme: initialData.cT,
                         buttonColor: invertColor(initialData.cT, true)
                     }))
@@ -253,8 +253,8 @@ export default function(cnt, { M, methods }) {
                 case 'question.next': {
                     if (evt) evt.preventDefault()
 
-                    if (payload.qIndex === (jsonStruct.q.length - 1)) {
-                        const resultIndex = jsonStruct._s.d.findIndex(el => el.f <= scores && el.t >= scores)
+                    if (payload.qIndex === (initialData.struct.q.length - 1)) {
+                        const resultIndex = initialData.struct._s.d.findIndex(el => el.f <= scores && el.t >= scores)
                         setScreen('result', {index: resultIndex})
                         updateEventListeners()
                     } else {
@@ -283,7 +283,7 @@ export default function(cnt, { M, methods }) {
                     lastAnsweredIndex = null
 
                     let additionalPayload = {}
-                    if (jsonStruct._s.c) {
+                    if (initialData.struct._s.c) {
                         setScreen('cover' )
                     } else {
                         setScreen('question', {index: 0})
@@ -303,26 +303,21 @@ export default function(cnt, { M, methods }) {
     return {
         render: data => {
             initialData = data
-            try {
-                jsonStruct = JSON.parse(data.struct)
-                if (jsonStruct._isV) {
-                    try {
-                        const wrapperId = `tq_${data.id}`
-                        const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
+            if (initialData.struct._isV) {
+                try {
+                    const wrapperId = `tq_${data.id}`
+                    const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
 
-                        methods.add(cnt, wrapper, data.t)
+                    methods.add(cnt, wrapper, data.t)
 
-                        wrapperElement = document.getElementById(wrapperId)
+                    wrapperElement = document.getElementById(wrapperId)
 
-                        handlers.click({initiator: 'start', payload: {}})
-                    } catch (err) {
-                        log('error', data.id, null, err)
-                    }
-                } else {
-                    log('warn', data.id, 'Block will not render because "data.struct._isV" is FALSE.')
+                    handlers.click({initiator: 'start', payload: {}})
+                } catch (err) {
+                    log('error', data.id, null, err)
                 }
-            } catch (err) {
-                log('warn', data.id, 'Block will not render because cannot parse "data.struct" to JSON.')
+            } else {
+                log('warn', data.id, 'Block will not render because "data.struct._isV" is FALSE.')
             }
         },
         postRender: null

@@ -106,6 +106,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 const root = document.getElementById('remix-app-root');
 
                 if (!data.payload.projectStructure) {
+                    // Server replaces {{}} with projectStructureJson (string) when publishing
                     data.payload.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
                 }
 
