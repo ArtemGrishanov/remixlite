@@ -7,11 +7,6 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <style>
-        /* Styles for preview generation */
-        {{STYLES}}
-    </style>
-
-    <style>
       /* start-inject:css */
       /* end-inject:css */
     </style>
@@ -19,17 +14,9 @@
   <body>
     <!-- Root element -->
     <div class="root" id="remix-app-root"></div>
-
     <script>
       /* start-inject:js */
       /* end-inject:js */
-
-      // Scripts for preview generation
-      try {
-        {{SCRIPTS}}
-        receiveMessage({data:{method:'init'}})
-      }
-      catch(err) {}
     </script>
   </body>
 </html>

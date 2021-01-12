@@ -1,5 +1,3 @@
-// import { getRandomId } from './_utils'
-
 const UTILS = {
     validator: {
         isValue: value => {
@@ -316,9 +314,10 @@ window.RC = class RC {
                 break;
             }
             default:
-                this.#sendEventToContainerInstance(data.method, data)
                 break;
         }
+
+        this.#sendEventToContainerInstance(data.method, data)
     }
 
     // [PRIVATE] Send event to container instance
@@ -376,7 +375,7 @@ window.RC = class RC {
  */
 (async () => {
     if (window.RC) {
-        const classes = 'r_app'
+        const classes = 'rmx_interacty'
         const initializedAttrName = 'data-initialized'
 
         const elements = document.getElementsByClassName(classes)
@@ -387,42 +386,62 @@ window.RC = class RC {
                 const contentUrl = element.getAttribute('data-content')
                 const initialWidth = element.getAttribute('data-initialWidth')
                 const initialHeight = element.getAttribute('data-initialHeight')
+                const projectStructure = element.getAttribute('data-project-structure')
+                const remixUrl = element.getAttribute('data-remix-url')
+                const mode = element.getAttribute('data-mode')
+                const lng = element.getAttribute('data-lng')
 
                 // sendStatToGA(gaTrackerName, {category: statCategory, action: 'content_requested'})
 
-                let content;
-                try {
-                    const response = await fetch(contentUrl)
-                    content = await response.json()
-                } catch (err) {
-                    throw new Error(`Cannot get content from ${contentUrl}`)
-                }
+                let htmlFile, features;
+                if (remixUrl) {
+                    features = []
+                } else {
+                    let content;
+                    try {
+                        const response = await fetch(contentUrl)
+                        content = await response.json()
+                    } catch (err) {
+                        throw new Error(`Cannot get content from ${contentUrl}`)
+                    }
 
-                const htmlFile = content.files.find(el => el.mediaType === 'text/html')
-                if (!htmlFile) {
-                    throw new Error(`Cannot get HTML file from ${contentUrl}`)
+                    features = content.features
+                    htmlFile = content.files.find(el => el.mediaType === 'text/html')
+                    if (!htmlFile) {
+                        throw new Error(`Cannot get HTML file from ${contentUrl}`)
+                    }
                 }
 
                 new window.RC({
-                    mode: 'published',
+                    mode: mode ? mode : 'published',
                     nodeElement: element,
-                    remixUrl: htmlFile.url,
-                    features: content.features,
-                    projectStructure: null,
+                    remixUrl: remixUrl ? remixUrl : htmlFile.url,
+                    features,
+                    projectStructure: projectStructure ? projectStructure : null,
                     initialWidth,
                     initialHeight,
-                    lng: null,
-                    onEvent: (name, data) => {
-                        console.log('--- onEvent (BOOTLOADER) ---');
-                        console.log('method:', data.method);
-                        console.log('data:', data);
-
-                        // Sessions + activity
-
-                        // data => data.method === 'user-activity' && userActivity.makeActivity(),
-                        // data => data.method.indexOf('analytics') !== -1 && analytics.trigger(data),
-                        // if (data.method === 'user-data') {userData.push(data)}
-                    },
+                    lng: lng ? lng : null,
+                    onEvent: (name, data) => {}
+                    // onEvent: (name, data) => {
+                    //     console.log('--- onEvent (BOOTLOADER) ---');
+                    //     console.log('method:', data.method);
+                    //     console.log('data:', data);
+                    //
+                    //     switch (data.method) {
+                    //         case 'initialized': {
+                    //             // createSession(content.projectId, data.payload.clientId)
+                    //             break;
+                    //         }
+                    //         default:
+                    //             break;
+                    //     }
+                    //
+                    //     // Sessions + activity
+                    //
+                    //     // data => data.method === 'user-activity' && userActivity.makeActivity(),
+                    //     // data => data.method.indexOf('analytics') !== -1 && analytics.trigger(data),
+                    //     // if (data.method === 'user-data') {userData.push(data)}
+                    // },
                 }).createIframe()
 
                 // sendStatToGA(gaTrackerName, {category: statCategory, action: 'container_created'})
@@ -442,8 +461,8 @@ window.RC = class RC {
         // const userActivity = new UserActivity()
         // const userData = new UserData()
         // function createSession(projectId, clientKey) {
-        //     setClientKey(clientKey)
-        //     sessionInitialize({ projectId })
+        //     // setClientKey(clientKey)
+        //     // sessionInitialize({ projectId })
         // }
     }
 })()

@@ -50,11 +50,7 @@
     text-align: center;
   }
   &.__9 {
-    padding: 60px 0;
     background-color: #fff;
-    @include maxWidth(799) {
-      padding: 40px 0;
-    }
     > div.wrapper {
       font-family: 'Roboto', sans-serif;
       font-style: normal;
