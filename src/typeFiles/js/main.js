@@ -18,68 +18,10 @@ import uiButton from './ui/button'
 const RL = window.Remix || {};
 window.Remix = RL;
 
-(function(rl) {
-    let data = null, cnt = null;
-
-    function init({
-        container,
-        projectStructure
-    }) {
-        cnt = container
-        setData(projectStructure)
-    }
-
-    function setData(d) {
-        data = data || {}
-        let dd = {}
-        if (typeof d === 'string') {
-            d = RL.Methods.htmlDecode(d)
-            try {
-                dd = JSON.parse(d)
-            } catch(err) {
-                console.error(err)
-            }
-        } else if (typeof d === 'object') {
-            RL.Methods.forAllStringProperties(d, RL.Methods.htmlDecode)
-            dd = d
-        }
-        if (dd && dd.hasOwnProperty('blocks')) {
-            data.blocks = dd.blocks
-        }
-        if (dd && dd.hasOwnProperty('app')) {
-            data.app = dd.app
-        }
-        render()
-    }
-
-    function render() {
-        if (cnt) {
-            cnt.innerHTML = ''
-            if (data && data.blocks) {
-                // клонировать данные так как возможно изменение их в ходе рендера и это не должно влиять на исходные данные приложения
-                const cd = JSON.parse(JSON.stringify(data))
-                cd.blocks.forEach(bdata => {
-                    const block = rl.Blocks['B' + bdata.t];
-                    if (block) {
-                        const b = new block(cnt)
-                        b.render(bdata)
-                        if (b.postRender) b.postRender()
-                    } else {
-                        console.error('Block type not supported', bdata.t)
-                    }
-                });
-            }
-        }
-    }
-
-    // public API
-    rl.init = init
-})(RL)
-
 /**
  * Firestarter
  */
-let cntOrigin, cntSource, inited = false;
+let cntOrigin, cntSource, initialized = false;
 let clientId = null
 if (window && window.localStorage) {
     clientId = window.localStorage.getItem("CLIENT_ID");
@@ -95,23 +37,24 @@ function receiveMessage({origin = null, data = {}, source = null}) {
             cntSource = source;
             cntOrigin = !origin ? '*' : origin;
 
-            if (!inited) {
+            if (!initialized) {
                 if (!window.Remix) {
                     sendMessage('init_error')
                     throw new Error('Remix app not loaded!');
                 }
 
-                inited = true;
+                initialized = true;
 
                 const root = document.getElementById('remix-app-root');
 
                 if (!data.payload.projectStructure) {
-                    // Server replaces {{}} with projectStructureJson (string) when publishing
+                    // Server replaces projectStructureJson (string) when publishing
                     data.payload.projectStructure = '{{PROJECT_STRUCTURE_JSON}}'
                 }
 
                 try {
                     data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
+                    // data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
                 } catch(err) {
                     throw new Error('Remix cannot parse structure field to JSON');
                 }
@@ -178,6 +121,64 @@ function throttle(func, waitTime) {
         }
     }
 }
+
+(function(rl) {
+    let data = null, cnt = null;
+
+    function init({
+        container,
+        projectStructure
+    }) {
+        cnt = container
+        setData(projectStructure)
+    }
+
+    function setData(d) {
+        data = data || {}
+        let dd = {}
+        if (typeof d === 'string') {
+            d = RL.Methods.htmlDecode(d)
+            try {
+                dd = JSON.parse(d)
+            } catch(err) {
+                console.error(err)
+            }
+        } else if (typeof d === 'object') {
+            RL.Methods.forAllStringProperties(d, RL.Methods.htmlDecode)
+            dd = d
+        }
+        if (dd && dd.hasOwnProperty('blocks')) {
+            data.blocks = dd.blocks
+        }
+        if (dd && dd.hasOwnProperty('app')) {
+            data.app = dd.app
+        }
+        render()
+    }
+
+    function render() {
+        if (cnt) {
+            cnt.innerHTML = ''
+            if (data && data.blocks) {
+                // клонировать данные так как возможно изменение их в ходе рендера и это не должно влиять на исходные данные приложения
+                const cd = JSON.parse(JSON.stringify(data))
+                cd.blocks.forEach(bdata => {
+                    const block = rl.Blocks['B' + bdata.t];
+                    if (block) {
+                        const b = new block(cnt)
+                        b.render(bdata)
+                        if (b.postRender) b.postRender()
+                    } else {
+                        console.error('Block type not supported', bdata.t)
+                    }
+                });
+            }
+        }
+    }
+
+    // public API
+    rl.init = init
+})(RL)
 
 /**
  * Methods
