@@ -1,3 +1,7 @@
+import smoothScroll from 'smoothscroll-polyfill'
+
+smoothScroll.polyfill()
+
 const UTILS = {
     validator: {
         isValue: value => {
@@ -46,6 +50,7 @@ window.RC = class RC {
     #initialWidth
     #initialHeight
     #lng
+    #topOffset
     #onEvent
 
     #appOrigin
@@ -53,7 +58,7 @@ window.RC = class RC {
     #error
     #iframe
 
-    constructor({mode, nodeElement, remixUrl, features, projectStructure, initialWidth, initialHeight, lng, onEvent}) {
+    constructor({mode, nodeElement, remixUrl, features, projectStructure, initialWidth, initialHeight, lng, topOffset, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
         this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
         this.#remixUrl = this.#validateConstructorParam('remixUrl', remixUrl, true)
@@ -62,6 +67,7 @@ window.RC = class RC {
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
         this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
         this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getLanguage())
+        this.#topOffset = this.#validateConstructorParam('topOffset', topOffset, false, 0)
         this.#onEvent = this.#validateConstructorParam('onEvent', onEvent, false, null)
 
         this.#appOrigin = new URL(remixUrl).origin;
@@ -111,7 +117,8 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
                     }
                     case 'initialWidth':
-                    case 'initialHeight': {
+                    case 'initialHeight':
+                    case 'topOffset': {
                         if (UTILS.validator.isInt(value)) {
                             return parseInt(value)
                         }
@@ -313,6 +320,13 @@ window.RC = class RC {
                 this.#setSize(data.payload.sizes)
                 break;
             }
+            case 'scrollParent': {
+                window.scrollTo({
+                    top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
+                    behavior: "smooth"
+                });
+                break;
+            }
             default:
                 break;
         }
@@ -325,6 +339,15 @@ window.RC = class RC {
         if (this.#onEvent) {
             this.#onEvent(name, data)
         }
+    }
+
+    // [PRIVATE] Get element coords
+    #getElementCoords = el => {
+        const box = el.getBoundingClientRect();
+        return {
+            top: box.top + pageYOffset,
+            left: box.left + pageXOffset
+        };
     }
 
     // [PRIVATE]

@@ -106,21 +106,11 @@ function getParsedHTML(M, templateName, view) {
     return M.render(templates[templateName], view);
 }
 
-export default function(cnt, { M, methods }) {
+export default function(cnt, { M, methods, sendMessage }) {
     let wrapperElement = null
     let initialData = {}
     let scores = 0
     let lastAnsweredIndex = null
-
-    // TODO
-    // Allowed method (from main.html) - to send some data to RC
-    // sendMessage({
-    //     method: 'test method',
-    //     data: {
-    //         data1: "test data1",
-    //         data2: "test data2"
-    //     }
-    // })
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -142,6 +132,15 @@ export default function(cnt, { M, methods }) {
                 }
             }
         }
+    }
+
+    function getCoords(elem) {
+        const box = elem.getBoundingClientRect();
+        return {
+            top: box.top + pageYOffset,
+            left: box.left + pageXOffset
+        };
+
     }
 
     function setScreen(type, payload = {}) {
@@ -170,6 +169,10 @@ export default function(cnt, { M, methods }) {
                         all: initialData.struct.q.length
                     }
                 });
+
+                sendMessage('scrollParent', {
+                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
+                })
                 break;
             }
             case 'result': {
@@ -191,6 +194,10 @@ export default function(cnt, { M, methods }) {
                         box: initialData.struct.r[payload.index].i ? '' : 'no-image'
                     }
                 });
+
+                sendMessage('scrollParent', {
+                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
+                })
                 break;
             }
             default:
@@ -317,7 +324,7 @@ export default function(cnt, { M, methods }) {
                     log('error', data.id, null, err)
                 }
             } else {
-                log('warn', data.id, 'Block will not render because "data.struct._isV" is FALSE.')
+                log('warn', data.id, 'Block will not render because "data.struct._isV" is not true.')
             }
         },
         postRender: null

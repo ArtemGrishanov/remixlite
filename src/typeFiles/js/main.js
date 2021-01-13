@@ -54,9 +54,8 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                 try {
                     data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
-                    // data.payload.projectStructure = JSON.parse(data.payload.projectStructure)
                 } catch(err) {
-                    throw new Error('Remix cannot parse structure field to JSON');
+                    throw new Error('Remix cannot parse projectStructure to JSON');
                 }
 
                 if (data.payload.projectStructure.app.bg) {
@@ -405,5 +404,6 @@ RL.Blocks = {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
         },
+        sendMessage
     })
 }
