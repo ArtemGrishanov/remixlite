@@ -196,6 +196,13 @@ window.RC = class RC {
         this.#iframe = iframe
     }
 
+    // [PUBLIC] Change top offset
+    changeTopOffset = value => {
+        if (UTILS.validator.isInt(value)) {
+            this.#topOffset = parseInt(value)
+        }
+    }
+
     // [PRIVATE] Get language form window.navigator
     #getLanguage = () => {
         const language = window.navigator ? (
