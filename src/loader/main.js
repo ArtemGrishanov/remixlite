@@ -328,10 +328,12 @@ window.RC = class RC {
                 break;
             }
             case 'scrollParent': {
-                window.scrollTo({
-                    top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
-                    behavior: "smooth"
-                });
+                if (UTILS.validator.isValue(data.payload.top)) {
+                    window.scrollTo({
+                        top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
+                        behavior: "smooth"
+                    });
+                }
                 break;
             }
             default:
