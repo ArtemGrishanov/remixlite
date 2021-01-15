@@ -48,10 +48,18 @@ const templates = {
                     <div class="text size--{{sizes.t}}">{{question.t}}</div>
                 </div>
             {{/question.i}}
-            <ul class="list">
+            <ul class="list {{_classes.qList}}">
                 {{#question.a}}
-                    <li class="item is-handled" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
-                        <div class="text">{{t}}</div>
+                    <li class="item is-handled {{_classes.a}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
+                        {{#isText}}
+                            <div class="text">{{t}}</div>
+                        {{/isText}}
+                        {{^isText}}
+                            <div class="image">
+                                <img src="{{i}}" alt="img">
+                                <p>{{iL}}</p>
+                            </div>
+                        {{/isText}}
                     </li>
                 {{/question.a}}
             </ul>
@@ -159,6 +167,7 @@ export default function(cnt, { M, methods, sendMessage }) {
             case 'question': {
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
                     question: initialData.struct.q[payload.index],
+                    isText: initialData.struct.q[payload.index].isT,
                     sizes: {
                         t: initialData.struct.q[payload.index].t.length <= 100 ? 'big' : initialData.struct.q[payload.index].i ? 'small' : 'medium'
                     },
@@ -167,6 +176,10 @@ export default function(cnt, { M, methods, sendMessage }) {
                     counter: {
                         current: payload.index + 1,
                         all: initialData.struct.q.length
+                    },
+                    _classes: {
+                        qList: initialData.struct.q[payload.index].isT ? '' : 'is-image',
+                        a: initialData.struct.q[payload.index].isT ? '' : 'is-image',
                     }
                 });
 
@@ -244,8 +257,9 @@ export default function(cnt, { M, methods, sendMessage }) {
                         }
                     }
 
-                    if (selectedAnswer.d.length) {
-                        selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', selectedAnswer.d))
+                    const description = selectedAnswer.isT ? selectedAnswer.d : selectedAnswer.iDr
+                    if (description.length) {
+                        selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', description))
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
@@ -277,10 +291,18 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     switch (initiator) {
                         case 'start':
-                            // Initial start action
+                            sendMessage('action', {
+                                block: 'triviaQuiz',
+                                type: 'click',
+                                click: 'start'
+                            })
                             break;
                         case 'result.restart':
-                            // Restart action
+                            sendMessage('action', {
+                                block: 'triviaQuiz',
+                                type: 'click',
+                                click: 'result.restart'
+                            })
                             break;
                         default:
                             break;
