@@ -95,7 +95,7 @@ const templates = {
                 <div class="btn-wrap">
                     {{#callToActionButton}}
                         <div class="link-block">
-                            <a href="{{callToActionButtonLink}}" target="_blank" rel="noopener noreferrer" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{callToActionButtonText}}</a>
+                            <button class="is-handled" data-handlers="click" data-initiator="result.callToAction" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{callToActionButtonText}}</button>
                         </div>
                     {{/callToActionButton}}
                     <div class="button-block">
@@ -201,7 +201,6 @@ export default function(cnt, { M, methods, sendMessage }) {
                     showScores: initialData.sR,
                     callToActionButton: initialData.cA,
                     callToActionButtonText: initialData.cA_t,
-                    callToActionButtonLink: initialData.cA_l,
                     scores: {
                         current: scores,
                         all: initialData.struct.q.length
@@ -235,7 +234,9 @@ export default function(cnt, { M, methods, sendMessage }) {
                         block: 'triviaQuiz',
                         id: initialData.id,
                         type: 'click',
-                        click: 'cover.start'
+                        data: {
+                            target: 'cover.start'
+                        }
                     })
                     break;
                 }
@@ -252,7 +253,9 @@ export default function(cnt, { M, methods, sendMessage }) {
                         el.classList.add("is-disabled");
                     }
 
-                    const selectedAnswer = initialData.struct.q[payload.qIndex].a.find(el => el.id === payload.answerId)
+                    const question = initialData.struct.q[payload.qIndex]
+
+                    const selectedAnswer = question.a.find(el => el.id === payload.answerId)
                     const selectedAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === payload.answerId)[0];
                     selectedAnswerElement.classList.add("is-selected");
 
@@ -261,14 +264,14 @@ export default function(cnt, { M, methods, sendMessage }) {
                         scores ++
                     } else {
                         selectedAnswerElement.classList.add("is-incorrect")
-                        const correctAnswers = initialData.struct.q[payload.qIndex].a.filter(el => el.isC)
+                        const correctAnswers = question.a.filter(el => el.isC)
                         for (const correctAnswer of correctAnswers) {
                             const correctAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === correctAnswer.id)[0];
                             correctAnswerElement.classList.add("is-correct");
                         }
                     }
 
-                    const description = selectedAnswer.isT ? selectedAnswer.d : selectedAnswer.iDr
+                    const description = question.isT ? selectedAnswer.d : selectedAnswer.iDr
                     if (description.length) {
                         selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', description))
                     }
@@ -289,9 +292,32 @@ export default function(cnt, { M, methods, sendMessage }) {
                         const resultIndex = initialData.struct._s.d.findIndex(el => el.f <= scores && el.t >= scores)
                         setScreen('result', {index: resultIndex})
                         updateEventListeners()
+
+                        sendMessage('action', {
+                            block: 'triviaQuiz',
+                            id: initialData.id,
+                            type: 'setScreen',
+                            data: {
+                                target: 'result',
+                                payload: {
+                                    scores,
+                                    maxScores: initialData.struct.q.length,
+                                    resultScreen: initialData.struct.r[resultIndex]
+                                }
+                            }
+                        })
                     } else {
                         setScreen('question', {index: payload.qIndex + 1})
                         updateEventListeners({qIndex: payload.qIndex + 1})
+
+                        sendMessage('action', {
+                            block: 'triviaQuiz',
+                            id: initialData.id,
+                            type: 'setScreen',
+                            data: {
+                                target: 'question'
+                            }
+                        })
                     }
 
                     break;
@@ -322,12 +348,26 @@ export default function(cnt, { M, methods, sendMessage }) {
                                 block: 'triviaQuiz',
                                 id: initialData.id,
                                 type: 'click',
-                                click: 'result.restart'
+                                data: {
+                                    target: 'result.restart'
+                                }
                             })
                             break;
                         default:
                             break;
                     }
+                    break;
+                }
+                case 'result.callToAction': {
+                    sendMessage('action', {
+                        block: 'triviaQuiz',
+                        id: initialData.id,
+                        type: 'click',
+                        data: {
+                            target: 'result.callToAction'
+                        }
+                    })
+                    window.open(initialData.cA_l,'_blank');
                     break;
                 }
                 default:

@@ -84,7 +84,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 })
                 resizeObserver.observe(root);
 
-                ['mousemove', 'keydown'].forEach(evt => {
+                ['mousemove', 'mousedown', 'keydown'].forEach(evt => {
                     window.addEventListener(evt, throttle(() => sendMessage('user-activity'), 5000))
                 })
             }

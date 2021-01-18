@@ -317,11 +317,27 @@
               box-shadow: none;
               margin: 0 16px 24px 0;
               padding: 0;
+              width: 178px;
               @include maxWidth(799) {
-                width: calc(50% - 5px);
+              width: calc(50% - 5px) !important;
                 margin: 0 10px 20px 0 !important;
                 &:nth-child(even) {
                   margin-right: 0 !important;
+                }
+              }
+              &.is-big {
+                width: 242px;
+                margin-right: 17px;
+                &:nth-child(4n) {
+                  margin-right: 17px;
+                }
+                &:nth-child(3n) {
+                  margin-right: 0;
+                }
+                > div.image {
+                  > img {
+                    height: 242px;
+                  }
                 }
               }
               &:nth-child(4n) {
@@ -336,24 +352,9 @@
                 top: 12px;
                 transform: none;
               }
-              &.is-big {
-                margin-right: 17px;
-                &:nth-child(4n) {
-                  margin-right: 17px;
-                }
-                &:nth-child(3n) {
-                  margin-right: 0;
-                }
-                > div.image {
-                  > img {
-                    width: 242px;
-                    height: 242px;
-                  }
-                }
-              }
               > div.image {
                 > img {
-                  width: 178px;
+                  width: 100%;
                   height: 178px;
                   object-fit: cover;
                   filter: drop-shadow(0 4px 20px rgba(0,0,0,.12));
@@ -593,7 +594,7 @@
             align-items: center;
             > div.link-block {
               margin-bottom: 12px;
-              > a {
+              > button {
                 font-family: 'Roboto', sans-serif;
                 font-style: normal;
                 font-weight: normal;

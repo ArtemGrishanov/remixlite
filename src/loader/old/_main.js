@@ -454,7 +454,6 @@ if (window.remix_interacty === undefined) {
                                 if (data && data.appId) {
                                     if (json.type.projectType === 'RANK_BATTLE') {
                                         createSession(json.projectId, data.appId)
-
                                         userActivity.onActivityLongTime = () =>
                                             createSession(json.projectId, data.appId)
                                     } else {
