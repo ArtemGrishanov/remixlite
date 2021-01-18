@@ -236,9 +236,7 @@ window.RC = class RC {
         const ANIMATION_DURATION = 500
 
         const html = `
-        <div
-            data-remix-preloader
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
         >
             <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="width: 100%; max-width: 380px;" />
          </div>`
@@ -289,9 +287,7 @@ window.RC = class RC {
     // [PRIVATE]
     #createError = () => {
         const html = `
-        <div
-            data-remix-preloader
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
         >
             <span style="font-size: 16px;">Oops! Some error occurred &#128532;</span>
          </div>`
@@ -427,7 +423,7 @@ window.RC = class RC {
 (async () => {
     if (window.RC) {
         const classes = 'remix-app'
-        const initializedAttrName = 'data-initialized'
+        const initializedAttrName = 'initialized'
 
         const elements = document.getElementsByClassName(classes)
         for (const element of elements) {

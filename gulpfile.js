@@ -143,7 +143,11 @@ const f = {
                     .bundle()
                     .pipe(source('main.js'))
                     .pipe(buffer())
-                    .pipe(uglify())
+                    .pipe(uglify({
+                        output: {
+                            quote_style: 1
+                        }
+                    }))
                     .pipe(gulp.dest(path.build._tmp.typeFiles))
             },
             [fConstants.typeFiles.js.watch]: () => {
@@ -168,7 +172,11 @@ const f = {
                 .bundle()
                 .pipe(source('loader.js'))
                 .pipe(buffer())
-                .pipe(uglify())
+                .pipe(uglify({
+                    output: {
+                        quote_style: 1
+                    }
+                }))
                 .pipe(gulp.dest(path.build.loader))
         },
         [fConstants.loader.watch]: () => {
