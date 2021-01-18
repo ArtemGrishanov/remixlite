@@ -165,11 +165,13 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'question': {
+                const question = initialData.struct.q[payload.index]
+
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
-                    question: initialData.struct.q[payload.index],
-                    isText: initialData.struct.q[payload.index].isT,
+                    question,
+                    isText: question.isT,
                     sizes: {
-                        t: initialData.struct.q[payload.index].t.length <= 100 ? 'big' : initialData.struct.q[payload.index].i ? 'small' : 'medium'
+                        t: question.t.length <= 100 ? 'big' : question.i ? 'small' : 'medium'
                     },
                     colorTheme: initialData.cT,
                     progressBar: initialData.pB,
@@ -178,8 +180,8 @@ export default function(cnt, { M, methods, sendMessage }) {
                         all: initialData.struct.q.length
                     },
                     _classes: {
-                        qList: initialData.struct.q[payload.index].isT ? '' : 'is-image',
-                        a: initialData.struct.q[payload.index].isT ? '' : 'is-image',
+                        qList: !question.isT ? 'is-image' : '',
+                        a: !question.isT ? `is-image${(question.a.length <= 3 || (question.a.length >= 5 && question.a.length <= 6)) ? ' is-big' : ''}` : '',
                     }
                 });
 
@@ -189,8 +191,10 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'result': {
+                const result = initialData.struct.r[payload.index]
+
                 wrapperElement.innerHTML = getParsedHTML(M, 'result', {
-                    result: initialData.struct.r[payload.index],
+                    result,
                     header: initialData.struct._s.c ? initialData.struct.c.h : null,
                     colorTheme: initialData.cT,
                     buttonColor: invertColor(initialData.cT, true),
@@ -203,8 +207,8 @@ export default function(cnt, { M, methods, sendMessage }) {
                         all: initialData.struct.q.length
                     },
                     _classes: {
-                        head: initialData.struct.r[payload.index].i ? '' : 'no-image',
-                        box: initialData.struct.r[payload.index].i ? '' : 'no-image'
+                        head: !result.i ? 'no-image' : '',
+                        box: !result.i ? 'no-image' : '',
                     }
                 });
 
@@ -226,6 +230,13 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     setScreen('question', {index: 0})
                     updateEventListeners({qIndex: 0})
+
+                    sendMessage('action', {
+                        block: 'triviaQuiz',
+                        id: initialData.id,
+                        type: 'click',
+                        click: 'cover.start'
+                    })
                     break;
                 }
                 case 'question.answer': {
@@ -289,25 +300,6 @@ export default function(cnt, { M, methods, sendMessage }) {
                 case 'result.restart': {
                     if (evt) evt.preventDefault()
 
-                    switch (initiator) {
-                        case 'start':
-                            sendMessage('action', {
-                                block: 'triviaQuiz',
-                                type: 'click',
-                                click: 'start'
-                            })
-                            break;
-                        case 'result.restart':
-                            sendMessage('action', {
-                                block: 'triviaQuiz',
-                                type: 'click',
-                                click: 'result.restart'
-                            })
-                            break;
-                        default:
-                            break;
-                    }
-
                     scores = 0
                     lastAnsweredIndex = null
 
@@ -320,6 +312,22 @@ export default function(cnt, { M, methods, sendMessage }) {
                     }
 
                     updateEventListeners(additionalPayload)
+
+                    switch (initiator) {
+                        case 'start':
+                            // Quiz was rendered
+                            break;
+                        case 'result.restart':
+                            sendMessage('action', {
+                                block: 'triviaQuiz',
+                                id: initialData.id,
+                                type: 'click',
+                                click: 'result.restart'
+                            })
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 }
                 default:
