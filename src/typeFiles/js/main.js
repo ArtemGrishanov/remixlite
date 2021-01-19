@@ -10,6 +10,7 @@ import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
+import blockTimeline from './blocks/timeline'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -405,5 +406,12 @@ RL.Blocks = {
             parse: RL.Methods.parse,
         },
         sendMessage
-    })
+    }),
+    Timeline: cnt => blockTimeline(cnt, {
+        methods: {
+            add: RL.Methods.add,
+            parse: RL.Methods.parse,
+            useFont: RL.Methods.useFont
+        }
+    }),
 }
