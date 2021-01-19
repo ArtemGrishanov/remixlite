@@ -25,7 +25,7 @@ export default class SESSION {
     sendActivity = async () => {
         try {
             if (!this.#createdSession) {
-                const rawResponse = await fetch('https://api.dev.interacty.me/api/sessions', {
+                const rawResponse = await fetch(`${___API_URL___}/api/sessions`, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -45,7 +45,7 @@ export default class SESSION {
                 });
                 this.#createdSession = await rawResponse.json();
             } else {
-                await fetch(`https://api.dev.interacty.me/api/sessions/${this.#createdSession.id}/refresh`, {
+                await fetch(`${___API_URL___}/api/sessions/${this.#createdSession.id}/refresh`, {
                     method: 'PATCH',
                     headers: {
                         'Client-Key': this.#clientId

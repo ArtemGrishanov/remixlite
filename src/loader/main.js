@@ -438,7 +438,7 @@ window.RC = class RC {
                 const params = {
                     features: [],
                     projectStructure: null,
-                    premixUrl: null,
+                    remixUrl: null,
                     projectId: null
                 }
 
@@ -448,21 +448,21 @@ window.RC = class RC {
                     if (projectStructure) {
                         params.projectStructure = projectStructure
                     } else {
-                        throw new Error(`"projectStructure" field is required for DEBUG`)
+                        throw new Error(`"DEBUG_projectStructure" attribute is required for DEBUG`)
                     }
 
-                    const premixUrl = element.getAttribute('DEBUG_premixUrl')
-                    if (premixUrl) {
-                        params.premixUrl = premixUrl
+                    const remixUrl = element.getAttribute('DEBUG_remixUrl')
+                    if (remixUrl) {
+                        params.remixUrl = remixUrl
                     } else {
-                        throw new Error(`"premixUrl" field is required for DEBUG`)
+                        throw new Error(`"DEBUG_remixUrl" attribute is required for DEBUG`)
                     }
 
                     const projectId = element.getAttribute('DEBUG_projectId')
                     if (projectId) {
                         params.projectId = projectId
                     } else {
-                        throw new Error(`"projectId" field is required for DEBUG`)
+                        throw new Error(`"DEBUG_projectId" attribute is required for DEBUG`)
                     }
                 } else {
                     try {
@@ -470,7 +470,7 @@ window.RC = class RC {
                         const content = await response.json()
                         params.features = content.features
                         params.projectId = content.projectId
-                        params.premixUrl = content.files.find(el => el.mediaType === 'text/html').url
+                        params.remixUrl = content.files.find(el => el.mediaType === 'text/html').url
                     } catch (err) {
                         throw new Error(`Cannot get content from ${contentUrl}`)
                     }
@@ -496,7 +496,7 @@ window.RC = class RC {
                 new window.RC({
                     mode: 'published',
                     nodeElement: element,
-                    remixUrl: params.premixUrl,
+                    remixUrl: params.remixUrl,
                     features: params.features,
                     projectStructure: params.projectStructure,
                     initialWidth,
