@@ -1,8 +1,13 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
+import R_SESSION from './session'
+
 smoothScroll.polyfill()
 
-const UTILS = {
+/**
+ * R_UTILS
+ */
+const R_UTILS = {
     validator: {
         isValue: value => {
             try {
@@ -36,7 +41,6 @@ const UTILS = {
         }
     }
 }
-
 
 /**
  * "R Class"
@@ -80,7 +84,7 @@ window.RC = class RC {
     #validateConstructorParam = ((key, value, required = true, defaultValue) => {
         try {
             // check value and return (formatted or error)
-            if (UTILS.validator.isValue(value)) {
+            if (R_UTILS.validator.isValue(value)) {
                 switch (key) {
                     case 'mode': {
                         if (typeof value === 'string') {
@@ -99,7 +103,7 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'HTMLElement' })
                     }
                     case 'remixUrl': {
-                        if (UTILS.validator.isURL(value)) {
+                        if (R_UTILS.validator.isURL(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (URL)' })
@@ -111,7 +115,7 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Array' })
                     }
                     case 'projectStructure': {
-                        if (UTILS.validator.isJSON(value)) {
+                        if (R_UTILS.validator.isJSON(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
@@ -119,7 +123,7 @@ window.RC = class RC {
                     case 'initialWidth':
                     case 'initialHeight':
                     case 'topOffset': {
-                        if (UTILS.validator.isInt(value)) {
+                        if (R_UTILS.validator.isInt(value)) {
                             return parseInt(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
@@ -198,7 +202,7 @@ window.RC = class RC {
 
     // [PUBLIC] Change top offset
     changeTopOffset = value => {
-        if (UTILS.validator.isInt(value)) {
+        if (R_UTILS.validator.isInt(value)) {
             this.#topOffset = parseInt(value)
         }
     }
@@ -215,13 +219,13 @@ window.RC = class RC {
 
     // [PRIVATE] Set nodeElement size
     #setSize = ({ width, height, maxWidth }) => {
-        if (UTILS.validator.isValue(width) && width === 'maxWidth') {
+        if (R_UTILS.validator.isValue(width) && width === 'maxWidth') {
             this.#nodeElement.style.width = '100%'
         }
-        if (UTILS.validator.isValue(maxWidth) && UTILS.validator.isInt(maxWidth)) {
+        if (R_UTILS.validator.isValue(maxWidth) && R_UTILS.validator.isInt(maxWidth)) {
             this.#nodeElement.style.maxWidth = maxWidth + 'px'
         }
-        if (UTILS.validator.isValue(height) && UTILS.validator.isInt(height)) {
+        if (R_UTILS.validator.isValue(height) && R_UTILS.validator.isInt(height)) {
             this.#nodeElement.style.height = height + 'px'
         }
     }
@@ -232,9 +236,7 @@ window.RC = class RC {
         const ANIMATION_DURATION = 500
 
         const html = `
-        <div
-            data-remix-preloader
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
         >
             <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="width: 100%; max-width: 380px;" />
          </div>`
@@ -285,9 +287,7 @@ window.RC = class RC {
     // [PRIVATE]
     #createError = () => {
         const html = `
-        <div
-            data-remix-preloader
-            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
         >
             <span style="font-size: 16px;">Oops! Some error occurred &#128532;</span>
          </div>`
@@ -321,6 +321,21 @@ window.RC = class RC {
                     ...data.payload.sizes,
                     width: 'maxWidth'
                 })
+
+                // Create session with params (telegram)
+                // utm_campaign (128 max)
+                // utm_source (128 max)
+                // utm_medium (128 max)
+                // utm_content (128 max)
+
+                // send after first active
+                // refresh every active
+
+                // referenceTail (max 512) все после ? в query
+                // sourceReference (max 512) откуда пришли // document.referrer 'https://' | ''
+
+                // init rest, refresh rest
+                // 30 min | const INACTIVE_MAX_TIME = 30 * 60 * 1000
                 break;
             }
             case 'setSize': {
@@ -328,10 +343,12 @@ window.RC = class RC {
                 break;
             }
             case 'scrollParent': {
-                window.scrollTo({
-                    top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
-                    behavior: "smooth"
-                });
+                if (R_UTILS.validator.isValue(data.payload.top) && R_UTILS.validator.isInt(data.payload.top)) {
+                    window.scrollTo({
+                        top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
+                        behavior: "smooth"
+                    });
+                }
                 break;
             }
             default:
@@ -405,94 +422,134 @@ window.RC = class RC {
  */
 (async () => {
     if (window.RC) {
-        const classes = 'rmx_interacty'
-        const initializedAttrName = 'data-initialized'
+        const classes = 'remix-app'
+        const initializedAttrName = 'initialized'
 
         const elements = document.getElementsByClassName(classes)
         for (const element of elements) {
             const initialized = element.getAttribute(initializedAttrName)
             if (!initialized) {
                 element.setAttribute(initializedAttrName, 'true')
-                const contentUrl = element.getAttribute('data-content')
-                const initialWidth = element.getAttribute('data-initialWidth')
-                const initialHeight = element.getAttribute('data-initialHeight')
-                const projectStructure = element.getAttribute('data-project-structure')
-                const remixUrl = element.getAttribute('data-remix-url')
-                const mode = element.getAttribute('data-mode')
-                const lng = element.getAttribute('data-lng')
+                const contentUrl = element.getAttribute('content')
+                const initialWidth = element.getAttribute('initialWidth')
+                const initialHeight = element.getAttribute('initialHeight')
+                const lng = element.getAttribute('lng')
 
-                // sendStatToGA(gaTrackerName, {category: statCategory, action: 'content_requested'})
+                const params = {
+                    features: [],
+                    projectStructure: null,
+                    remixUrl: null,
+                    projectId: null
+                }
 
-                let htmlFile, features;
-                if (remixUrl) {
-                    features = []
+                const useDebug = element.getAttribute('useDebug')
+                if (useDebug) {
+                    const projectStructure = element.getAttribute('DEBUG_projectStructure')
+                    if (projectStructure) {
+                        params.projectStructure = projectStructure
+                    } else {
+                        throw new Error(`"DEBUG_projectStructure" attribute is required for DEBUG`)
+                    }
+
+                    const remixUrl = element.getAttribute('DEBUG_remixUrl')
+                    if (remixUrl) {
+                        params.remixUrl = remixUrl
+                    } else {
+                        throw new Error(`"DEBUG_remixUrl" attribute is required for DEBUG`)
+                    }
+
+                    const projectId = element.getAttribute('DEBUG_projectId')
+                    if (projectId) {
+                        params.projectId = projectId
+                    } else {
+                        throw new Error(`"DEBUG_projectId" attribute is required for DEBUG`)
+                    }
                 } else {
-                    let content;
                     try {
                         const response = await fetch(contentUrl)
-                        content = await response.json()
+                        const content = await response.json()
+                        params.features = content.features
+                        params.projectId = content.projectId
+                        params.remixUrl = content.files.find(el => el.mediaType === 'text/html').url
                     } catch (err) {
                         throw new Error(`Cannot get content from ${contentUrl}`)
                     }
+                }
 
-                    features = content.features
-                    htmlFile = content.files.find(el => el.mediaType === 'text/html')
-                    if (!htmlFile) {
-                        throw new Error(`Cannot get HTML file from ${contentUrl}`)
-                    }
+                const session = {
+                    instance: null,
+                    data: {
+                        clientId: null,
+                        projectId: null,
+                        utmCampaign: null,
+                        utmSource: null,
+                        utmMedium: null,
+                        utmContent: null,
+                        referenceTail: null,
+                        sourceReference: null
+                    },
+                    createdAt: null,
+                    updatedAt: null,
+                    maxRefreshAwaiting: 15 * 60 * 1000 // 15 min
                 }
 
                 new window.RC({
-                    mode: mode ? mode : 'published',
+                    mode: 'published',
                     nodeElement: element,
-                    remixUrl: remixUrl ? remixUrl : htmlFile.url,
-                    features,
-                    projectStructure: projectStructure ? projectStructure : null,
+                    remixUrl: params.remixUrl,
+                    features: params.features,
+                    projectStructure: params.projectStructure,
                     initialWidth,
                     initialHeight,
                     lng: lng ? lng : null,
-                    onEvent: (name, data) => {}
-                    // onEvent: (name, data) => {
-                    //     console.log('--- onEvent (BOOTLOADER) ---');
-                    //     console.log('method:', data.method);
-                    //     console.log('data:', data);
-                    //
-                    //     switch (data.method) {
-                    //         case 'initialized': {
-                    //             // createSession(content.projectId, data.payload.clientId)
-                    //             break;
-                    //         }
-                    //         default:
-                    //             break;
-                    //     }
-                    //
-                    //     // Sessions + activity
-                    //
-                    //     // data => data.method === 'user-activity' && userActivity.makeActivity(),
-                    //     // data => data.method.indexOf('analytics') !== -1 && analytics.trigger(data),
-                    //     // if (data.method === 'user-data') {userData.push(data)}
-                    // },
+                    onEvent: (name, data) => {
+                        switch (data.method) {
+                            case 'initialized': {
+                                const queryString = window.location.search;
+                                const urlParams = new URLSearchParams(queryString);
+
+                                const utmCampaign = urlParams.get('utm_campaign')
+                                const utmSource = urlParams.get('utm_source')
+                                const utmMedium = urlParams.get('utm_medium')
+                                const utmContent = urlParams.get('utm_content')
+                                const referenceTail = queryString
+                                const sourceReference = document.referrer
+
+                                session.data = {
+                                    ...session.data,
+                                    clientId: data.payload.clientId,
+                                    projectId: params.projectId,
+                                    utmCampaign,
+                                    utmSource,
+                                    utmMedium,
+                                    utmContent,
+                                    referenceTail,
+                                    sourceReference
+                                }
+                                const time = Date.now()
+                                session.createdAt = time
+                                session.updatedAt = time
+                                session.instance = new R_SESSION(session.data)
+                                break;
+                            }
+                            case 'user-activity': {
+                                const time = Date.now()
+                                if (time - session.updatedAt > session.maxRefreshAwaiting) {
+                                    session.instance = new R_SESSION(session.data)
+                                    session.createdAt = time
+                                    session.updatedAt = time
+                                } else {
+                                    session.instance.sendActivity()
+                                    session.updatedAt = time
+                                }
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                    }
                 }).createIframe()
-
-                // sendStatToGA(gaTrackerName, {category: statCategory, action: 'container_created'})
-
-                // analytics.setConversionActionIds(
-                //     Object.fromEntries(
-                //         (json.projectActions || []).map(({ actionType, id }) => [actionType, id]),
-                //     ),
-                // )
-                // userData.formTemplate = json.projectForms
             }
         }
-
-        // const gaTrackerName = 'interactyTracker'
-        // const statCategory = 'InteractyLoader'
-        // const analytics = new Analytics()
-        // const userActivity = new UserActivity()
-        // const userData = new UserData()
-        // function createSession(projectId, clientKey) {
-        //     // setClientKey(clientKey)
-        //     // sessionInitialize({ projectId })
-        // }
     }
 })()

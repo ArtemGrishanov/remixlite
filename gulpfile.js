@@ -46,7 +46,8 @@ const gulp = require('gulp'),
     babelify = require('babelify'),
     source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
-    inject = require('gulp-inject');
+    inject = require('gulp-inject'),
+    replace = require('gulp-replace');
 
 const fConstants = {
     typeFiles: {
@@ -143,7 +144,11 @@ const f = {
                     .bundle()
                     .pipe(source('main.js'))
                     .pipe(buffer())
-                    .pipe(uglify())
+                    .pipe(uglify({
+                        output: {
+                            quote_style: 1
+                        }
+                    }))
                     .pipe(gulp.dest(path.build._tmp.typeFiles))
             },
             [fConstants.typeFiles.js.watch]: () => {
@@ -168,7 +173,11 @@ const f = {
                 .bundle()
                 .pipe(source('loader.js'))
                 .pipe(buffer())
-                .pipe(uglify())
+                .pipe(uglify({
+                    output: {
+                        quote_style: 1
+                    }
+                }))
                 .pipe(gulp.dest(path.build.loader))
         },
         [fConstants.loader.watch]: () => {
@@ -179,6 +188,7 @@ const f = {
                 }))
                 .bundle()
                 .pipe(source('loader.js'))
+                .pipe(replace('___API_URL___', `"${process.env.API_URL}"`))
                 .pipe(gulp.dest(path.build.loader))
                 .pipe(browserSync.stream());
         }

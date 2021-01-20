@@ -37,7 +37,9 @@ const templates = {
                         <span class="counter">{{counter.current}}/{{counter.all}}</span>
                     {{/progressBar}}
                     <img src="{{question.i}}" alt="Question image">
-                    <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                    <div class="text-wrap">
+                        <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                    </div>
                 </div>
             {{/question.i}}
             {{^question.i}}
@@ -48,10 +50,18 @@ const templates = {
                     <div class="text size--{{sizes.t}}">{{question.t}}</div>
                 </div>
             {{/question.i}}
-            <ul class="list">
+            <ul class="list {{_classes.qList}}">
                 {{#question.a}}
-                    <li class="item is-handled" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
-                        <div class="text">{{t}}</div>
+                    <li class="item is-handled {{_classes.a}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
+                        {{#isText}}
+                            <div class="text">{{t}}</div>
+                        {{/isText}}
+                        {{^isText}}
+                            <div class="image">
+                                <img src="{{i}}" alt="img">
+                                <p>{{iL}}</p>
+                            </div>
+                        {{/isText}}
                     </li>
                 {{/question.a}}
             </ul>
@@ -73,7 +83,9 @@ const templates = {
     result: `
         <div class="result" id="{{result.id}}">
             {{#header}}
-                <div class="head {{_classes.head}}">{{header}}</div>
+                <div class="head-wrap {{_classes.head-wrap}}">
+                    <div class="head">{{header}}</div>
+                </div>
             {{/header}}
             {{#result.i}}
                 <img src="{{result.i}}" alt="Result image">
@@ -87,7 +99,7 @@ const templates = {
                 <div class="btn-wrap">
                     {{#callToActionButton}}
                         <div class="link-block">
-                            <a href="{{callToActionButtonLink}}" target="_blank" rel="noopener noreferrer" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{callToActionButtonText}}</a>
+                            <button class="is-handled" data-handlers="click" data-initiator="result.callToAction" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{callToActionButtonText}}</button>
                         </div>
                     {{/callToActionButton}}
                     <div class="button-block">
@@ -157,16 +169,23 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'question': {
+                const question = initialData.struct.q[payload.index]
+
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
-                    question: initialData.struct.q[payload.index],
+                    question,
+                    isText: question.isT,
                     sizes: {
-                        t: initialData.struct.q[payload.index].t.length <= 100 ? 'big' : initialData.struct.q[payload.index].i ? 'small' : 'medium'
+                        t: question.t.length <= 100 ? 'big' : question.i ? 'small' : 'medium'
                     },
                     colorTheme: initialData.cT,
                     progressBar: initialData.pB,
                     counter: {
                         current: payload.index + 1,
                         all: initialData.struct.q.length
+                    },
+                    _classes: {
+                        qList: !question.isT ? 'is-image' : '',
+                        a: !question.isT ? `is-image${(question.a.length <= 3 || (question.a.length >= 5 && question.a.length <= 6)) ? ' is-big' : ''}` : '',
                     }
                 });
 
@@ -176,22 +195,23 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'result': {
+                const result = initialData.struct.r[payload.index]
+
                 wrapperElement.innerHTML = getParsedHTML(M, 'result', {
-                    result: initialData.struct.r[payload.index],
+                    result,
                     header: initialData.struct._s.c ? initialData.struct.c.h : null,
                     colorTheme: initialData.cT,
                     buttonColor: invertColor(initialData.cT, true),
                     showScores: initialData.sR,
                     callToActionButton: initialData.cA,
                     callToActionButtonText: initialData.cA_t,
-                    callToActionButtonLink: initialData.cA_l,
                     scores: {
                         current: scores,
                         all: initialData.struct.q.length
                     },
                     _classes: {
-                        head: initialData.struct.r[payload.index].i ? '' : 'no-image',
-                        box: initialData.struct.r[payload.index].i ? '' : 'no-image'
+                        'head-wrap': !result.i ? 'no-image' : '',
+                        box: !result.i ? 'no-image' : '',
                     }
                 });
 
@@ -213,6 +233,15 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     setScreen('question', {index: 0})
                     updateEventListeners({qIndex: 0})
+
+                    sendMessage('action', {
+                        block: 'triviaQuiz',
+                        id: initialData.id,
+                        type: 'click',
+                        data: {
+                            target: 'cover.start'
+                        }
+                    })
                     break;
                 }
                 case 'question.answer': {
@@ -228,7 +257,9 @@ export default function(cnt, { M, methods, sendMessage }) {
                         el.classList.add("is-disabled");
                     }
 
-                    const selectedAnswer = initialData.struct.q[payload.qIndex].a.find(el => el.id === payload.answerId)
+                    const question = initialData.struct.q[payload.qIndex]
+
+                    const selectedAnswer = question.a.find(el => el.id === payload.answerId)
                     const selectedAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === payload.answerId)[0];
                     selectedAnswerElement.classList.add("is-selected");
 
@@ -237,15 +268,16 @@ export default function(cnt, { M, methods, sendMessage }) {
                         scores ++
                     } else {
                         selectedAnswerElement.classList.add("is-incorrect")
-                        const correctAnswers = initialData.struct.q[payload.qIndex].a.filter(el => el.isC)
+                        const correctAnswers = question.a.filter(el => el.isC)
                         for (const correctAnswer of correctAnswers) {
                             const correctAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === correctAnswer.id)[0];
                             correctAnswerElement.classList.add("is-correct");
                         }
                     }
 
-                    if (selectedAnswer.d.length) {
-                        selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', selectedAnswer.d))
+                    const description = question.isT ? selectedAnswer.d : selectedAnswer.iDr
+                    if (description.length) {
+                        selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', description))
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
@@ -264,9 +296,32 @@ export default function(cnt, { M, methods, sendMessage }) {
                         const resultIndex = initialData.struct._s.d.findIndex(el => el.f <= scores && el.t >= scores)
                         setScreen('result', {index: resultIndex})
                         updateEventListeners()
+
+                        sendMessage('action', {
+                            block: 'triviaQuiz',
+                            id: initialData.id,
+                            type: 'setScreen',
+                            data: {
+                                target: 'result',
+                                payload: {
+                                    scores,
+                                    maxScores: initialData.struct.q.length,
+                                    resultScreen: initialData.struct.r[resultIndex]
+                                }
+                            }
+                        })
                     } else {
                         setScreen('question', {index: payload.qIndex + 1})
                         updateEventListeners({qIndex: payload.qIndex + 1})
+
+                        sendMessage('action', {
+                            block: 'triviaQuiz',
+                            id: initialData.id,
+                            type: 'setScreen',
+                            data: {
+                                target: 'question'
+                            }
+                        })
                     }
 
                     break;
@@ -274,17 +329,6 @@ export default function(cnt, { M, methods, sendMessage }) {
                 case 'start':
                 case 'result.restart': {
                     if (evt) evt.preventDefault()
-
-                    switch (initiator) {
-                        case 'start':
-                            // Initial start action
-                            break;
-                        case 'result.restart':
-                            // Restart action
-                            break;
-                        default:
-                            break;
-                    }
 
                     scores = 0
                     lastAnsweredIndex = null
@@ -298,6 +342,36 @@ export default function(cnt, { M, methods, sendMessage }) {
                     }
 
                     updateEventListeners(additionalPayload)
+
+                    switch (initiator) {
+                        case 'start':
+                            // Quiz was rendered
+                            break;
+                        case 'result.restart':
+                            sendMessage('action', {
+                                block: 'triviaQuiz',
+                                id: initialData.id,
+                                type: 'click',
+                                data: {
+                                    target: 'result.restart'
+                                }
+                            })
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                }
+                case 'result.callToAction': {
+                    sendMessage('action', {
+                        block: 'triviaQuiz',
+                        id: initialData.id,
+                        type: 'click',
+                        data: {
+                            target: 'result.callToAction'
+                        }
+                    })
+                    window.open(initialData.cA_l,'_blank');
                     break;
                 }
                 default:
