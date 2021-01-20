@@ -37,7 +37,9 @@ const templates = {
                         <span class="counter">{{counter.current}}/{{counter.all}}</span>
                     {{/progressBar}}
                     <img src="{{question.i}}" alt="Question image">
-                    <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                    <div class="text-wrap">
+                        <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                    </div>
                 </div>
             {{/question.i}}
             {{^question.i}}
@@ -81,7 +83,9 @@ const templates = {
     result: `
         <div class="result" id="{{result.id}}">
             {{#header}}
-                <div class="head {{_classes.head}}">{{header}}</div>
+                <div class="head-wrap {{_classes.head-wrap}}">
+                    <div class="head">{{header}}</div>
+                </div>
             {{/header}}
             {{#result.i}}
                 <img src="{{result.i}}" alt="Result image">
@@ -206,7 +210,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                         all: initialData.struct.q.length
                     },
                     _classes: {
-                        head: !result.i ? 'no-image' : '',
+                        'head-wrap': !result.i ? 'no-image' : '',
                         box: !result.i ? 'no-image' : '',
                     }
                 });
