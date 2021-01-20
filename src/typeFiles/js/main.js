@@ -1,5 +1,7 @@
 import Mustache from 'mustache'
 
+// Import blocks Enum
+import BLOCK from "./blocks/blocksEnum";
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -162,7 +164,7 @@ function throttle(func, waitTime) {
                 // клонировать данные так как возможно изменение их в ходе рендера и это не должно влиять на исходные данные приложения
                 const cd = JSON.parse(JSON.stringify(data))
                 cd.blocks.forEach(bdata => {
-                    const block = rl.Blocks['B' + bdata.t];
+                    const block = rl.Blocks[bdata.t];
                     if (block) {
                         const b = new block(cnt)
                         b.render(bdata)
@@ -328,7 +330,7 @@ RL.UI = {
  */
 RL.Blocks = {
     // Text
-    B1: cnt => blockText(cnt, {
+    [BLOCK.text]: cnt => blockText(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
@@ -336,35 +338,35 @@ RL.Blocks = {
         }
     }),
     // Image
-    B2: cnt => blockImage(cnt, {
+    [BLOCK.image]: cnt => blockImage(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse
         }
     }),
     // Embed Interacty project
-    B3: cnt => blockEmbedInteractyProject(cnt, {
+    [BLOCK.embedInteractyProject]: cnt => blockEmbedInteractyProject(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse
         }
     }),
     // Flip card
-    B4: cnt => blockFlipCard(cnt, {
+    [BLOCK.flipCards]: cnt => blockFlipCard(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse
         }
     }),
     // Embed Youtube video
-    B5: cnt => blockEmbedYoutubeVideo(cnt, {
+    [BLOCK.youtubeVideo]: cnt => blockEmbedYoutubeVideo(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse
         }
     }),
     // CTA button
-    B6: cnt => blockCtaButton(cnt, {
+    [BLOCK.button]: cnt => blockCtaButton(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse
@@ -374,7 +376,7 @@ RL.Blocks = {
         }
     }),
     // Zoom map
-    B7: cnt => blockZoomMap(cnt, {
+    [BLOCK.interactiveImage]: cnt => blockZoomMap(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
@@ -386,7 +388,7 @@ RL.Blocks = {
         }
     }),
     //  Find object
-    B8: cnt => blockFindObject(cnt, {
+    [BLOCK.hiddenObjects]: cnt => blockFindObject(cnt, {
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
@@ -398,12 +400,12 @@ RL.Blocks = {
         }
     }),
     //  Trivia quiz
-    B9: cnt => blockTriviaQuiz(cnt, {
+    [BLOCK.quiz]: cnt => blockTriviaQuiz(cnt, {
         M: Mustache,
         methods: {
             add: RL.Methods.add,
             parse: RL.Methods.parse,
         },
         sendMessage
-    })
+    }),
 }
