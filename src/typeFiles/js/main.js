@@ -12,6 +12,7 @@ import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
+import blockThenNow from './blocks/thenNow'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -407,5 +408,12 @@ RL.Blocks = {
             parse: RL.Methods.parse,
         },
         sendMessage
+    }),
+    // Then\Now
+    [BLOCK.thenNow]: cnt => blockThenNow(cnt, {
+        methods: {
+            add: RL.Methods.add,
+            parse: RL.Methods.parse
+        }
     }),
 }
