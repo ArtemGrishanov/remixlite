@@ -271,7 +271,9 @@ try {
 }
 window.addEventListener("message", receiveMessage, false);
 function receiveMessage({origin = null, data = {}, source = null}) {
-    switch (data.method) {
+    const { method, payload = {} } = data
+
+    switch (method) {
         case 'init': {
             try {
                 cntSource = source;
@@ -280,7 +282,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(data.payload ? data.payload.projectStructure : replacesValues.projectStructureJson)
+                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructureJson)
 
                     const root = document.getElementById('remix-app-root');
 
@@ -352,8 +354,7 @@ if (replacesValues.isServerScreenshot === 'true') {
     try {
         receiveMessage({
             data: {
-                method: 'init',
-                payload: null
+                method: 'init'
             }
         })
     } catch(err) {
