@@ -1,6 +1,6 @@
 // Template
 const template = `
-    <div class="flip_inner" style="height:{{height}}px">
+    <div class="flip_inner">
         <div class="flip_side" style="background-color:{{frontColor}};background-image:url({{frontSrc}})" >
             <div class="text-area-cnt">
                 <div class="text-area">
@@ -29,14 +29,23 @@ const template = `
 
 export default function(cnt, { methods }) {
     let fi = null
+    let container = null
+    let imgPrp = ['3', '2']
 
     return {
         render: data => {
-            const div = methods.add(cnt, methods.parse(template, data), data.t)
-            fi = div.querySelector('.flip_inner')
+            container = methods.add(cnt, methods.parse(template, data), data.t)
+            imgPrp = data.imageProportions.value.split('|')
+            fi = container.querySelector('.flip_inner')
         },
         postRender: () => {
             fi.addEventListener('click', () => fi.classList.toggle('__flipped'))
+            container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+            window.addEventListener('resize', () => {
+                if (container) {
+                    container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+                }
+            })
         }
     }
 }
