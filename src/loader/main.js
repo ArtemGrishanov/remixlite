@@ -232,7 +232,7 @@ window.RC = class RC {
 
     // [PRIVATE]
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 0
+        const MIN_ANIMATION_DELAY = 1000
         const ANIMATION_DURATION = 500
 
         const html = `
@@ -321,21 +321,6 @@ window.RC = class RC {
                     ...data.payload.sizes,
                     width: 'maxWidth'
                 })
-
-                // Create session with params (telegram)
-                // utm_campaign (128 max)
-                // utm_source (128 max)
-                // utm_medium (128 max)
-                // utm_content (128 max)
-
-                // send after first active
-                // refresh every active
-
-                // referenceTail (max 512) все после ? в query
-                // sourceReference (max 512) откуда пришли // document.referrer 'https://' | ''
-
-                // init rest, refresh rest
-                // 30 min | const INACTIVE_MAX_TIME = 30 * 60 * 1000
                 break;
             }
             case 'setSize': {

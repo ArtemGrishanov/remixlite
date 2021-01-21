@@ -1,3 +1,5 @@
+import { API_URL } from './constants'
+
 export default class SESSION {
     #createdSession = null
 
@@ -25,7 +27,7 @@ export default class SESSION {
     sendActivity = async () => {
         try {
             if (!this.#createdSession) {
-                const rawResponse = await fetch(`${___API_URL___}/api/sessions`, {
+                const rawResponse = await fetch(`${API_URL}/api/sessions`, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
