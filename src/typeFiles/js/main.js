@@ -13,6 +13,7 @@ import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockTimeline from './blocks/timeline'
+
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -26,12 +27,14 @@ window.Remix = RL;
  */
 let cntOrigin, cntSource, initialized = false;
 let clientId = null
-if (window && window.localStorage) {
+try {
     clientId = window.localStorage.getItem("CLIENT_ID");
     if (!clientId) {
         clientId = getRandomId(16)
         window.localStorage.setItem("CLIENT_ID", clientId)
     }
+} catch (err) {
+    clientId = getRandomId(16)
 }
 window.addEventListener("message", receiveMessage, false);
 function receiveMessage({origin = null, data = {}, source = null}) {
