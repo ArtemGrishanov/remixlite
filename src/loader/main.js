@@ -310,7 +310,7 @@ window.RC = class RC {
         }
 
         switch (data.method) {
-            case 'init_error': {
+            case 'initError': {
                 this.#preloader.hideAndDestroy()
                 this.#nodeElement.appendChild(this.#error.render())
                 break;
@@ -517,7 +517,7 @@ window.RC = class RC {
                                 session.instance = new R_SESSION(session.data)
                                 break;
                             }
-                            case 'user-activity': {
+                            case 'activity': {
                                 const time = Date.now()
                                 if (time - session.updatedAt > session.maxRefreshAwaiting) {
                                     session.instance = new R_SESSION(session.data)
