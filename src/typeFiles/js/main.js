@@ -26,12 +26,14 @@ window.Remix = RL;
  */
 let cntOrigin, cntSource, initialized = false;
 let clientId = null
-if (window && window.localStorage) {
+try {
     clientId = window.localStorage.getItem("CLIENT_ID");
     if (!clientId) {
         clientId = getRandomId(16)
         window.localStorage.setItem("CLIENT_ID", clientId)
     }
+} catch (err) {
+    clientId = getRandomId(16)
 }
 window.addEventListener("message", receiveMessage, false);
 function receiveMessage({origin = null, data = {}, source = null}) {
