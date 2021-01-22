@@ -1,36 +1,37 @@
-.then_now_container {
+.then-now {
   width: 100%;
-  > .left_img_div {
+  height: inherit;
+  &__left_img {
     background-size: cover;
     position: absolute;
     width: 100%;
     height: 100%;
-    > .right_img_div {
-      position: relative;
+  }
+  &__right_img {
+    position: relative;
+    width: inherit;
+    height: inherit;
+    > div {
+      overflow: hidden;
+      position: absolute;
       width: inherit;
       height: inherit;
-      > div.right_parent_div {
-        overflow: hidden;
+      top: 0;
+      > div {
         position: absolute;
         width: inherit;
         height: inherit;
         top: 0;
-        > div.right_div {
+        > div {
+          background-size: cover;
           position: absolute;
-          width: inherit;
-          height: inherit;
-          top: 0;
-          > div {
-            background-size: cover;
-            position: absolute;
-            width: 100%;
-            height: 100%;
-          }
+          width: 100%;
+          height: 100%;
         }
       }
     }
   }
-  .then_now_delimiter_div {
+  &__delimiter {
     position: absolute;
     top: 0;
     width: 4px;

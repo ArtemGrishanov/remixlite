@@ -167,6 +167,13 @@ class Remix {
             },
             sendMessage
         }),
+        // Then\Now
+        [BLOCK.thenNow]: container => blockThenNow(container, {
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            }
+        }),
     }
 
     constructor() {}

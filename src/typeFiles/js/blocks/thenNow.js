@@ -1,16 +1,15 @@
 // Template
 const template = `
-    <div class="then_now_container" id="then_now_{{id}}">
-        <div class="left_img_div" style="background-image:url({{leftSrc}})">
-            <div class="right_img_div">
-                <div class="right_parent_div" style="left:50%">
-                    <div class="right_div" style="left:-50%">
-                        <div style="background-image:url({{rightSrc}})" />
-                    </div>
+    <div class="then-now">
+        <div class="then-now__left_img" style="background-image:url({{leftSrc}})"></div>
+        <div class="then-now__right_img">
+            <div style="left:50%">
+                <div style="left:-50%">
+                    <div style="background-image:url({{rightSrc}})"></div>
                 </div>
             </div>
         </div>
-        <div class="then_now_delimiter_div" style="left:50%;opacity:1">
+        <div class="then-now__delimiter" style="left:50%;opacity:1">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="24" cy="24" r="24" fill="black" fill-opacity="0.4"/>
                 <path d="M42 24L34.5 15.3397L34.5 32.6603L42 24Z" fill="#FFFFFF"/>
@@ -22,19 +21,20 @@ const template = `
 
 export default function(cnt, { methods }) {
     let container = null
-    let delimiter = null
-    let delimiterDiv = null
     let rightParentDiv = null
     let rightDiv = null
+    let delimiterSvg = null
+    let delimiterDiv = null
     let imgPrp = ['3', '2']
 
     return {
         render: data => {
             container = methods.add(cnt, methods.parse(template, data), data.t);
-            delimiter = container.querySelector('svg');
-            delimiterDiv = container.querySelector('.then_now_delimiter_div');
-            rightParentDiv = container.querySelector('.right_parent_div');
-            rightDiv = container.querySelector('.right_div');
+            const rightImgDiv = container.querySelector('.then-now__right_img');
+            rightParentDiv = rightImgDiv.querySelector('div');
+            rightDiv = rightParentDiv.querySelector('div');
+            delimiterDiv = container.querySelector('.then-now__delimiter');
+            delimiterSvg = delimiterDiv.querySelector('svg');
             imgPrp = data.imageProportions.value.split('|')
         },
         postRender: () => {
@@ -52,7 +52,7 @@ export default function(cnt, { methods }) {
                 }
             })
 
-            delimiter.addEventListener('mousedown', event => {
+            delimiterSvg.addEventListener('mousedown', event => {
                 event.preventDefault();
                 delimiterDiv.style.opacity = 0.7;
 
