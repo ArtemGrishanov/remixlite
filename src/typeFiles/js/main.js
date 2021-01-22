@@ -23,6 +23,9 @@ const replacesValues = {
 }
 
 class Remix {
+    #container
+    #projectStructure
+
     #fonts = {
         list: [
             'Roboto',
@@ -171,9 +174,12 @@ class Remix {
     init = (container, projectStructure = {}) => {
         this.#forAllStringProperties(projectStructure, this.#htmlDecode)
 
-        if (container) {
-            container.innerHTML = ''
+        this.#container = container
+        this.#projectStructure = projectStructure
 
+        container.innerHTML = ''
+
+        if (projectStructure.hasOwnProperty('blocks')) {
             projectStructure.blocks.forEach(blockData => {
                 const block = this.#blocks[blockData.t];
                 if (block) {

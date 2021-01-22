@@ -4,6 +4,8 @@ import session from './session'
 import { validator } from './utils'
 import { MAX_REFRESH_SESSION_AWAITING } from './constants'
 
+// import googleAnalytics from './integrations/googleAnalytics'
+
 smoothScroll.polyfill()
 
 /**
@@ -14,6 +16,7 @@ window.RemixLoader = class RemixLoader {
     #nodeElement
     #remixUrl
     #features
+    #projectId
     #projectStructure
     #initialWidth
     #initialHeight
@@ -26,11 +29,30 @@ window.RemixLoader = class RemixLoader {
     #error
     #iframe
 
-    constructor({mode, nodeElement, remixUrl, features, projectStructure, initialWidth, initialHeight, lng, topOffset, onEvent}) {
+    #_session = {
+        instance: null,
+        data: {
+            clientId: null,
+            projectId: null,
+            utmCampaign: null,
+            utmSource: null,
+            utmMedium: null,
+            utmContent: null,
+            referenceTail: null,
+            sourceReference: null
+        },
+        createdAt: null,
+        updatedAt: null,
+        maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
+    }
+    // #_integrations = {}
+
+    constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, topOffset, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
         this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
         this.#remixUrl = this.#validateConstructorParam('remixUrl', remixUrl, true)
         this.#features = this.#validateConstructorParam('features', features, false, [])
+        this.#projectId = this.#validateConstructorParam('projectId', projectId, true)
         this.#projectStructure = this.#validateConstructorParam('projectStructure', projectStructure, false, null)
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
         this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
@@ -52,11 +74,7 @@ window.RemixLoader = class RemixLoader {
                 switch (key) {
                     case 'mode': {
                         if (typeof value === 'string') {
-                            const available = ['dev', 'preview', 'published']
-                            if (available.indexOf(value) !== -1) {
-                                return value
-                            }
-                            return this.#throwExceptionManually('CV', { type: 'value', key, value, expected: available })
+                            return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
@@ -77,6 +95,12 @@ window.RemixLoader = class RemixLoader {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Array' })
+                    }
+                    case 'projectId': {
+                        if (typeof value === 'string') {
+                            return value
+                        }
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'projectStructure': {
                         if (validator.isJSON(value)) {
@@ -154,7 +178,6 @@ window.RemixLoader = class RemixLoader {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
-                    mode: this.#mode,
                     projectStructure: this.#projectStructure
                 }
             }, this.#appOrigin)
@@ -285,6 +308,61 @@ window.RemixLoader = class RemixLoader {
                     ...data.payload.sizes,
                     width: 'maxWidth'
                 })
+
+                if (this.#mode === 'published') {
+                    // Create session
+                    const queryString = window.location.search;
+                    const urlParams = new URLSearchParams(queryString);
+
+                    const utmCampaign = urlParams.get('utm_campaign')
+                    const utmSource = urlParams.get('utm_source')
+                    const utmMedium = urlParams.get('utm_medium')
+                    const utmContent = urlParams.get('utm_content')
+                    const referenceTail = queryString
+                    const sourceReference = document.referrer
+
+                    this.#_session.data = {
+                        ...this.#_session.data,
+                        clientId: data.payload.clientId,
+                        projectId: this.#projectId,
+                        utmCampaign,
+                        utmSource,
+                        utmMedium,
+                        utmContent,
+                        referenceTail,
+                        sourceReference
+                    }
+                    const time = Date.now()
+                    this.#_session.createdAt = time
+                    this.#_session.updatedAt = time
+                    this.#_session.instance = new session(this.#_session.data)
+
+                    // Create integrations
+                    // const integrations = JSON.parse(this.#projectStructure).integrations
+                    // if (integrations) {
+                    //     if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
+                    //         this.#_integrations.googleAnalytics = new googleAnalytics({
+                    //             id: integrations.googleAnalytics.id
+                    //         })
+                    //         this.#_integrations.googleAnalytics.init()
+                    //     }
+                    // }
+                }
+                break;
+            }
+            case 'activity': {
+                if (this.#mode === 'published') {
+                    // Update session
+                    const time = Date.now()
+                    if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
+                        this.#_session.instance = new session(this.#_session.data)
+                        this.#_session.createdAt = time
+                        this.#_session.updatedAt = time
+                    } else {
+                        this.#_session.instance.sendActivity()
+                        this.#_session.updatedAt = time
+                    }
+                }
                 break;
             }
             case 'setSize': {
@@ -385,6 +463,7 @@ window.RemixLoader = class RemixLoader {
                 const lng = element.getAttribute('lng')
 
                 const params = {
+                    mode: 'published',
                     features: [],
                     projectStructure: null,
                     remixUrl: null,
@@ -393,6 +472,27 @@ window.RemixLoader = class RemixLoader {
 
                 const useDebug = element.getAttribute('useDebug')
                 if (useDebug) {
+                    const mode = element.getAttribute('DEBUG_mode')
+                    if (mode) {
+                        params.mode = mode
+                    }
+
+                    const features = element.getAttribute('DEBUG_features')
+                    if (features) {
+                        try {
+                            params.features = JSON.parse(features)
+                        } catch (err) {
+                            throw new Error(`Cannot parse "DEBUG_features" to JSON`)
+                        }
+                    }
+
+                    const projectId = element.getAttribute('DEBUG_projectId')
+                    if (projectId) {
+                        params.projectId = projectId
+                    } else {
+                        throw new Error(`"DEBUG_projectId" attribute is required for DEBUG`)
+                    }
+
                     const projectStructure = element.getAttribute('DEBUG_projectStructure')
                     if (projectStructure) {
                         params.projectStructure = projectStructure
@@ -406,13 +506,6 @@ window.RemixLoader = class RemixLoader {
                     } else {
                         throw new Error(`"DEBUG_remixUrl" attribute is required for DEBUG`)
                     }
-
-                    const projectId = element.getAttribute('DEBUG_projectId')
-                    if (projectId) {
-                        params.projectId = projectId
-                    } else {
-                        throw new Error(`"DEBUG_projectId" attribute is required for DEBUG`)
-                    }
                 } else {
                     try {
                         const response = await fetch(contentUrl)
@@ -425,78 +518,16 @@ window.RemixLoader = class RemixLoader {
                     }
                 }
 
-                const _session = {
-                    instance: null,
-                    data: {
-                        clientId: null,
-                        projectId: null,
-                        utmCampaign: null,
-                        utmSource: null,
-                        utmMedium: null,
-                        utmContent: null,
-                        referenceTail: null,
-                        sourceReference: null
-                    },
-                    createdAt: null,
-                    updatedAt: null,
-                    maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
-                }
-
                 new window.RemixLoader({
-                    mode: 'published',
+                    mode: params.mode,
                     nodeElement: element,
                     remixUrl: params.remixUrl,
                     features: params.features,
+                    projectId: params.projectId,
                     projectStructure: params.projectStructure,
                     initialWidth,
                     initialHeight,
-                    lng: lng || null,
-                    onEvent: (name, data) => {
-                        switch (data.method) {
-                            case 'initialized': {
-                                const queryString = window.location.search;
-                                const urlParams = new URLSearchParams(queryString);
-
-                                const utmCampaign = urlParams.get('utm_campaign')
-                                const utmSource = urlParams.get('utm_source')
-                                const utmMedium = urlParams.get('utm_medium')
-                                const utmContent = urlParams.get('utm_content')
-                                const referenceTail = queryString
-                                const sourceReference = document.referrer
-
-                                _session.data = {
-                                    ..._session.data,
-                                    clientId: data.payload.clientId,
-                                    projectId: params.projectId,
-                                    utmCampaign,
-                                    utmSource,
-                                    utmMedium,
-                                    utmContent,
-                                    referenceTail,
-                                    sourceReference
-                                }
-                                const time = Date.now()
-                                _session.createdAt = time
-                                _session.updatedAt = time
-                                _session.instance = new session(_session.data)
-                                break;
-                            }
-                            case 'activity': {
-                                const time = Date.now()
-                                if (time - _session.updatedAt > _session.maxRefreshAwaiting) {
-                                    _session.instance = new session(_session.data)
-                                    _session.createdAt = time
-                                    _session.updatedAt = time
-                                } else {
-                                    _session.instance.sendActivity()
-                                    _session.updatedAt = time
-                                }
-                                break;
-                            }
-                            default:
-                                break;
-                        }
-                    }
+                    lng: lng || null
                 }).createIframe()
             }
         }
