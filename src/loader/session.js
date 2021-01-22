@@ -12,22 +12,22 @@ export default class SESSION {
     #referenceTail
     #sourceReference
 
-    constructor({clientId, projectId, utmCampaign = null, utmSource = null, utmMedium = null, utmContent = null, referenceTail = null, sourceReference = null}) {
+    constructor({clientId, projectId, utmCampaign, utmSource, utmMedium, utmContent, referenceTail, sourceReference}) {
         this.#clientId = clientId
         this.#projectId = projectId
-        this.#utmCampaign = utmCampaign
-        this.#utmSource = utmSource
-        this.#utmMedium = utmMedium
-        this.#utmContent = utmContent
-        this.#referenceTail = referenceTail
-        this.#sourceReference = sourceReference
+        this.#utmCampaign = utmCampaign || null
+        this.#utmSource = utmSource || null
+        this.#utmMedium = utmMedium || null
+        this.#utmContent = utmContent || null
+        this.#referenceTail = referenceTail || null
+        this.#sourceReference = sourceReference || null
     }
 
     // [PUBLIC] Send activity to server
     sendActivity = async () => {
         try {
             if (!this.#createdSession) {
-                const rawResponse = await fetch(`${API_URL}/api/sessions`, {
+                const response = await fetch(`${API_URL}/api/sessions`, {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -45,7 +45,7 @@ export default class SESSION {
                         sourceReference: this.#sourceReference ? this.#sourceReference.slice(0, 512) : null
                     })
                 });
-                this.#createdSession = await rawResponse.json();
+                this.#createdSession = await response.json();
             } else {
                 await fetch(`${___API_URL___}/api/sessions/${this.#createdSession.id}/refresh`, {
                     method: 'PATCH',

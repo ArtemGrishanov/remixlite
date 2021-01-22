@@ -16,7 +16,7 @@ const path = {
             css: `${sourceFolder}/typeFiles/css/main.scss`,
             js: `${sourceFolder}/typeFiles/js/main.js`,
         },
-        loader: `${sourceFolder}/loader/main.js`,
+        loader: `${sourceFolder}/loader/index.js`,
     },
     watch: {
         typeFiles: {
@@ -139,7 +139,8 @@ const f = {
             [fConstants.typeFiles.js.build]: () => {
                 return browserify(path.src.typeFiles.js)
                     .transform(babelify.configure({
-                        presets: ['@babel/env']
+                        presets: ['@babel/env'],
+                        plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-runtime']
                     }))
                     .bundle()
                     .pipe(source('main.js'))
@@ -154,7 +155,8 @@ const f = {
             [fConstants.typeFiles.js.watch]: () => {
                 return browserify(path.src.typeFiles.js)
                     .transform(babelify.configure({
-                        presets: ['@babel/env']
+                        presets: ['@babel/env'],
+                        plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-runtime']
                     }))
                     .bundle()
                     .pipe(source('main.js'))
