@@ -16,7 +16,7 @@ const path = {
             css: `${sourceFolder}/typeFiles/css/main.scss`,
             js: `${sourceFolder}/typeFiles/js/main.js`,
         },
-        loader: `${sourceFolder}/loader/main.js`,
+        loader: `${sourceFolder}/loader/index.js`,
     },
     watch: {
         typeFiles: {

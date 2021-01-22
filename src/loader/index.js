@@ -1,51 +1,15 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
-import R_SESSION from './session'
+import session from './session'
+import { validator } from './utils'
+import { MAX_REFRESH_SESSION_AWAITING } from './constants'
 
 smoothScroll.polyfill()
 
 /**
- * R_UTILS
+ * RemixLoader
  */
-const R_UTILS = {
-    validator: {
-        isValue: value => {
-            try {
-                return value !== void 0 && value !== null
-            } catch (err) {
-                return false
-            }
-        },
-        isJSON: value => {
-            try {
-                return (JSON.parse(value) && !!value);
-            } catch (e) {
-                return false;
-            }
-        },
-        isURL: value => {
-            try {
-                const regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
-                return regexp.test(value)
-            } catch (err) {
-                return false;
-            }
-        },
-        isInt: value => {
-            try {
-                const regexp = /^[-+]?[0-9]+$/
-                return regexp.test(value)
-            } catch (err) {
-                return false
-            }
-        }
-    }
-}
-
-/**
- * "R Class"
- */
-window.RC = class RC {
+window.RemixLoader = class RemixLoader {
     #mode
     #nodeElement
     #remixUrl
@@ -70,7 +34,7 @@ window.RC = class RC {
         this.#projectStructure = this.#validateConstructorParam('projectStructure', projectStructure, false, null)
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
         this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
-        this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getLanguage())
+        this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getWindowLanguage())
         this.#topOffset = this.#validateConstructorParam('topOffset', topOffset, false, 0)
         this.#onEvent = this.#validateConstructorParam('onEvent', onEvent, false, null)
 
@@ -84,7 +48,7 @@ window.RC = class RC {
     #validateConstructorParam = ((key, value, required = true, defaultValue) => {
         try {
             // check value and return (formatted or error)
-            if (R_UTILS.validator.isValue(value)) {
+            if (validator.isValue(value)) {
                 switch (key) {
                     case 'mode': {
                         if (typeof value === 'string') {
@@ -103,7 +67,7 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'HTMLElement' })
                     }
                     case 'remixUrl': {
-                        if (R_UTILS.validator.isURL(value)) {
+                        if (validator.isURL(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (URL)' })
@@ -115,7 +79,7 @@ window.RC = class RC {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Array' })
                     }
                     case 'projectStructure': {
-                        if (R_UTILS.validator.isJSON(value)) {
+                        if (validator.isJSON(value)) {
                             return value
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
@@ -123,7 +87,7 @@ window.RC = class RC {
                     case 'initialWidth':
                     case 'initialHeight':
                     case 'topOffset': {
-                        if (R_UTILS.validator.isInt(value)) {
+                        if (validator.isInt(value)) {
                             return parseInt(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
@@ -159,7 +123,7 @@ window.RC = class RC {
         }
     })
 
-    // [PUBLIC] Create iframe for container instance
+    // [PUBLIC] Create iframe in container instance
     createIframe = () => {
         this.#nodeElement.innerHTML = ''
         this.#nodeElement.className = 'remix_cnt'
@@ -202,13 +166,13 @@ window.RC = class RC {
 
     // [PUBLIC] Change top offset
     changeTopOffset = value => {
-        if (R_UTILS.validator.isInt(value)) {
+        if (validator.isInt(value)) {
             this.#topOffset = parseInt(value)
         }
     }
 
-    // [PRIVATE] Get language form window.navigator
-    #getLanguage = () => {
+    // [PRIVATE] Get language from window.navigator
+    #getWindowLanguage = () => {
         const language = window.navigator ? (
             window.navigator.language ||
             window.navigator.systemLanguage ||
@@ -219,13 +183,13 @@ window.RC = class RC {
 
     // [PRIVATE] Set nodeElement size
     #setSize = ({ width, height, maxWidth }) => {
-        if (R_UTILS.validator.isValue(width) && width === 'maxWidth') {
+        if (validator.isValue(width) && width === 'maxWidth') {
             this.#nodeElement.style.width = '100%'
         }
-        if (R_UTILS.validator.isValue(maxWidth) && R_UTILS.validator.isInt(maxWidth)) {
+        if (validator.isValue(maxWidth) && validator.isInt(maxWidth)) {
             this.#nodeElement.style.maxWidth = maxWidth + 'px'
         }
-        if (R_UTILS.validator.isValue(height) && R_UTILS.validator.isInt(height)) {
+        if (validator.isValue(height) && validator.isInt(height)) {
             this.#nodeElement.style.height = height + 'px'
         }
     }
@@ -328,7 +292,7 @@ window.RC = class RC {
                 break;
             }
             case 'scrollParent': {
-                if (R_UTILS.validator.isValue(data.payload.top) && R_UTILS.validator.isInt(data.payload.top)) {
+                if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
                     window.scrollTo({
                         top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
                         behavior: "smooth"
@@ -403,10 +367,10 @@ window.RC = class RC {
 };
 
 /**
- * "R Class" BOOTLOADER (For embedded projects)
+ * RemixLoader auto-initiator (for embedded projects)
  */
 (async () => {
-    if (window.RC) {
+    if (window.RemixLoader) {
         const classes = 'remix-app'
         const initializedAttrName = 'initialized'
 
@@ -461,7 +425,7 @@ window.RC = class RC {
                     }
                 }
 
-                const session = {
+                const _session = {
                     instance: null,
                     data: {
                         clientId: null,
@@ -475,10 +439,10 @@ window.RC = class RC {
                     },
                     createdAt: null,
                     updatedAt: null,
-                    maxRefreshAwaiting: 15 * 60 * 1000 // 15 min
+                    maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
                 }
 
-                new window.RC({
+                new window.RemixLoader({
                     mode: 'published',
                     nodeElement: element,
                     remixUrl: params.remixUrl,
@@ -486,7 +450,7 @@ window.RC = class RC {
                     projectStructure: params.projectStructure,
                     initialWidth,
                     initialHeight,
-                    lng: lng ? lng : null,
+                    lng: lng || null,
                     onEvent: (name, data) => {
                         switch (data.method) {
                             case 'initialized': {
@@ -500,8 +464,8 @@ window.RC = class RC {
                                 const referenceTail = queryString
                                 const sourceReference = document.referrer
 
-                                session.data = {
-                                    ...session.data,
+                                _session.data = {
+                                    ..._session.data,
                                     clientId: data.payload.clientId,
                                     projectId: params.projectId,
                                     utmCampaign,
@@ -512,20 +476,20 @@ window.RC = class RC {
                                     sourceReference
                                 }
                                 const time = Date.now()
-                                session.createdAt = time
-                                session.updatedAt = time
-                                session.instance = new R_SESSION(session.data)
+                                _session.createdAt = time
+                                _session.updatedAt = time
+                                _session.instance = new session(_session.data)
                                 break;
                             }
                             case 'activity': {
                                 const time = Date.now()
-                                if (time - session.updatedAt > session.maxRefreshAwaiting) {
-                                    session.instance = new R_SESSION(session.data)
-                                    session.createdAt = time
-                                    session.updatedAt = time
+                                if (time - _session.updatedAt > _session.maxRefreshAwaiting) {
+                                    _session.instance = new session(_session.data)
+                                    _session.createdAt = time
+                                    _session.updatedAt = time
                                 } else {
-                                    session.instance.sendActivity()
-                                    session.updatedAt = time
+                                    _session.instance.sendActivity()
+                                    _session.updatedAt = time
                                 }
                                 break;
                             }

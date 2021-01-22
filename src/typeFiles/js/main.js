@@ -18,11 +18,11 @@ import uiPin from './ui/pin'
 import uiButton from './ui/button'
 
 const replacesValues = {
-    isServerScreenshot: '{{IS_SERVER_SCREENSHOT}}',
-    projectStructureJson: '{{PROJECT_STRUCTURE_JSON}}'
+    isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
+    projectStructure: '{{PROJECT_STRUCTURE_JSON}}'
 }
 
-class RemixLite {
+class Remix {
     #fonts = {
         list: [
             'Roboto',
@@ -259,7 +259,7 @@ class RemixLite {
     }
 }
 
-let cntOrigin, cntSource, isInitialized = false, clientId = null
+let cntOrigin, cntSource, isInitialized = false, clientId = null, R = undefined
 try {
     clientId = window.localStorage.getItem("CLIENT_ID");
     if (!clientId) {
@@ -282,13 +282,14 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructureJson)
+                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructure)
 
                     const root = document.getElementById('remix-app-root');
 
                     root.style.backgroundColor = projectStructure.app.bg || '#fff'
 
-                    new RemixLite().init(root, projectStructure)
+                    R = new Remix()
+                    R.init(root, projectStructure)
 
                     sendMessage('initialized', {
                         clientId,
@@ -348,9 +349,9 @@ function throttle(func, waitTime) {
 }
 
 /**
- * Hack for server screenshot (server not load loader file, thant mean we need to send "init" method manually)
+ * Hack for server screenshot (server is not inject loader file, that mean we need to send "init" method manually)
  */
-if (replacesValues.isServerScreenshot === 'true') {
+if (replacesValues.isScreenshot === 'true') {
     try {
         receiveMessage({
             data: {
