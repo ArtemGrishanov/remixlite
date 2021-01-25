@@ -168,12 +168,12 @@ class Remix {
             },
             sendMessage
     }),
-    [BLOCK.timeline]: cnt => blockTimeline(cnt, {
-        methods: {
-            add: RL.Methods.add,
-            parse: RL.Methods.parse,
-            useFont: RL.Methods.useFont
-        }
+        [BLOCK.timeline]: cnt => blockTimeline(cnt, {
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+                useFont: this.#useFont
+            }
         }),
     }
 
