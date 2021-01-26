@@ -52,7 +52,7 @@ window.RemixLoader = class RemixLoader {
         this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
         this.#remixUrl = this.#validateConstructorParam('remixUrl', remixUrl, true)
         this.#features = this.#validateConstructorParam('features', features, false, [])
-        this.#projectId = this.#validateConstructorParam('projectId', projectId, true)
+        this.#projectId = this.#validateConstructorParam('projectId', projectId, false, null)
         this.#projectStructure = this.#validateConstructorParam('projectStructure', projectStructure, false, null)
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
         this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
@@ -290,6 +290,7 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
+
     // [PRIVATE] Receive message from remix app
     receiveMessage = ({ origin = null, data = {}, source = null }) => {
         if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
@@ -309,7 +310,7 @@ window.RemixLoader = class RemixLoader {
                     width: 'maxWidth'
                 })
 
-                if (this.#mode === 'published') {
+                if (this.#needToDo('create-session')) {
                     // Create session
                     const queryString = window.location.search;
                     const urlParams = new URLSearchParams(queryString);
@@ -336,8 +337,8 @@ window.RemixLoader = class RemixLoader {
                     this.#_session.createdAt = time
                     this.#_session.updatedAt = time
                     this.#_session.instance = new session(this.#_session.data)
-
-                    // Create integrations
+                }
+                if (this.#needToDo('create-integrations')) {
                     // const integrations = JSON.parse(this.#projectStructure).integrations
                     // if (integrations) {
                     //     if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
@@ -351,7 +352,7 @@ window.RemixLoader = class RemixLoader {
                 break;
             }
             case 'activity': {
-                if (this.#mode === 'published') {
+                if (this.#needToDo('refresh-session')) {
                     // Update session
                     const time = Date.now()
                     if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
@@ -399,6 +400,21 @@ window.RemixLoader = class RemixLoader {
             top: box.top + pageYOffset,
             left: box.left + pageXOffset
         };
+    }
+
+    // [PRIVATE]
+    #needToDo = action => {
+        switch (action) {
+            case 'create-session':
+            case 'refresh-session': {
+                return this.#mode === 'published' && this.#projectId
+            }
+            case 'create-integrations': {
+                return this.#mode === 'published'
+            }
+            default:
+                return false
+        }
     }
 
     // [PRIVATE]
