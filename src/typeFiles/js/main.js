@@ -213,9 +213,14 @@ class Remix {
             div.classList += classes
         }
 
-        if (props && props.styles) {
-            for (const [key, value] of Object.entries(props.styles)) {
-                div.style[key] = value;
+        if (props) {
+            if (props.styles) {
+                for (const [key, value] of Object.entries(props.styles)) {
+                    div.style[key] = value;
+                }
+            }
+            if (props.className) {
+                div.className += ' ' + props.className;
             }
         }
 

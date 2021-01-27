@@ -1,13 +1,19 @@
 .block {
   font-family: 'Helvetica', 'Arial', sans-serif;
   position: relative;
-  margin: 10px 0;
+  margin-top: 10px;
 
+  &:last-child {
+    margin-bottom: 10px;
+  }
   a {
     color: #06c;
   }
   strong {
     font-weight: bold;
+  }
+  img {
+    vertical-align: top;
   }
 
   &.__1 {
@@ -665,3 +671,124 @@
     }
   }
 }
+
+// region Timeline block
+$timeline-image-description-color: #626262;
+$timeline-items-color: #000000;
+
+.timeline-block {
+  padding: 33px 12px 30px 70px;
+
+  @include maxWidth(799) {
+    padding: 20px 4vw 20px 14vw;
+  }
+  ~ .timeline-block, // All but first
+  + :not(.timeline-block) { // If next one is not a timeline block - pull it up!
+    margin-top: 0;
+  }
+  + .timeline-block {
+    // Because of using padding instead of margins we have to imitate the margin-collapsing
+    padding-top: 3px;
+
+    &::after {
+      top: 25px;
+    }
+  }
+  &::before {
+    content: ' ';
+    position: absolute;
+    width: 1px;
+    background-color: $timeline-items-color;
+    top: 0;
+    bottom: 0;
+    left: 40px;
+
+    @include maxWidth(799) {
+      left: 7vw;
+    }
+  }
+  &::after {
+    content: ' ';
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background-color: $timeline-items-color;
+    top: 55px;
+    left: 35px;
+    border-radius: 5.5px;
+
+    @include maxWidth(799) {
+      top: 42px;
+      left: calc(7vw + 1px);
+      transform: translateX(-50%);
+    }
+  }
+
+  &__mark {
+
+  }
+  &__mark-title,
+  &__mark-subtitle {
+    font-family: Georgia;
+    font-style: normal;
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  &__mark-title {
+    font-size: 40px;
+    line-height: 45px;
+  }
+  &__mark-subtitle {
+    font-size: 32px;
+    line-height: 28px;
+  }
+  &__image-with-description {
+    @include minWidth(800) {
+      width: 33%;
+      min-width: 33%;
+      margin-right: 20px;
+    }
+  }
+  &__image-container {
+    @include minWidth(800) {
+      margin-bottom: 15px;
+    }
+    @include maxWidth(799) {
+      width: 32vw;
+      float: left;
+      margin: 0 4vw 4vw 0;
+    }
+  }
+  &__image {
+    width: 100%;
+
+    //@include maxWidth(799) {
+    //  width: 32vw;
+    //  float: left;
+    //  margin: 0 4vw 3vw 0;
+    //}
+  }
+  &__image-description {
+    color: $timeline-image-description-color;
+    font-family: Roboto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: 0em;
+    text-align: left;
+
+    @include maxWidth(799) {
+      margin-bottom: 4vw;
+    }
+  }
+  &__content {
+    @include minWidth(800) {
+      display: flex;
+    }
+  }
+  &__text {
+    flex-grow: 1;
+  }
+}
+// endregion
