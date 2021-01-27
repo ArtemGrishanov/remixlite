@@ -29,6 +29,15 @@ window.RemixLoader = class RemixLoader {
     #error
     #iframe
     #iframePosition
+    #eventListeners = [
+        // Example
+        // {
+        //     target: 'window',
+        //     type: 'click',
+        //     func: () => {}
+        //     capture: false
+        // }
+    ]
 
     #_session = {
         instance: null,
@@ -161,12 +170,108 @@ window.RemixLoader = class RemixLoader {
         this.#nodeElement.style.width = `${this.#initialWidth}px`
         this.#nodeElement.style.height = `${this.#initialHeight}px`
 
-        window.addEventListener('message', this.receiveMessage, false)
-
         this.#nodeElement.appendChild(this.#preloader.render())
         if (this.#mode === 'published' && !this.#features.includes('NO_LOGO')) {
             this.#nodeElement.appendChild(this.#createPoweredLabel())
         }
+
+        this.#addEventListener(window, 'message', ({ origin = null, data = {}, source = null }) => {
+            if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
+                return
+            }
+
+            switch (data.method) {
+                case 'initError': {
+                    this.#preloader.hideAndDestroy()
+                    this.#nodeElement.appendChild(this.#error.render())
+                    break;
+                }
+                case 'initialized': {
+                    this.#preloader.hideAndDestroy()
+                    this.#setSize({
+                        ...data.payload.sizes,
+                        width: 'maxWidth'
+                    })
+
+                    this.#getIframePosition(true)
+
+                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 200), false)
+
+                    if (this.#needToDo('create-session')) {
+                        // Create session
+                        const queryString = window.location.search;
+                        const urlParams = new URLSearchParams(queryString);
+
+                        const utmCampaign = urlParams.get('utm_campaign')
+                        const utmSource = urlParams.get('utm_source')
+                        const utmMedium = urlParams.get('utm_medium')
+                        const utmContent = urlParams.get('utm_content')
+                        const referenceTail = queryString
+                        const sourceReference = document.referrer
+
+                        this.#_session.data = {
+                            ...this.#_session.data,
+                            clientId: data.payload.clientId,
+                            projectId: this.#projectId,
+                            utmCampaign,
+                            utmSource,
+                            utmMedium,
+                            utmContent,
+                            referenceTail,
+                            sourceReference
+                        }
+                        const time = Date.now()
+                        this.#_session.createdAt = time
+                        this.#_session.updatedAt = time
+                        this.#_session.instance = new session(this.#_session.data)
+                    }
+                    if (this.#needToDo('create-integrations')) {
+                        const integrations = JSON.parse(this.#projectStructure).integrations
+                        if (integrations) {
+                            if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
+                                this.#_integrations.googleAnalytics = new googleAnalytics({
+                                    id: integrations.googleAnalytics.id
+                                })
+                                this.#_integrations.googleAnalytics.init()
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'activity': {
+                    if (this.#needToDo('refresh-session')) {
+                        // Update session
+                        const time = Date.now()
+                        if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
+                            this.#_session.instance = new session(this.#_session.data)
+                            this.#_session.createdAt = time
+                            this.#_session.updatedAt = time
+                        } else {
+                            this.#_session.instance.sendActivity()
+                            this.#_session.updatedAt = time
+                        }
+                    }
+                    break;
+                }
+                case 'setSize': {
+                    this.#setSize(data.payload.sizes)
+                    break;
+                }
+                case 'scrollParent': {
+                    if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
+                        window.scrollTo({
+                            top: this.#getIframePosition().top + pageYOffset + parseInt(data.payload.top) - this.#additionalTopOffset,
+                            behavior: "smooth"
+                        });
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            this.#sendEventToContainerInstance(data.method, data)
+        }, false)
 
         const iframe = document.createElement('iframe')
         iframe.id = 'remix-iframe'
@@ -188,6 +293,11 @@ window.RemixLoader = class RemixLoader {
         this.#iframe = iframe
     }
 
+    // [PUBLIC] Destroy iframe (for example we need to remove all event listeners)
+    destroyIframe = () => {
+        this.#removeAllEventListeners()
+    }
+
     // [PUBLIC] Change top offset
     changeAdditionalTopOffset = value => {
         if (validator.isInt(value)) {
@@ -195,26 +305,60 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
+    // [PRIVATE]
+    #addEventListener = (target, type, func, capture = false) => {
+        try {
+            this.#eventListeners.push({
+                target,
+                type,
+                func,
+                capture
+            })
+            target.addEventListener([type], func, capture)
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    // [PRIVATE]
+    #removeAllEventListeners = () => {
+        try {
+            this.#eventListeners.forEach(el => {
+                el.target.removeEventListener([el.type], el.func, el.capture)
+            })
+            this.#eventListeners = []
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     // [PRIVATE] Get language from window.navigator
     #getWindowLanguage = () => {
-        const language = window.navigator ? (
-            window.navigator.language ||
-            window.navigator.systemLanguage ||
-            window.navigator.userLanguage
-        ) : null;
-        return language ? language.slice(0, 2).toLowerCase() : null
+        try {
+            const language = window.navigator ? (
+                window.navigator.language ||
+                window.navigator.systemLanguage ||
+                window.navigator.userLanguage
+            ) : null;
+            return language ? language.slice(0, 2).toLowerCase() : null
+        } catch (err) {
+            return null
+        }
     }
 
     // [PRIVATE] Set nodeElement size
     #setSize = ({ width, height, maxWidth }) => {
-        if (validator.isValue(width) && width === 'maxWidth') {
-            this.#nodeElement.style.width = '100%'
-        }
-        if (validator.isValue(maxWidth) && validator.isInt(maxWidth)) {
-            this.#nodeElement.style.maxWidth = maxWidth + 'px'
-        }
-        if (validator.isValue(height) && validator.isInt(height)) {
-            this.#nodeElement.style.height = height + 'px'
+        try {
+            if (validator.isValue(width) && width === 'maxWidth') {
+                this.#nodeElement.style.width = '100%'
+            }
+            if (validator.isValue(maxWidth) && validator.isInt(maxWidth)) {
+                this.#nodeElement.style.maxWidth = maxWidth + 'px'
+            }
+            if (validator.isValue(height) && validator.isInt(height)) {
+                this.#nodeElement.style.height = height + 'px'
+            }
+        } catch (err) {
+            console.error(err);
         }
     }
 
@@ -311,104 +455,6 @@ window.RemixLoader = class RemixLoader {
             }, this.#appOrigin)
         }
         return this.#iframePosition
-    }
-
-    // [PRIVATE] Receive message from remix app
-    receiveMessage = ({ origin = null, data = {}, source = null }) => {
-        if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
-            return
-        }
-
-        switch (data.method) {
-            case 'initError': {
-                this.#preloader.hideAndDestroy()
-                this.#nodeElement.appendChild(this.#error.render())
-                break;
-            }
-            case 'initialized': {
-                this.#preloader.hideAndDestroy()
-                this.#setSize({
-                    ...data.payload.sizes,
-                    width: 'maxWidth'
-                })
-
-                this.#getIframePosition(true)
-                window.addEventListener("scroll", this.#throttle(() => this.#getIframePosition(true), 100));
-
-                if (this.#needToDo('create-session')) {
-                    // Create session
-                    const queryString = window.location.search;
-                    const urlParams = new URLSearchParams(queryString);
-
-                    const utmCampaign = urlParams.get('utm_campaign')
-                    const utmSource = urlParams.get('utm_source')
-                    const utmMedium = urlParams.get('utm_medium')
-                    const utmContent = urlParams.get('utm_content')
-                    const referenceTail = queryString
-                    const sourceReference = document.referrer
-
-                    this.#_session.data = {
-                        ...this.#_session.data,
-                        clientId: data.payload.clientId,
-                        projectId: this.#projectId,
-                        utmCampaign,
-                        utmSource,
-                        utmMedium,
-                        utmContent,
-                        referenceTail,
-                        sourceReference
-                    }
-                    const time = Date.now()
-                    this.#_session.createdAt = time
-                    this.#_session.updatedAt = time
-                    this.#_session.instance = new session(this.#_session.data)
-                }
-                if (this.#needToDo('create-integrations')) {
-                    const integrations = JSON.parse(this.#projectStructure).integrations
-                    if (integrations) {
-                        if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
-                            this.#_integrations.googleAnalytics = new googleAnalytics({
-                                id: integrations.googleAnalytics.id
-                            })
-                            this.#_integrations.googleAnalytics.init()
-                        }
-                    }
-                }
-                break;
-            }
-            case 'activity': {
-                if (this.#needToDo('refresh-session')) {
-                    // Update session
-                    const time = Date.now()
-                    if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
-                        this.#_session.instance = new session(this.#_session.data)
-                        this.#_session.createdAt = time
-                        this.#_session.updatedAt = time
-                    } else {
-                        this.#_session.instance.sendActivity()
-                        this.#_session.updatedAt = time
-                    }
-                }
-                break;
-            }
-            case 'setSize': {
-                this.#setSize(data.payload.sizes)
-                break;
-            }
-            case 'scrollParent': {
-                if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
-                    window.scrollTo({
-                        top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
-                        behavior: "smooth"
-                    });
-                }
-                break;
-            }
-            default:
-                break;
-        }
-
-        this.#sendEventToContainerInstance(data.method, data)
     }
 
     // [PRIVATE] Send event to container instance
