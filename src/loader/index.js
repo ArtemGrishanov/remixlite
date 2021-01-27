@@ -4,7 +4,7 @@ import session from './session'
 import { validator } from './utils'
 import { MAX_REFRESH_SESSION_AWAITING } from './constants'
 
-// import googleAnalytics from './integrations/googleAnalytics'
+import googleAnalytics from './integrations/googleAnalytics'
 
 smoothScroll.polyfill()
 
@@ -21,13 +21,14 @@ window.RemixLoader = class RemixLoader {
     #initialWidth
     #initialHeight
     #lng
-    #topOffset
+    #additionalTopOffset
     #onEvent
 
     #appOrigin
     #preloader
     #error
     #iframe
+    #iframePosition
 
     #_session = {
         instance: null,
@@ -45,9 +46,9 @@ window.RemixLoader = class RemixLoader {
         updatedAt: null,
         maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
     }
-    // #_integrations = {}
+    #_integrations = {}
 
-    constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, topOffset, onEvent}) {
+    constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, additionalTopOffset, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
         this.#nodeElement = this.#validateConstructorParam('nodeElement', nodeElement, true)
         this.#remixUrl = this.#validateConstructorParam('remixUrl', remixUrl, true)
@@ -57,7 +58,7 @@ window.RemixLoader = class RemixLoader {
         this.#initialWidth = this.#validateConstructorParam('initialWidth', initialWidth, false, 800)
         this.#initialHeight = this.#validateConstructorParam('initialHeight', initialHeight, false, 600)
         this.#lng = this.#validateConstructorParam('lng', lng, false, this.#getWindowLanguage())
-        this.#topOffset = this.#validateConstructorParam('topOffset', topOffset, false, 0)
+        this.#additionalTopOffset = this.#validateConstructorParam('additionalTopOffset', additionalTopOffset, false, 0)
         this.#onEvent = this.#validateConstructorParam('onEvent', onEvent, false, null)
 
         this.#appOrigin = new URL(remixUrl).origin;
@@ -110,7 +111,7 @@ window.RemixLoader = class RemixLoader {
                     }
                     case 'initialWidth':
                     case 'initialHeight':
-                    case 'topOffset': {
+                    case 'additionalTopOffset': {
                         if (validator.isInt(value)) {
                             return parseInt(value)
                         }
@@ -188,9 +189,9 @@ window.RemixLoader = class RemixLoader {
     }
 
     // [PUBLIC] Change top offset
-    changeTopOffset = value => {
+    changeAdditionalTopOffset = value => {
         if (validator.isInt(value)) {
-            this.#topOffset = parseInt(value)
+            this.#additionalTopOffset = parseInt(value)
         }
     }
 
@@ -290,6 +291,27 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
+    // [PRIVATE]
+    #getIframePosition = forceSendToIframe => {
+        const rect = this.#iframe.getBoundingClientRect()
+        this.#iframePosition = {
+            top: rect.top,
+            left: rect.left
+        };
+
+        if (forceSendToIframe) {
+            this.#iframe.contentWindow.postMessage({
+                method: 'iframePosition',
+                payload: {
+                    data: {
+                        ...this.#iframePosition,
+                        top: this.#iframePosition.top - this.#additionalTopOffset
+                    }
+                }
+            }, this.#appOrigin)
+        }
+        return this.#iframePosition
+    }
 
     // [PRIVATE] Receive message from remix app
     receiveMessage = ({ origin = null, data = {}, source = null }) => {
@@ -309,6 +331,9 @@ window.RemixLoader = class RemixLoader {
                     ...data.payload.sizes,
                     width: 'maxWidth'
                 })
+
+                this.#getIframePosition(true)
+                window.addEventListener("scroll", this.#throttle(() => this.#getIframePosition(true), 100));
 
                 if (this.#needToDo('create-session')) {
                     // Create session
@@ -339,15 +364,15 @@ window.RemixLoader = class RemixLoader {
                     this.#_session.instance = new session(this.#_session.data)
                 }
                 if (this.#needToDo('create-integrations')) {
-                    // const integrations = JSON.parse(this.#projectStructure).integrations
-                    // if (integrations) {
-                    //     if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
-                    //         this.#_integrations.googleAnalytics = new googleAnalytics({
-                    //             id: integrations.googleAnalytics.id
-                    //         })
-                    //         this.#_integrations.googleAnalytics.init()
-                    //     }
-                    // }
+                    const integrations = JSON.parse(this.#projectStructure).integrations
+                    if (integrations) {
+                        if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
+                            this.#_integrations.googleAnalytics = new googleAnalytics({
+                                id: integrations.googleAnalytics.id
+                            })
+                            this.#_integrations.googleAnalytics.init()
+                        }
+                    }
                 }
                 break;
             }
@@ -373,7 +398,7 @@ window.RemixLoader = class RemixLoader {
             case 'scrollParent': {
                 if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
                     window.scrollTo({
-                        top: this.#getElementCoords(this.#iframe).top + data.payload.top - this.#topOffset,
+                        top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
                         behavior: "smooth"
                     });
                 }
@@ -393,13 +418,30 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
-    // [PRIVATE] Get element coords
-    #getElementCoords = el => {
-        const box = el.getBoundingClientRect();
-        return {
-            top: box.top + pageYOffset,
-            left: box.left + pageXOffset
-        };
+    // [PRIVATE]
+    #throttle(func, waitTime) {
+        let isThrottled = false,
+            savedArgs,
+            savedThis;
+
+        function wrapper() {
+            if (isThrottled) {
+                savedArgs = arguments;
+                savedThis = this;
+                return;
+            }
+            func.apply(this, arguments);
+            isThrottled = true;
+            setTimeout(function() {
+                isThrottled = false;
+                if (savedArgs) {
+                    wrapper.apply(savedThis, savedArgs);
+                    savedArgs = savedThis = null;
+                }
+            }, waitTime);
+        }
+
+        return wrapper;
     }
 
     // [PRIVATE]
