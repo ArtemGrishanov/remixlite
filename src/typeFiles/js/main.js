@@ -18,6 +18,7 @@ import blockTimeline from './blocks/timeline'
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -168,14 +169,15 @@ class Remix {
             },
             sendMessage
     }),
-        [BLOCK.timeline]: cnt => blockTimeline(cnt, {
+        [BLOCK.timeline]: (container, blockOptions) => blockTimeline(container, {
             methods: {
                 add: this.#addBlock,
                 parse: this.#parse,
-                useFont: this.#useFont
+                useFont: this.#useFont,
             }
-        }),
+        }, blockOptions),
     }
+    #timelineLastBlockId
 
     constructor() {}
 
@@ -189,10 +191,11 @@ class Remix {
         container.innerHTML = ''
 
         if (projectStructure.hasOwnProperty('blocks')) {
+            this.#processBlocks(projectStructure.blocks);
             projectStructure.blocks.forEach(blockData => {
                 const block = this.#blocks[blockData.t];
                 if (block) {
-                    const newBlock = new block(container)
+                    const newBlock = new block(container, this.#getBlockOptions(blockData))
                     newBlock.render(blockData)
                     if (newBlock.postRender) newBlock.postRender()
                 } else {
@@ -204,13 +207,20 @@ class Remix {
 
     // Private methods
     #addBlock = (container, html, blockType, classes, props = null) => {
+        console.log({
+            container, html, blockType, classes, props,
+        });
         const div = document.createElement('div')
 
         if (blockType) {
-            div.classList = 'block __' + blockType
+            div.classList.add(
+                'block',
+                '__' + blockType,
+                BLOCK_NAMES_DICTIONARY[blockType] + '-block'
+            );
         }
         if (classes) {
-            div.classList += classes
+            div.classList.add(...classes);
         }
 
         if (props) {
@@ -218,9 +228,6 @@ class Remix {
                 for (const [key, value] of Object.entries(props.styles)) {
                     div.style[key] = value;
                 }
-            }
-            if (props.className) {
-                div.className += ' ' + props.className;
             }
         }
 
@@ -276,6 +283,43 @@ class Remix {
             if (p.hasOwnProperty(k)) o[k] = p[k]
         }
         return o
+    }
+
+    /**
+     * Extension point. Allows to analyze project structure on-init
+     * @param {Array} blocks
+     */
+    #processBlocks = blocks => {
+        blocks.forEach(blockData => {
+            if (blockData.t === BLOCK.timeline) {
+                this.#timelineLastBlockId = blockData.id;
+            }
+        });
+        if (this.#timelineLastBlockId) {
+            window.addEventListener("message", ({data = {}}) => {
+                const { method, payload = {} } = data
+                switch (method) {
+                    case 'iframePosition': {
+                        console.log('iframePosition:', payload);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }, false);
+        }
+    }
+    #getBlockOptions = blockData => {
+        const options = {};
+        switch (blockData.t) {
+            case BLOCK.timeline:
+                if (blockData.id === this.#timelineLastBlockId) {
+                    options.isLastTimelineBlock = true;
+                }
+                return options;
+            default:
+                return undefined;
+        }
     }
 }
 
@@ -383,7 +427,6 @@ function throttle(func, waitTime) {
 
     return wrapper;
 }
-
 /**
  * Hack for server screenshot (server is not inject loader file, that mean we need to send "init" method manually)
  */

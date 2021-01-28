@@ -1,11 +1,10 @@
-export default function(cnt, { methods }) {
+export default function(cnt, { methods }, blockOptions) {
     return {
         render: data => {
             const wrapperProps = {
                 styles: {
                     backgroundColor: data.wP_bg,
                 },
-                className: 'timeline-block',
             }
 
             const {markTitle, markSubtitle, imageUrl, imageDescription} = data;
@@ -36,7 +35,9 @@ export default function(cnt, { methods }) {
                     </div>
                 </div>`;
 
-            methods.add(cnt, methods.parse(template, data), data.t, null, wrapperProps)
+            const classList = blockOptions.isLastTimelineBlock ? ['timeline-end'] : null;
+
+            methods.add(cnt, methods.parse(template, data), data.t, classList, wrapperProps)
             methods.useFont(data.text)
         }
     }

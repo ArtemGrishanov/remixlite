@@ -1,8 +1,14 @@
+@import './../variables';
+@import './../mixins';
+
 .block {
   font-family: 'Helvetica', 'Arial', sans-serif;
   position: relative;
-  margin-top: 10px;
+  margin-top: $block-top-margin;
 
+  > * {
+    position: relative;
+  }
   &:last-child {
     margin-bottom: 10px;
   }
@@ -34,7 +40,6 @@
     min-height: 100px;
     width: 100%;
     text-align: center;
-    overflow: hidden;
     img {
       max-width: 100%;
     }
@@ -673,15 +678,25 @@
 }
 
 // region Timeline block
-$timeline-image-description-color: #626262;
-$timeline-items-color: #000000;
-
 .timeline-block {
   padding: 33px 12px 30px 70px;
 
+  ~ .block:not(.timeline-block):not(.text-block) {
+    &::before {
+      @include timeLinePseudoElement();
+
+      top: -$block-top-margin;
+    }
+  }
+  &.timeline-end ~ .block {
+    &::before {
+      display: none;
+    }
+  }
   @include maxWidth(799) {
     padding: 20px 4vw 20px 14vw;
   }
+
   ~ .timeline-block, // All but first
   + :not(.timeline-block) { // If next one is not a timeline block - pull it up!
     margin-top: 0;
@@ -695,17 +710,7 @@ $timeline-items-color: #000000;
     }
   }
   &::before {
-    content: ' ';
-    position: absolute;
-    width: 1px;
-    background-color: $timeline-items-color;
-    top: 0;
-    bottom: 0;
-    left: 40px;
-
-    @include maxWidth(799) {
-      left: 7vw;
-    }
+    @include timeLinePseudoElement();
   }
   &::after {
     content: ' ';
