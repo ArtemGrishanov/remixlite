@@ -170,7 +170,11 @@ const f = {
             return browserify(path.src.loader)
                 .transform(babelify.configure({
                     presets: ['@babel/env'],
-                    plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-runtime']
+                    plugins: [
+                        '@babel/plugin-proposal-class-properties',
+                        '@babel/plugin-transform-runtime',
+                        '@babel/plugin-proposal-private-methods'
+                    ]
                 }))
                 .bundle()
                 .pipe(source('loader.js'))
@@ -186,7 +190,11 @@ const f = {
             return browserify(path.src.loader)
                 .transform(babelify.configure({
                     presets: ['@babel/env'],
-                    plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-runtime']
+                    plugins: [
+                        '@babel/plugin-proposal-class-properties',
+                        '@babel/plugin-transform-runtime',
+                        '@babel/plugin-proposal-private-methods'
+                    ]
                 }))
                 .bundle()
                 .pipe(source('loader.js'))

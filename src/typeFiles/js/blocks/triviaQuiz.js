@@ -124,6 +124,19 @@ export default function(cnt, { M, methods, sendMessage }) {
     let scores = 0
     let lastAnsweredIndex = null
 
+    // How to use "iframePosition"
+    // window.addEventListener("message", ({data = {}}) => {
+    //     const { method, payload = {} } = data
+    //     switch (method) {
+    //         case 'iframePosition': {
+    //             console.log('iframePosition:', payload);
+    //             break;
+    //         }
+    //         default:
+    //             break;
+    //     }
+    // }, false);
+
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
         M.parse(template)
@@ -149,10 +162,9 @@ export default function(cnt, { M, methods, sendMessage }) {
     function getCoords(elem) {
         const box = elem.getBoundingClientRect();
         return {
-            top: box.top + pageYOffset,
-            left: box.left + pageXOffset
+            top: box.top,
+            left: box.left
         };
-
     }
 
     function setScreen(type, payload = {}) {
@@ -166,6 +178,10 @@ export default function(cnt, { M, methods, sendMessage }) {
                         box: initialData.struct.c.i ? '' : 'no-image'
                     }
                 });
+
+                sendMessage('scrollParent', {
+                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
+                })
                 break;
             }
             case 'question': {

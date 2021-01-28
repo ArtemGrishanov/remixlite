@@ -283,6 +283,7 @@ try {
 } catch (err) {
     clientId = getRandomId(16)
 }
+
 window.addEventListener("message", receiveMessage, false);
 function receiveMessage({origin = null, data = {}, source = null}) {
     const { method, payload = {} } = data
@@ -353,13 +354,28 @@ function getRandomId(t = 21) {
     return s
 }
 function throttle(func, waitTime) {
-    let timeout = null
-    return function (...args) {
-        if (timeout === null) {
-            func.apply(this, args)
-            timeout = setTimeout(() => (timeout = null), waitTime)
+    let isThrottled = false,
+        savedArgs,
+        savedThis;
+
+    function wrapper() {
+        if (isThrottled) {
+            savedArgs = arguments;
+            savedThis = this;
+            return;
         }
+        func.apply(this, arguments);
+        isThrottled = true;
+        setTimeout(function() {
+            isThrottled = false;
+            if (savedArgs) {
+                wrapper.apply(savedThis, savedArgs);
+                savedArgs = savedThis = null;
+            }
+        }, waitTime);
     }
+
+    return wrapper;
 }
 
 /**
