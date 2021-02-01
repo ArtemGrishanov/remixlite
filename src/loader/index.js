@@ -296,6 +296,7 @@ window.RemixLoader = class RemixLoader {
         const rect = this.#iframe.getBoundingClientRect()
         this.#iframePosition = {
             top: rect.top,
+            bottom: rect.bottom,
             left: rect.left
         };
 
@@ -305,7 +306,10 @@ window.RemixLoader = class RemixLoader {
                 payload: {
                     data: {
                         ...this.#iframePosition,
-                        top: this.#iframePosition.top - this.#additionalTopOffset
+                        top: this.#iframePosition.top - this.#additionalTopOffset,
+                        bottom: this.#iframePosition.bottom - this.#additionalTopOffset - window.innerHeight,
+                        bottomOffset: this.#iframePosition.top - window.innerHeight,
+                        windowBottom: this.#iframePosition.top - this.#additionalTopOffset - window.innerHeight,
                     }
                 }
             }, this.#appOrigin)

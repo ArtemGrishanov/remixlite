@@ -1,0 +1,20 @@
+.navigation-top,
+.navigation-bottom,
+.navigation-center {
+    position: absolute;
+    left: 30px;
+    background-color: blueviolet;
+}
+
+.navigation-top,
+.navigation-bottom {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.navigation-top {
+    top: 100px;
+}
+.navigation-bottom {
+    bottom: 100px;
+}

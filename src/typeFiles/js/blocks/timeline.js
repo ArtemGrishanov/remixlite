@@ -1,4 +1,4 @@
-export default function(cnt, { methods }, blockOptions) {
+export default function(containerElement, remixMethods, blockOptions) {
     return {
         render: data => {
             const wrapperProps = {
@@ -36,9 +36,17 @@ export default function(cnt, { methods }, blockOptions) {
                 </div>`;
 
             const classList = blockOptions.isLastTimelineBlock ? ['timeline-end'] : null;
+            const navigationlabel = markTitle || markSubtitle;
 
-            methods.add(cnt, methods.parse(template, data), data.t, classList, wrapperProps)
-            methods.useFont(data.text)
+            remixMethods.add(
+                containerElement,
+                remixMethods.parse(template, data),
+                data.t,
+                classList,
+                wrapperProps,
+                navigationlabel
+            );
+            remixMethods.useFont(data.text);
         }
     }
 }

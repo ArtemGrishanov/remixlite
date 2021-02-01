@@ -1,7 +1,8 @@
 import Mustache from 'mustache'
 
-// Import blocks Enum
+// Import blocks Enums
 import BLOCK from "./blocks/blocksEnum"
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -18,7 +19,8 @@ import blockTimeline from './blocks/timeline'
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
-import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
+
+import BlocksNavigation from "./utils/blocksNavigation";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -170,14 +172,13 @@ class Remix {
             sendMessage
     }),
         [BLOCK.timeline]: (container, blockOptions) => blockTimeline(container, {
-            methods: {
-                add: this.#addBlock,
-                parse: this.#parse,
-                useFont: this.#useFont,
-            }
+            add: this.#addBlock,
+            parse: this.#parse,
+            useFont: this.#useFont,
         }, blockOptions),
     }
-    #timelineLastBlockId
+    #timelineLastBlockId;
+    #navigator = new BlocksNavigation();
 
     constructor() {}
 
@@ -202,14 +203,12 @@ class Remix {
                     console.warn(`Block type "${blockData.t}" not supported`)
                 }
             });
+            this.#navigator.start(container);
         }
     }
 
     // Private methods
-    #addBlock = (container, html, blockType, classes, props = null) => {
-        console.log({
-            container, html, blockType, classes, props,
-        });
+    #addBlock = (container, html, blockType, classes, props = null, navigationLabel = null) => {
         const div = document.createElement('div')
 
         if (blockType) {
@@ -233,6 +232,10 @@ class Remix {
 
         div.innerHTML = html
         container.appendChild(div)
+
+        if (navigationLabel) {
+            this.#navigator.addBlock(navigationLabel, div);
+        }
         return div
     }
     #parse = (template, data) => {
@@ -295,19 +298,6 @@ class Remix {
                 this.#timelineLastBlockId = blockData.id;
             }
         });
-        if (this.#timelineLastBlockId) {
-            window.addEventListener("message", ({data = {}}) => {
-                const { method, payload = {} } = data
-                switch (method) {
-                    case 'iframePosition': {
-                        console.log('iframePosition:', payload);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }, false);
-        }
     }
     #getBlockOptions = blockData => {
         const options = {};
