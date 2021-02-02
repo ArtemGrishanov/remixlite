@@ -1,14 +1,14 @@
 class BlocksNavigation {
     #blocks = [];
+    #navDots = [];
     #blockNavigationLabels = new Map();
     #navigationElements = {};
     #currentBlockIndexData = {
         internalValue: null,
         listener: val => {},
         set value(val) {
-            console.log('currentBlockIndex setter', val, this.listener);
+            this.listener(val, this.internalValue);
             this.internalValue = val;
-            this.listener(val);
         },
         get value() {
             return this.internalValue;
@@ -65,66 +65,90 @@ class BlocksNavigation {
     #createNavigationElements = (containerElement) => {
         const topButton = document.createElement('div');
         topButton.className = 'navigation-top';
-        topButton.textContent = 'EAT ME!';
+        topButton.onclick = this.#navigateToCurrent;
+
         const bottomButton = document.createElement('div');
         bottomButton.className = 'navigation-bottom';
+        bottomButton.onclick = this.#navigateToNext;
+
         const centerDots = document.createElement('div');
         centerDots.className = 'navigation-center';
+        this.#blocks.forEach((block, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'navigation-center__dot';
+            dot.onclick = () => {
+                this.#navigateTo(index);
+            };
 
-        this.#navigationElements.topButton = topButton;
-        this.#navigationElements.bottomButton = bottomButton;
-        this.#navigationElements.centerDots = centerDots;
+            this.#navDots.push(dot);
+            centerDots.appendChild(dot);
+        })
 
+        this.#navigationElements = {
+            topButton,
+            bottomButton,
+            centerDots,
+        }
         containerElement.appendChild(topButton);
         containerElement.appendChild(bottomButton);
+        containerElement.appendChild(centerDots);
     }
-    #updateNavigationPositions = (topPosition, bottomPosition, bottomOffset) => {
+    #updateNavigationPositions = (topPosition, bottomPosition) => {
         const topButtonStyle = this.#navigationElements.topButton.style;
         const bottomButtonStyle = this.#navigationElements.bottomButton.style;
         const centerDotsStyle = this.#navigationElements.centerDots.style;
 
         if (this.#isInsideNavigationLimits(topPosition)) {
             topButtonStyle.display = 'block';
+            centerDotsStyle.display = 'block';
             topButtonStyle.top = topPosition + 100 + 'px';
+            centerDotsStyle.top = topPosition + (bottomPosition - topPosition) / 2 + 'px';
         } else {
             topButtonStyle.display = 'none';
+            centerDotsStyle.display = 'none';
         }
 
-        if (this.#isInsideNavigationLimits(bottomOffset)) {
+        if (this.#isInsideNavigationLimits(bottomPosition) && this.#currentBlockIndexData.value !== (this.#blocks.length - 1)) {
             bottomButtonStyle.display = 'block';
-            bottomButtonStyle.bottom = bottomPosition + 20 + 'px';
+            bottomButtonStyle.top = bottomPosition - 100 + 'px';
         } else {
             bottomButtonStyle.display = 'none';
         }
     }
 
     #updateCurrentBlock = (viewportTop) => {
-        // Оптимизация быстродействия: перед тем, как запустить цикл поиска текущего блока - проверяем
-        // не остались ли мы в пределах "текущей зоны"
-        if () {
-
-        }
-        let currentBlockIndex = -1;
+        let newBlockIndex = -1;
         if (this.#isInsideNavigationLimits(viewportTop)) {
             // находим блок, до которого верхняя граница экрана ещё не дошла
             const nextBlockIndex = this.#blocks.findIndex(block => block.offsetTop > viewportTop);
-            if (nextBlockIndex !== undefined) {
-                currentBlockIndex = nextBlockIndex - 1;
+            if (nextBlockIndex !== - 1) {
+                // находимся между блоками
+                newBlockIndex = nextBlockIndex - 1;
             } else {
                 // находимся на последнем блоке
-                currentBlockIndex = this.#blocks.length - 1;
+                newBlockIndex = this.#blocks.length - 1;
             }
         }
-        this.#currentBlockIndexData.value = currentBlockIndex;
+        if (newBlockIndex !== this.#currentBlockIndexData.value) {
+            this.#currentBlockIndexData.value = newBlockIndex;
+        }
     }
 
-    #updateNavigationLabels = (currentBlockIndex) => {
-        console.log('Current block changed to', currentBlockIndex);
+    #updateNavigationLabels = (currentBlockIndex, prevBlockIndex) => {
+        console.log('navDots', this.#navDots);
+        console.log('indexes', currentBlockIndex, prevBlockIndex);
+
         const {topButton, bottomButton} = this.#navigationElements;
-        console.log('updateNavigationLabels', currentBlockIndex);
+        const currentDotClass = 'navigation-center__dot--current';
+
+        if (prevBlockIndex !== null && prevBlockIndex > -1) {
+            this.#navDots[prevBlockIndex].classList.remove(currentDotClass);
+        }
+
         if (currentBlockIndex === -1) {
             this.#setNavElementText(bottomButton, 0);
         } else {
+            this.#navDots[currentBlockIndex].classList.add(currentDotClass);
             this.#setNavElementText(topButton, currentBlockIndex);
             if (currentBlockIndex < this.#blocks.length - 1) {
                 this.#setNavElementText(bottomButton, currentBlockIndex + 1);
@@ -135,7 +159,7 @@ class BlocksNavigation {
     /**
      * Выставляет textContent для элемента навигации
      * @param {HTMLElement} navElement Элемент навигации (верхняя или нижняя кнопка)
-     * @param {number} blockIndex
+     * @param {number} blockIndex Блок навигации, из которого будет взят label
      */
     #setNavElementText = (navElement, blockIndex) => {
         navElement.textContent = this.#getBlockNavigationLabel(this.#blocks[blockIndex]);
@@ -169,13 +193,18 @@ class BlocksNavigation {
         return this.#blockNavigationLabels.get(block);
     }
 
-    #updateTopButton = {}
-    #getNavigationActiveRange = () => {
-
+    #navigateTo = (blockIndex) => {
+        console.log('NAVIGATING TO ' + this.#blocks[blockIndex].offsetTop)
     }
-    #navigateTo = (blockElement) => {
 
+    #navigateToCurrent = () => {
+        this.#navigateTo(this.#currentBlockIndexData.value);
     }
+
+    #navigateToNext = () => {
+        this.#navigateTo(this.#currentBlockIndexData.value + 1);
+    }
+
 }
 
 export default BlocksNavigation;
