@@ -21,12 +21,7 @@ export const validator = {
             return false;
         }
     },
-    isInt: value => {
-        try {
-            const regexp = /^[-+]?[0-9]+$/
-            return regexp.test(value)
-        } catch (err) {
-            return false
-        }
+    isNumber: value => {
+        return typeof value === 'number' && isFinite(value)
     }
 }

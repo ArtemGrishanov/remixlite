@@ -121,10 +121,10 @@ window.RemixLoader = class RemixLoader {
                     case 'initialWidth':
                     case 'initialHeight':
                     case 'additionalTopOffset': {
-                        if (validator.isInt(value)) {
-                            return parseInt(value)
+                        if (validator.isNumber(value)) {
+                            return value
                         }
-                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number' })
                     }
                     case 'lng': {
                         if (typeof value === 'string') {
@@ -195,7 +195,7 @@ window.RemixLoader = class RemixLoader {
 
                     this.#getIframePosition(true)
 
-                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 200), false)
+                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
 
                     if (this.#needToDo('create-session')) {
                         // Create session
@@ -258,9 +258,9 @@ window.RemixLoader = class RemixLoader {
                     break;
                 }
                 case 'scrollParent': {
-                    if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
+                    if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
                         window.scrollTo({
-                            top: this.#getIframePosition().top + pageYOffset + parseInt(data.payload.top) - this.#additionalTopOffset,
+                            top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
                             behavior: "smooth"
                         });
                     }
@@ -280,7 +280,7 @@ window.RemixLoader = class RemixLoader {
         iframe.style.height = '100%'
         iframe.style.overflow = 'hidden'
         iframe.setAttribute('allowFullScreen', '')
-        iframe.onload = evt => {
+        iframe.onload = () => {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
@@ -300,8 +300,8 @@ window.RemixLoader = class RemixLoader {
 
     // [PUBLIC] Change top offset
     changeAdditionalTopOffset = value => {
-        if (validator.isInt(value)) {
-            this.#additionalTopOffset = parseInt(value)
+        if (validator.isNumber(value)) {
+            this.#additionalTopOffset = value
         }
     }
 
@@ -351,11 +351,11 @@ window.RemixLoader = class RemixLoader {
             if (validator.isValue(width) && width === 'maxWidth') {
                 this.#nodeElement.style.width = '100%'
             }
-            if (validator.isValue(maxWidth) && validator.isInt(maxWidth)) {
-                this.#nodeElement.style.maxWidth = maxWidth + 'px'
+            if (validator.isValue(maxWidth) && validator.isNumber(maxWidth)) {
+                this.#nodeElement.style.maxWidth = `${maxWidth}px`
             }
-            if (validator.isValue(height) && validator.isInt(height)) {
-                this.#nodeElement.style.height = height + 'px'
+            if (validator.isValue(height) && validator.isNumber(height)) {
+                this.#nodeElement.style.height = `${height}px`
             }
         } catch (err) {
             console.error(err);
@@ -364,7 +364,7 @@ window.RemixLoader = class RemixLoader {
 
     // [PRIVATE]
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 1000
+        const MIN_ANIMATION_DELAY = 0
         const ANIMATION_DURATION = 500
 
         const html = `
