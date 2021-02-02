@@ -9,7 +9,7 @@ const template = `
                 </div>
             </div>
         </div>
-        <div class="then-now-block__delimiter" style="left:50%;opacity:1">
+        <div class="then-now-block__delimiter" style="left:50%">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="24" cy="24" r="24" fill="black" fill-opacity="0.4"/>
                 <path d="M42 24L34.5 15.3397L34.5 32.6603L42 24Z" fill="#FFFFFF"/>
@@ -38,23 +38,25 @@ export default function(cnt, { methods }) {
             imgPrp = data.imageProportions.value.split('|')
         },
         postRender: () => {
+            const updateContainerHeight = () => {
+                container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+            }
             const setDelimiterLeft = newLeft => {
                 delimiterDiv.style.left = newLeft + 'px';
                 imgParentDiv.style.left = newLeft + 'px';
                 imgInnerDiv.style.left = '-' + newLeft + 'px';
             }
 
-            container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+            updateContainerHeight();
             window.addEventListener('resize', () => {
                 if (container) {
-                    container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+                    updateContainerHeight();
                     setDelimiterLeft(Math.round(container.getBoundingClientRect().width / 2));
                 }
             })
 
             delimiterSvg.addEventListener('mousedown', event => {
                 event.preventDefault();
-                delimiterDiv.style.opacity = 0.7;
 
                 const onMouseMove = mmEvent => {
                     let newLeft = mmEvent.clientX - container.getBoundingClientRect().left;
@@ -68,7 +70,6 @@ export default function(cnt, { methods }) {
                 }
 
                 const onMouseUp = () => {
-                    delimiterDiv.style.opacity = 1;
                     document.removeEventListener('mouseup', onMouseUp);
                     document.removeEventListener('mousemove', onMouseMove);
                 }
