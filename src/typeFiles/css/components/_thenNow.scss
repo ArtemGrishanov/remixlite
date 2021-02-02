@@ -1,35 +1,22 @@
 .then-now {
   width: 100%;
   height: inherit;
-  &__left_img {
+  &__img {
     background-size: cover;
     position: absolute;
     width: 100%;
     height: 100%;
   }
-  &__right_img {
+  &__img-container {
     position: relative;
     width: inherit;
     height: inherit;
-    > div {
-      overflow: hidden;
-      position: absolute;
-      width: inherit;
-      height: inherit;
-      top: 0;
-      > div {
-        position: absolute;
-        width: inherit;
-        height: inherit;
-        top: 0;
-        > div {
-          background-size: cover;
-          position: absolute;
-          width: 100%;
-          height: 100%;
-        }
-      }
-    }
+  }
+  &__img-inner-container {
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    top: 0;
   }
   &__delimiter {
     position: absolute;

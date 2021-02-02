@@ -1,11 +1,11 @@
 // Template
 const template = `
     <div class="then-now">
-        <div class="then-now__left_img" style="background-image:url({{leftSrc}})"></div>
-        <div class="then-now__right_img">
-            <div style="left:50%">
-                <div style="left:-50%">
-                    <div style="background-image:url({{rightSrc}})"></div>
+        <div class="then-now__img" style="background-image:url({{leftSrc}})"></div>
+        <div class="then-now__img-container">
+            <div class="then-now__img-inner-container" style="left:50%; overflow: inherit">
+                <div class="then-now__img-inner-container" style="left:-50%">
+                    <div class="then-now__img" style="background-image:url({{rightSrc}})"></div>
                 </div>
             </div>
         </div>
