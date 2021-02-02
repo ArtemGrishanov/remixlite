@@ -195,7 +195,7 @@ window.RemixLoader = class RemixLoader {
 
                     this.#getIframePosition(true)
 
-                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 200), false)
+                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
 
                     if (this.#needToDo('create-session')) {
                         // Create session
