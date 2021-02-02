@@ -3,7 +3,7 @@ const template = `
     <div class="then-now">
         <div class="then-now__img" style="background-image:url({{leftSrc}})"></div>
         <div class="then-now__img-container">
-            <div class="then-now__img-inner-container" style="left:50%; overflow: inherit">
+            <div class="then-now__img-inner-container" style="left:50%; overflow: hidden">
                 <div class="then-now__img-inner-container" style="left:-50%">
                     <div class="then-now__img" style="background-image:url({{rightSrc}})"></div>
                 </div>
@@ -21,8 +21,8 @@ const template = `
 
 export default function(cnt, { methods }) {
     let container = null
-    let rightParentDiv = null
-    let rightDiv = null
+    let imgParentDiv = null
+    let imgInnerDiv = null
     let delimiterSvg = null
     let delimiterDiv = null
     let imgPrp = ['3', '2']
@@ -30,9 +30,9 @@ export default function(cnt, { methods }) {
     return {
         render: data => {
             container = methods.add(cnt, methods.parse(template, data), data.t);
-            const rightImgDiv = container.querySelector('.then-now__right_img');
-            rightParentDiv = rightImgDiv.querySelector('div');
-            rightDiv = rightParentDiv.querySelector('div');
+            const imgContainer = container.querySelector('.then-now__img-container');
+            imgParentDiv = imgContainer.querySelector('div');
+            imgInnerDiv = imgParentDiv.querySelector('div');
             delimiterDiv = container.querySelector('.then-now__delimiter');
             delimiterSvg = delimiterDiv.querySelector('svg');
             imgPrp = data.imageProportions.value.split('|')
@@ -40,8 +40,8 @@ export default function(cnt, { methods }) {
         postRender: () => {
             const setDelimiterLeft = newLeft => {
                 delimiterDiv.style.left = newLeft + 'px';
-                rightParentDiv.style.left = newLeft + 'px';
-                rightDiv.style.left = '-' + newLeft + 'px';
+                imgParentDiv.style.left = newLeft + 'px';
+                imgInnerDiv.style.left = '-' + newLeft + 'px';
             }
 
             container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
