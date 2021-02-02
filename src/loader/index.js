@@ -280,7 +280,7 @@ window.RemixLoader = class RemixLoader {
         iframe.style.height = '100%'
         iframe.style.overflow = 'hidden'
         iframe.setAttribute('allowFullScreen', '')
-        iframe.onload = evt => {
+        iframe.onload = () => {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
@@ -364,7 +364,7 @@ window.RemixLoader = class RemixLoader {
 
     // [PRIVATE]
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 1000
+        const MIN_ANIMATION_DELAY = 0
         const ANIMATION_DURATION = 500
 
         const html = `
