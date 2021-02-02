@@ -12,64 +12,64 @@ const templates = {
     `,
     cover: `
         <div class="cover">
-            {{#cover.i}}
-                <img src="{{cover.i}}" alt="Cover image">
-            {{/cover.i}}
+            {{#cover.image}}
+                <img src="{{cover.image}}" alt="Cover image">
+            {{/cover.image}}
             <div class="box {{_classes.box}}">
-                <div class="header">{{cover.h}}</div>
-                <div class="description">{{cover.d}}</div>
+                <div class="header">{{cover.header}}</div>
+                <div class="description">{{cover.description}}</div>
                 <div class="btn-wrap">
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{cover.bT}}</button>
+                        <button class="is-handled" data-handlers="click" data-initiator="cover.start" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{cover.buttonText}}</button>
                     </div>
                 </div>
-                {{#cover.iD}}
-                    <div class="image-disclaimer">{{cover.iD}}</div>
-                {{/cover.iD}}
+                {{#cover.imageDisclaimer}}
+                    <div class="image-disclaimer">{{cover.imageDisclaimer}}</div>
+                {{/cover.imageDisclaimer}}
             </div>
         </div>
     `,
     question: `
         <div class="question" id="{{question.id}}">
-            {{#question.i}}
+            {{#question.image}}
                 <div class="img">
                     {{#progressBar}}
                         <span class="counter">{{counter.current}}/{{counter.all}}</span>
                     {{/progressBar}}
-                    <img src="{{question.i}}" alt="Question image">
+                    <img src="{{question.image}}" alt="Question image">
                     <div class="text-wrap">
-                        <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                        <div class="text size--{{sizes.t}}">{{question.text}}</div>
                     </div>
                 </div>
-            {{/question.i}}
-            {{^question.i}}
+            {{/question.image}}
+            {{^question.image}}
                 <div class="no-img">
                     {{#progressBar}}
                         <span class="counter">{{counter.current}}/{{counter.all}}</span>
                     {{/progressBar}}
-                    <div class="text size--{{sizes.t}}">{{question.t}}</div>
+                    <div class="text size--{{sizes.t}}">{{question.text}}</div>
                 </div>
-            {{/question.i}}
-            <ul class="list {{_classes.qList}}">
-                {{#question.a}}
-                    <li class="item is-handled {{_classes.a}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
+            {{/question.image}}
+            <ul class="list {{_classes.answerList}}">
+                {{#question.answers}}
+                    <li class="item is-handled {{_classes.answer}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
                         {{#isText}}
-                            <div class="text">{{t}}</div>
+                            <div class="text">{{text}}</div>
                         {{/isText}}
                         {{^isText}}
                             <div class="image">
-                                <img src="{{i}}" alt="img">
-                                <p>{{iL}}</p>
+                                <img src="{{image}}" alt="img">
+                                <p>{{imageLabel}}</p>
                             </div>
                         {{/isText}}
                     </li>
-                {{/question.a}}
+                {{/question.answers}}
             </ul>
-            {{#question.i}}
-                {{#question.iD}}
-                    <div class="image-disclaimer">{{question.iD}}</div>
-                {{/question.iD}}
-            {{/question.i}}
+            {{#question.image}}
+                {{#question.imageDisclaimer}}
+                    <div class="image-disclaimer">{{question.imageDisclaimer}}</div>
+                {{/question.imageDisclaimer}}
+            {{/question.image}}
         </div>
     `,
     'question.answer.description': `
@@ -87,15 +87,15 @@ const templates = {
                     <div class="head">{{header}}</div>
                 </div>
             {{/header}}
-            {{#result.i}}
-                <img src="{{result.i}}" alt="Result image">
-            {{/result.i}}
+            {{#result.image}}
+                <img src="{{result.image}}" alt="Result image">
+            {{/result.image}}
             <div class="box {{_classes.box}}">
                 {{#showScores}}
                     <div class="counter">{{scores.current}}/{{scores.all}}</div>
                 {{/showScores}}
-                <div class="header">{{result.h}}</div>
-                <div class="description">{{result.d}}</div>
+                <div class="header">{{result.header}}</div>
+                <div class="description">{{result.description}}</div>
                 <div class="btn-wrap">
                     {{#callToActionButton}}
                         <div class="link-block">
@@ -106,9 +106,9 @@ const templates = {
                         <button class="is-handled" data-handlers="click" data-initiator="result.restart">Restart</button>
                     </div>
                 </div>
-                {{#result.iD}}
-                    <div class="image-disclaimer">{{result.iD}}</div>
-                {{/result.iD}}
+                {{#result.imageDisclaimer}}
+                    <div class="image-disclaimer">{{result.imageDisclaimer}}</div>
+                {{/result.imageDisclaimer}}
             </div>
         </div>
     `
@@ -123,19 +123,6 @@ export default function(cnt, { M, methods, sendMessage }) {
     let initialData = {}
     let scores = 0
     let lastAnsweredIndex = null
-
-    // How to use "iframePosition"
-    // window.addEventListener("message", ({data = {}}) => {
-    //     const { method, payload = {} } = data
-    //     switch (method) {
-    //         case 'iframePosition': {
-    //             console.log('iframePosition:', payload);
-    //             break;
-    //         }
-    //         default:
-    //             break;
-    //     }
-    // }, false);
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -171,11 +158,11 @@ export default function(cnt, { M, methods, sendMessage }) {
         switch (type) {
             case 'cover': {
                 wrapperElement.innerHTML = getParsedHTML(M, 'cover', {
-                    cover: initialData.struct.c,
-                    colorTheme: initialData.cT,
-                    buttonColor: invertColor(initialData.cT, true),
+                    cover: initialData.struct.cover,
+                    colorTheme: initialData.colorTheme,
+                    buttonColor: invertColor(initialData.colorTheme, true),
                     _classes: {
-                        box: initialData.struct.c.i ? '' : 'no-image'
+                        box: initialData.struct.cover.image ? '' : 'no-image'
                     }
                 });
 
@@ -185,23 +172,23 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'question': {
-                const question = initialData.struct.q[payload.index]
+                const question = initialData.struct.questions[payload.index]
 
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
                     question,
-                    isText: question.isT,
+                    isText: question.isText,
                     sizes: {
-                        t: question.t.length <= 100 ? 'big' : question.i ? 'small' : 'medium'
+                        t: question.text.length <= 100 ? 'big' : question.image ? 'small' : 'medium'
                     },
-                    colorTheme: initialData.cT,
-                    progressBar: initialData.pB,
+                    colorTheme: initialData.colorTheme,
+                    progressBar: initialData.progressBar,
                     counter: {
                         current: payload.index + 1,
-                        all: initialData.struct.q.length
+                        all: initialData.struct.questions.length
                     },
                     _classes: {
-                        qList: !question.isT ? 'is-image' : '',
-                        a: !question.isT ? `is-image${(question.a.length <= 3 || (question.a.length >= 5 && question.a.length <= 6)) ? ' is-big' : ''}` : '',
+                        answerList: !question.isText ? 'is-image' : '',
+                        answer: !question.isText ? `is-image${(question.answers.length <= 3 || (question.answers.length >= 5 && question.answers.length <= 6)) ? ' is-big' : ''}` : '',
                     }
                 });
 
@@ -211,23 +198,23 @@ export default function(cnt, { M, methods, sendMessage }) {
                 break;
             }
             case 'result': {
-                const result = initialData.struct.r[payload.index]
+                const result = initialData.struct.results[payload.index]
 
                 wrapperElement.innerHTML = getParsedHTML(M, 'result', {
                     result,
-                    header: initialData.struct._s.c ? initialData.struct.c.h : null,
-                    colorTheme: initialData.cT,
-                    buttonColor: invertColor(initialData.cT, true),
-                    showScores: initialData.sR,
-                    callToActionButton: initialData.cA,
-                    callToActionButtonText: initialData.cA_t,
+                    header: initialData.struct._settings.showCover ? initialData.struct.cover.header : null,
+                    colorTheme: initialData.colorTheme,
+                    buttonColor: invertColor(initialData.colorTheme, true),
+                    showScores: initialData.showScores,
+                    callToActionButton: initialData.callToActionEnabled,
+                    callToActionButtonText: initialData.callToActionText,
                     scores: {
                         current: scores,
-                        all: initialData.struct.q.length
+                        all: initialData.struct.questions.length
                     },
                     _classes: {
-                        'head-wrap': !result.i ? 'no-image' : '',
-                        box: !result.i ? 'no-image' : '',
+                        'head-wrap': !result.image ? 'no-image' : '',
+                        box: !result.image ? 'no-image' : '',
                     }
                 });
 
@@ -273,33 +260,33 @@ export default function(cnt, { M, methods, sendMessage }) {
                         el.classList.add("is-disabled");
                     }
 
-                    const question = initialData.struct.q[payload.qIndex]
+                    const question = initialData.struct.questions[payload.qIndex]
 
-                    const selectedAnswer = question.a.find(el => el.id === payload.answerId)
+                    const selectedAnswer = question.answers.find(el => el.id === payload.answerId)
                     const selectedAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === payload.answerId)[0];
                     selectedAnswerElement.classList.add("is-selected");
 
-                    if (selectedAnswer && selectedAnswer.isC) {
+                    if (selectedAnswer && selectedAnswer.isCorrect) {
                         selectedAnswerElement.classList.add("is-correct");
                         scores ++
                     } else {
                         selectedAnswerElement.classList.add("is-incorrect")
-                        const correctAnswers = question.a.filter(el => el.isC)
+                        const correctAnswers = question.answers.filter(el => el.isCorrect)
                         for (const correctAnswer of correctAnswers) {
                             const correctAnswerElement = Array.from(answers).filter(el => el.dataset.answerId === correctAnswer.id)[0];
                             correctAnswerElement.classList.add("is-correct");
                         }
                     }
 
-                    const description = question.isT ? selectedAnswer.d : selectedAnswer.iDr
+                    const description = question.isText ? selectedAnswer.description : selectedAnswer.imageDescription
                     if (description.length) {
                         selectedAnswerElement.insertAdjacentHTML('beforeEnd', getParsedHTML(M, 'question.answer.description', description))
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
-                        text: payload.qIndex === (initialData.struct.q.length - 1) ? "See result" : "Next",
-                        colorTheme: initialData.cT,
-                        buttonColor: invertColor(initialData.cT, true)
+                        text: payload.qIndex === (initialData.struct.questions.length - 1) ? "See result" : "Next",
+                        colorTheme: initialData.colorTheme,
+                        buttonColor: invertColor(initialData.colorTheme, true)
                     }))
 
                     updateEventListeners({qIndex: payload.qIndex})
@@ -308,8 +295,8 @@ export default function(cnt, { M, methods, sendMessage }) {
                 case 'question.next': {
                     if (evt) evt.preventDefault()
 
-                    if (payload.qIndex === (initialData.struct.q.length - 1)) {
-                        const resultIndex = initialData.struct._s.d.findIndex(el => el.f <= scores && el.t >= scores)
+                    if (payload.qIndex === (initialData.struct.questions.length - 1)) {
+                        const resultIndex = initialData.struct._settings.distribution.findIndex(el => el.from <= scores && el.to >= scores)
                         setScreen('result', {index: resultIndex})
                         updateEventListeners()
 
@@ -321,8 +308,8 @@ export default function(cnt, { M, methods, sendMessage }) {
                                 target: 'result',
                                 payload: {
                                     scores,
-                                    maxScores: initialData.struct.q.length,
-                                    resultScreen: initialData.struct.r[resultIndex]
+                                    maxScores: initialData.struct.questions.length,
+                                    resultScreen: initialData.struct.results[resultIndex]
                                 }
                             }
                         })
@@ -350,7 +337,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     lastAnsweredIndex = null
 
                     let additionalPayload = {}
-                    if (initialData.struct._s.c) {
+                    if (initialData.struct._settings.showCover) {
                         setScreen('cover' )
                     } else {
                         setScreen('question', {index: 0})
@@ -387,7 +374,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                             target: 'result.callToAction'
                         }
                     })
-                    window.open(initialData.cA_l,'_blank');
+                    window.open(initialData.callToActionLink,'_blank');
                     break;
                 }
                 default:
@@ -400,7 +387,7 @@ export default function(cnt, { M, methods, sendMessage }) {
     return {
         render: data => {
             initialData = data
-            if (initialData.struct._isV) {
+            if (initialData.struct._isValid) {
                 try {
                     const wrapperId = `tq_${data.id}`
                     const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
@@ -414,7 +401,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     log('error', data.id, null, err)
                 }
             } else {
-                log('warn', data.id, 'Block will not render because "data.struct._isV" is not true.')
+                log('warn', data.id, 'Block will not render because "struct._isValid" is not true.')
             }
         },
         postRender: null
