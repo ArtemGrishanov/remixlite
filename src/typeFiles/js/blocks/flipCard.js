@@ -39,11 +39,14 @@ export default function(cnt, { methods }) {
             fi = container.querySelector('.flip_inner')
         },
         postRender: () => {
+            const updateContainerHeight = () => {
+                container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+            }
             fi.addEventListener('click', () => fi.classList.toggle('__flipped'))
-            container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+            updateContainerHeight();
             window.addEventListener('resize', () => {
                 if (container) {
-                    container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
+                    updateContainerHeight();
                 }
             })
         }
