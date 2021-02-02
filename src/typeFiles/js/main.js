@@ -12,6 +12,7 @@ import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
+import blockThenNow from './blocks/thenNow'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -165,6 +166,13 @@ class Remix {
                 parse: this.#parse,
             },
             sendMessage
+        }),
+        // Then\Now
+        [BLOCK.thenNow]: container => blockThenNow(container, {
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            }
         }),
     }
 
