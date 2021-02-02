@@ -1,15 +1,15 @@
 // Template
 const template = `
-    <div class="then-now">
-        <div class="then-now__img" style="background-image:url({{leftSrc}})"></div>
-        <div class="then-now__img-container">
-            <div class="then-now__img-inner-container" style="left:50%; overflow: hidden">
-                <div class="then-now__img-inner-container" style="left:-50%">
-                    <div class="then-now__img" style="background-image:url({{rightSrc}})"></div>
+    <div class="then-now-block">
+        <div class="then-now-block__img" style="background-image:url({{leftSrc}})"></div>
+        <div class="then-now-block__img-container">
+            <div class="then-now-block__img-inner-container" style="left:50%; overflow: hidden">
+                <div class="then-now-block__img-inner-container" style="left:-50%">
+                    <div class="then-now-block__img" style="background-image:url({{rightSrc}})"></div>
                 </div>
             </div>
         </div>
-        <div class="then-now__delimiter" style="left:50%;opacity:1">
+        <div class="then-now-block__delimiter" style="left:50%;opacity:1">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="24" cy="24" r="24" fill="black" fill-opacity="0.4"/>
                 <path d="M42 24L34.5 15.3397L34.5 32.6603L42 24Z" fill="#FFFFFF"/>
@@ -30,10 +30,10 @@ export default function(cnt, { methods }) {
     return {
         render: data => {
             container = methods.add(cnt, methods.parse(template, data), data.t);
-            const imgContainer = container.querySelector('.then-now__img-container');
+            const imgContainer = container.querySelector('.then-now-block__img-container');
             imgParentDiv = imgContainer.querySelector('div');
             imgInnerDiv = imgParentDiv.querySelector('div');
-            delimiterDiv = container.querySelector('.then-now__delimiter');
+            delimiterDiv = container.querySelector('.then-now-block__delimiter');
             delimiterSvg = delimiterDiv.querySelector('svg');
             imgPrp = data.imageProportions.value.split('|')
         },
