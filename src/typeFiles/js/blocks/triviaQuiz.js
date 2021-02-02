@@ -387,7 +387,6 @@ export default function(cnt, { M, methods, sendMessage }) {
     return {
         render: data => {
             initialData = data
-            console.log('initialData:', initialData);
             if (initialData.struct._isValid) {
                 try {
                     const wrapperId = `tq_${data.id}`
@@ -402,7 +401,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     log('error', data.id, null, err)
                 }
             } else {
-                log('warn', data.id, 'Block will not render because "data.struct._isV" is not true.')
+                log('warn', data.id, 'Block will not render because "struct._isValid" is not true.')
             }
         },
         postRender: null

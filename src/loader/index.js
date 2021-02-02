@@ -121,10 +121,10 @@ window.RemixLoader = class RemixLoader {
                     case 'initialWidth':
                     case 'initialHeight':
                     case 'additionalTopOffset': {
-                        if (validator.isInt(value)) {
-                            return parseInt(value)
+                        if (validator.isNumber(value)) {
+                            return value
                         }
-                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number/String (INT)' })
+                        return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'Number' })
                     }
                     case 'lng': {
                         if (typeof value === 'string') {
@@ -258,9 +258,9 @@ window.RemixLoader = class RemixLoader {
                     break;
                 }
                 case 'scrollParent': {
-                    if (validator.isValue(data.payload.top) && validator.isInt(data.payload.top)) {
+                    if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
                         window.scrollTo({
-                            top: this.#getIframePosition().top + pageYOffset + parseInt(data.payload.top) - this.#additionalTopOffset,
+                            top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
                             behavior: "smooth"
                         });
                     }
@@ -300,8 +300,8 @@ window.RemixLoader = class RemixLoader {
 
     // [PUBLIC] Change top offset
     changeAdditionalTopOffset = value => {
-        if (validator.isInt(value)) {
-            this.#additionalTopOffset = parseInt(value)
+        if (validator.isNumber(value)) {
+            this.#additionalTopOffset = value
         }
     }
 
@@ -351,11 +351,11 @@ window.RemixLoader = class RemixLoader {
             if (validator.isValue(width) && width === 'maxWidth') {
                 this.#nodeElement.style.width = '100%'
             }
-            if (validator.isValue(maxWidth) && validator.isInt(maxWidth)) {
-                this.#nodeElement.style.maxWidth = maxWidth + 'px'
+            if (validator.isValue(maxWidth) && validator.isNumber(maxWidth)) {
+                this.#nodeElement.style.maxWidth = `${maxWidth}px`
             }
-            if (validator.isValue(height) && validator.isInt(height)) {
-                this.#nodeElement.style.height = height + 'px'
+            if (validator.isValue(height) && validator.isNumber(height)) {
+                this.#nodeElement.style.height = `${height}px`
             }
         } catch (err) {
             console.error(err);
