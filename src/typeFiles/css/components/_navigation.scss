@@ -4,16 +4,31 @@
     position: absolute;
     top: 100px;
     left: 30px;
-    transition: top 0.2s ease-out 0s;
+    opacity: 1;
+    transition:
+            top,
+            left,
+            opacity;
+    transition-timing-function:
+            ease-out,
+            ease-out,
+            ease-out;
+    transition-duration: 0.2s, 1s, 0.2s;
 }
 
 .navigation-top,
 .navigation-bottom {
-    cursor: pointer;
-    background-color: blueviolet;
+    max-width: 200px;
     padding: 10px;
     border-radius: 10px;
     color: white;
+    cursor: pointer;
+    background-color: blueviolet;
+
+    &--invisible {
+        left: -250px;
+        opacity: 0;
+    }
 }
 
 .navigation-center {

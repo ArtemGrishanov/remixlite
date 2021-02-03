@@ -170,15 +170,19 @@ class Remix {
                 parse: this.#parse,
             },
             sendMessage
-    }),
-        [BLOCK.timeline]: (container, blockOptions) => blockTimeline(container, {
-            add: this.#addBlock,
-            parse: this.#parse,
-            useFont: this.#useFont,
-        }, blockOptions),
+        }),
+        [BLOCK.timeline]: (container, blockOptions) => blockTimeline(
+            container,
+            {
+                add: this.#addBlock,
+                parse: this.#parse,
+                useFont: this.#useFont,
+            },
+            blockOptions,
+        ),
     }
     #timelineLastBlockId;
-    #navigator = new BlocksNavigation();
+    #navigator = new BlocksNavigation(sendMessage);
 
     constructor() {}
 

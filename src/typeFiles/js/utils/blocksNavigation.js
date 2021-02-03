@@ -19,6 +19,28 @@ class BlocksNavigation {
         }
     }
     #lastBlock;
+    #sendMessage;
+
+    // TODO Верхняя кнопка
+    // ПОЯВЛЯЕТСЯ, как только верхняя граница экрана пересекает Верхнюю границу Первого блока;
+    // СОДЕРЖИТ текст блока, Верхняя граница которого скрыта за экраном;
+    // ИСЧЕЗАЕТ, когда Нижняя граница Последнего блока скрывается за экраном;
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+
+
+    constructor(messageSender) {
+        this.#sendMessage = messageSender;
+    }
 
     addBlock = (blockName, blockElement) => {
         this.#blocks.push(blockElement);
@@ -94,25 +116,25 @@ class BlocksNavigation {
         containerElement.appendChild(centerDots);
     }
     #updateNavigationPositions = (topPosition, bottomPosition) => {
-        const topButtonStyle = this.#navigationElements.topButton.style;
-        const bottomButtonStyle = this.#navigationElements.bottomButton.style;
-        const centerDotsStyle = this.#navigationElements.centerDots.style;
+        const {topButton, bottomButton, centerDots} = this.#navigationElements;
 
         if (this.#isInsideNavigationLimits(topPosition)) {
-            topButtonStyle.display = 'block';
-            centerDotsStyle.display = 'block';
-            topButtonStyle.top = topPosition + 100 + 'px';
-            centerDotsStyle.top = topPosition + (bottomPosition - topPosition) / 2 + 'px';
+            // TODO Оптимизация, проверка на класс
+            // TODO Вынести в отдельный метод, который будет знать мапы нав-элементов на их классы
+            topButton.classList.remove('navigation-top--invisible');
+            centerDots.classList.remove('navigation-top--invisible');
+            topButton.style.top = topPosition + 100 + 'px';
+            centerDots.style.top = topPosition + (bottomPosition - topPosition) / 2 + 'px';
         } else {
-            topButtonStyle.display = 'none';
-            centerDotsStyle.display = 'none';
+            topButton.classList.add('navigation-top--invisible');
+            centerDots.classList.add('navigation-top--invisible');
         }
 
         if (this.#isInsideNavigationLimits(bottomPosition) && this.#currentBlockIndexData.value !== (this.#blocks.length - 1)) {
-            bottomButtonStyle.display = 'block';
-            bottomButtonStyle.top = bottomPosition - 100 + 'px';
+            bottomButton.classList.remove('navigation-top--invisible');
+            bottomButton.style.top = bottomPosition - 100 + 'px';
         } else {
-            bottomButtonStyle.display = 'none';
+            bottomButton.classList.add('navigation-top--invisible');
         }
     }
 
@@ -120,7 +142,9 @@ class BlocksNavigation {
         let newBlockIndex = -1;
         if (this.#isInsideNavigationLimits(viewportTop)) {
             // находим блок, до которого верхняя граница экрана ещё не дошла
-            const nextBlockIndex = this.#blocks.findIndex(block => block.offsetTop > viewportTop);
+            const nextBlockIndex = this.#blocks.findIndex(block => {
+                return block.offsetTop > viewportTop;
+            });
             if (nextBlockIndex !== - 1) {
                 // находимся между блоками
                 newBlockIndex = nextBlockIndex - 1;
@@ -194,7 +218,10 @@ class BlocksNavigation {
     }
 
     #navigateTo = (blockIndex) => {
-        console.log('NAVIGATING TO ' + this.#blocks[blockIndex].offsetTop)
+        console.log('NAVIGATING TO ' + this.#blocks[blockIndex].offsetTop);
+        this.#sendMessage('scrollParent', {
+            top: this.#blocks[blockIndex].offsetTop - 20 // 20 = top offset
+        })
     }
 
     #navigateToCurrent = () => {
