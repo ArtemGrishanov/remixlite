@@ -5,6 +5,9 @@
 
   a {
     color: #06c;
+    &:hover {
+      text-decoration: underline;
+    }
   }
   strong {
     font-weight: bold;
