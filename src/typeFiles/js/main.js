@@ -308,10 +308,11 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     sendMessage('initialized', {
                         clientId,
+                        projectStructure,
                         sizes: {
                             maxWidth: projectStructure.app.maxWidth || 800,
                             height: root.scrollHeight
-                        },
+                        }
                     })
 
                     const resizeObserver = new ResizeObserver(entries => {

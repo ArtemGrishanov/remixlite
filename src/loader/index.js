@@ -193,6 +193,10 @@ window.RemixLoader = class RemixLoader {
                         width: 'maxWidth'
                     })
 
+                    if (!this.#projectStructure) {
+                        this.#projectStructure = data.payload.projectStructure
+                    }
+
                     this.#getIframePosition(true)
 
                     this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
