@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env API_URL=https://api.dev.interacty.me gulp watch",
-    "build": "gulp build"
+    "build:dev": "cross-env API_URL=https://api.dev.interacty.me gulp build",
+    "build:stage": "cross-env API_URL=https://api.stage.interacty.me gulp build",
+    "build": "cross-env API_URL=https://api.interacty.me gulp build"
   },
   "author": "",
   "license": "ISC",

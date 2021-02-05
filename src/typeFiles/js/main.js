@@ -297,7 +297,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructure)
+                    const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
 
                     const root = document.getElementById('remix-app-root');
 
@@ -308,10 +308,11 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     sendMessage('initialized', {
                         clientId,
+                        projectStructure,
                         sizes: {
                             maxWidth: projectStructure.app.maxWidth || 800,
                             height: root.scrollHeight
-                        },
+                        }
                     })
 
                     const resizeObserver = new ResizeObserver(entries => {
