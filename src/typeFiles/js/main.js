@@ -297,7 +297,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructure)
+                    const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
 
                     const root = document.getElementById('remix-app-root');
 

@@ -114,7 +114,7 @@ window.RemixLoader = class RemixLoader {
                     }
                     case 'projectStructure': {
                         if (validator.isJSON(value)) {
-                            return value
+                            return JSON.parse(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
                     }
@@ -230,7 +230,7 @@ window.RemixLoader = class RemixLoader {
                         this.#_session.instance = new session(this.#_session.data)
                     }
                     if (this.#needToDo('create-integrations')) {
-                        const integrations = JSON.parse(this.#projectStructure).integrations
+                        const integrations = this.#projectStructure.integrations
                         if (integrations) {
                             if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
                                 this.#_integrations.googleAnalytics = new googleAnalytics({
@@ -371,7 +371,7 @@ window.RemixLoader = class RemixLoader {
         const html = `
         <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
         >
-            <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="width: 100%; max-width: 380px;" />
+            <img src='${API_URL.replace('api.', 'p.')}/preloader.gif' alt="preloader" style="width: 100%; max-width: 380px;" />
          </div>`
 
         const div = document.createElement('div');
@@ -405,11 +405,7 @@ window.RemixLoader = class RemixLoader {
         }
     }
     #createPoweredLabel = () => {
-        const html = `
-            <a href="https://google.com" target="_blank">
-                <img src="https://interacty.me/static/media/powered_by.svg" style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" />
-            </a>
-        `
+        const html = `<a href="https://google.com" target="_blank"><img src='${API_URL.replace('api.', 'p.')}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
