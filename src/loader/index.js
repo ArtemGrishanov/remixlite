@@ -1,7 +1,7 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
-import { validator } from './utils'
+import { validator, httpRequest } from './utils'
 import { API_URL, MAX_REFRESH_SESSION_AWAITING } from './constants'
 
 import googleAnalytics from './integrations/googleAnalytics'
@@ -175,7 +175,7 @@ window.RemixLoader = class RemixLoader {
             this.#nodeElement.appendChild(this.#createPoweredLabel())
         }
 
-        this.#addEventListener(window, 'message', ({ origin = null, data = {}, source = null }) => {
+        this.#addEventListener(window, 'message', async ({ origin = null, data = {}, source = null }) => {
             if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
                 return
             }
@@ -251,7 +251,7 @@ window.RemixLoader = class RemixLoader {
                             this.#_session.createdAt = time
                             this.#_session.updatedAt = time
                         } else {
-                            this.#_session.instance.sendActivity()
+                            await this.#_session.instance.sendActivity()
                             this.#_session.updatedAt = time
                         }
                     }
@@ -567,7 +567,8 @@ window.RemixLoader = class RemixLoader {
                 let projectId = null
 
                 try {
-                    const meta = await(await fetch(`${API_URL}/api/projects/${hash}/meta`)).json()
+                    const response = await httpRequest(`${API_URL}/api/projects/${hash}/meta`, {timeout: 4000})
+                    const meta = await response.json()
 
                     features = meta.features
                     projectId = meta.projectId
