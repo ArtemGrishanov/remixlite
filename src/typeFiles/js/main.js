@@ -13,6 +13,7 @@ import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
+import blockThenNow from './blocks/thenNow'
 import blockTimeline from './blocks/timeline'
 
 // Import UI
@@ -171,6 +172,14 @@ class Remix {
             },
             sendMessage
         }),
+        // Then\Now
+        [BLOCK.thenNow]: container => blockThenNow(container, {
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            }
+        }),
+        // Timeline
         [BLOCK.timeline]: (container, blockOptions) => blockTimeline(
             container,
             {
@@ -226,11 +235,9 @@ class Remix {
             div.classList.add(...classes);
         }
 
-        if (props) {
-            if (props.styles) {
-                for (const [key, value] of Object.entries(props.styles)) {
-                    div.style[key] = value;
-                }
+        if (props && props.styles) {
+            for (const [key, value] of Object.entries(props.styles)) {
+                div.style[key] = value;
             }
         }
 
@@ -302,6 +309,7 @@ class Remix {
                 this.#timelineLastBlockId = blockData.id;
             }
         });
+            // TODO Remove event listener on destroy
     }
     #getBlockOptions = blockData => {
         const options = {};
@@ -341,7 +349,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructure)
+                    const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
 
                     const root = document.getElementById('remix-app-root');
 
@@ -352,10 +360,11 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     sendMessage('initialized', {
                         clientId,
+                        projectStructure,
                         sizes: {
                             maxWidth: projectStructure.app.maxWidth || 800,
                             height: root.scrollHeight
-                        },
+                        }
                     })
 
                     const resizeObserver = new ResizeObserver(entries => {

@@ -21,12 +21,19 @@ export const validator = {
             return false;
         }
     },
-    isInt: value => {
-        try {
-            const regexp = /^[-+]?[0-9]+$/
-            return regexp.test(value)
-        } catch (err) {
-            return false
-        }
+    isNumber: value => {
+        return typeof value === 'number' && isFinite(value)
     }
+}
+
+export const httpRequest = async (resource, options) => {
+    const { timeout = 30000 } = options;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
 }

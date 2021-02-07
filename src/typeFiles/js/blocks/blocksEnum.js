@@ -8,7 +8,8 @@ const BLOCK = {
     interactiveImage: 7,
     hiddenObjects: 8,
     quiz: 9,
-    timeline: 10,
+    thenNow: 10,
+    timeline: 11,
 }
 Object.freeze(BLOCK)
 
