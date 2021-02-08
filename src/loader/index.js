@@ -2,7 +2,7 @@ import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
 import { validator, httpRequest } from './utils'
-import { API_URL, MAX_REFRESH_SESSION_AWAITING } from './constants'
+import { API_URL, CDN_URL, MAX_REFRESH_SESSION_AWAITING } from './constants'
 
 import googleAnalytics from './integrations/googleAnalytics'
 
@@ -224,10 +224,11 @@ window.RemixLoader = class RemixLoader {
                             referenceTail,
                             sourceReference
                         }
+                        this.#_session.instance = new session(this.#_session.data)
+                        await this.#_session.instance.sendActivity()
                         const time = Date.now()
                         this.#_session.createdAt = time
                         this.#_session.updatedAt = time
-                        this.#_session.instance = new session(this.#_session.data)
                     }
                     if (this.#needToDo('create-integrations')) {
                         const integrations = this.#projectStructure.integrations
@@ -244,7 +245,6 @@ window.RemixLoader = class RemixLoader {
                 }
                 case 'activity': {
                     if (this.#needToDo('refresh-session')) {
-                        // Update session
                         const time = Date.now()
                         if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
                             this.#_session.instance = new session(this.#_session.data)
@@ -371,7 +371,7 @@ window.RemixLoader = class RemixLoader {
         const html = `
         <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
         >
-            <img src='${API_URL.replace('api.', 'p.')}/preloader.gif' alt="preloader" style="width: 100%; max-width: 380px;" />
+            <img src='${CDN_URL}/preloader.gif' alt="preloader" style="width: 100%; max-width: 380px;" />
          </div>`
 
         const div = document.createElement('div');
@@ -405,7 +405,7 @@ window.RemixLoader = class RemixLoader {
         }
     }
     #createPoweredLabel = () => {
-        const html = `<a href="https://google.com" target="_blank"><img src='${API_URL.replace('api.', 'p.')}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
+        const html = `<a href="https://google.com" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
@@ -580,7 +580,7 @@ window.RemixLoader = class RemixLoader {
                 new window.RemixLoader({
                     mode,
                     nodeElement: element,
-                    remixUrl: `${API_URL.replace('api.', 'p.')}/${hash}/index.html`,
+                    remixUrl: `${CDN_URL}/${hash}/index.html`,
                     features,
                     projectId,
                     initialWidth,
