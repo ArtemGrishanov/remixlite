@@ -1,9 +1,6 @@
 import invertColor from "../utils/invertColor";
+import log from "../utils/log";
 
-// Log function
-function log(type = 'log', blockId = '[NO BLOCK ID]', message = '[NO ERROR MESSAGE]', data = null) {
-    console[type](`[RemixLite | Block type: 9 (TriviaQuiz), ID: ${blockId}] ${message}`, data ? data : '');
-}
 
 // Templates
 const templates = {
@@ -118,7 +115,7 @@ function getParsedHTML(M, templateName, view) {
     return M.render(templates[templateName], view);
 }
 
-export default function(cnt, { M, methods, sendMessage }) {
+export default function (cnt, {M, methods, sendMessage}) {
     let wrapperElement = null
     let initialData = {}
     let scores = 0
@@ -268,7 +265,7 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     if (selectedAnswer && selectedAnswer.isCorrect) {
                         selectedAnswerElement.classList.add("is-correct");
-                        scores ++
+                        scores++
                     } else {
                         selectedAnswerElement.classList.add("is-incorrect")
                         const correctAnswers = question.answers.filter(el => el.isCorrect)
@@ -338,7 +335,7 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     let additionalPayload = {}
                     if (initialData.struct._settings.showCover) {
-                        setScreen('cover' )
+                        setScreen('cover')
                     } else {
                         setScreen('question', {index: 0})
                         additionalPayload.qIndex = 0
@@ -374,7 +371,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                             target: 'result.callToAction'
                         }
                     })
-                    window.open(initialData.callToActionLink,'_blank');
+                    window.open(initialData.callToActionLink, '_blank');
                     break;
                 }
                 default:
@@ -398,10 +395,10 @@ export default function(cnt, { M, methods, sendMessage }) {
 
                     handlers.click({initiator: 'start', payload: {}})
                 } catch (err) {
-                    log('error', data.id, null, err)
+                    log('error', '9 (TriviaQuiz)', data.id, null, err)
                 }
             } else {
-                log('warn', data.id, 'Block will not render because "struct._isValid" is not true.')
+                log('warn', '9 (TriviaQuiz)', data.id, 'Block will not render because "struct._isValid" is not true.')
             }
         },
         postRender: null

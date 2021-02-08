@@ -13,6 +13,7 @@ import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
+import blockMemoryCards from './blocks/memoryCards'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -173,6 +174,15 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             }
+        }),
+        // Memory cards
+        [BLOCK.memoryCards]: container => blockMemoryCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage
         }),
     }
 
