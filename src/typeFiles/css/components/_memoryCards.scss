@@ -5,7 +5,7 @@
   font-size: 0;
 
   .memory-playground {
-    .memory-playground__rows-wrapper {
+    .memory-playground__card-rows-wrapper {
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -13,38 +13,63 @@
       align-content: stretch;
       align-items: stretch;
 
-      .memory-card__row {
+      .memory-playground__card-row {
         display: flex;
         justify-content: center;
         align-content: stretch;
         align-items: stretch;
 
-        .memory-card__cell {
+        .memory-playground__card-cell {
           margin: 3px;
-          background-position: center;
-          background-size: cover;
-          background-repeat: no-repeat;
           background-color: #d7d7d7;
+          cursor: pointer;
+
+          .memory-playground__flip-card-inner{
+            height: 100%;
+            width: 100%;
+
+            .memory-playground__flip-card-front {
+              height: 100%;
+              width: 100%;
+              background-position: center;
+              background-size: cover;
+              background-repeat: no-repeat;
+            }
+            .memory-playground__flip-card-back {
+              height: 100%;
+              width: 100%;
+              background-position: center;
+              background-size: cover;
+              background-repeat: no-repeat;
+            }
+          }
         }
       }
     }
 
     .memory-playground__cover-wrapper {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+
       .memory-playground__cover {
         position: relative;
         padding: 28px 60px 0;
         margin: 5px 20px;
         background: #fff;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         text-align: center;
 
         @include maxWidth(799) {
           margin: 0;
-          border-radius: 0;
-          background-color: transparent;
           box-shadow: none;
-          padding: 0 12px 0;
+          padding: 10px 12px 0;
         }
 
         .memory-playground__cover-title {
@@ -90,6 +115,15 @@
     }
 
     .memory-playground__feedback-wrapper {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+
       .memory-playground__feedback {
         position: relative;
         padding: 28px 60px 0;
@@ -101,8 +135,6 @@
 
         @include maxWidth(799) {
           margin: 0;
-          border-radius: 0;
-          background-color: transparent;
           box-shadow: none;
           padding: 0 12px 0;
         }
@@ -235,6 +267,31 @@
           margin-bottom: 28px;
         }
       }
+
+      .memory-final-screen__content-btn {
+         overflow: hidden;
+         margin-bottom: 24px;
+         outline: none;
+         cursor: pointer;
+         border: 0;
+         padding: 0 44px;
+         height: 50px;
+         white-space: nowrap;
+         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+         border-radius: 4px;
+         color: #fff;
+         font-size: 20px;
+         @include transition(0.1s, ease-in-out, 0s, (opacity));
+
+         &:hover {
+           opacity: .8;
+         }
+
+         @include maxWidth(799) {
+           height: 46px;
+           font-size: 18px;
+         }
+       }
 
       .memory-final-screen__content-image-disclaimer {
         padding-bottom: 16px;

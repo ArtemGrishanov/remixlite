@@ -13,7 +13,7 @@ import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
-import blockMemoryCards from './blocks/memoryCards'
+import blockMemoryCards from './blocks/memoryCards/memoryCards'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
