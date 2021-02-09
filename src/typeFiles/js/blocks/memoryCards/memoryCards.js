@@ -240,8 +240,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 _wrapperElement.innerHTML = M.render(templates.playground, {
                     //playground
                     renderSet: _renderSet,
-                    rowHeight: `${calculateCardSideSize(_wrapperElement.offsetWidth, rowCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
-                    cellWidth: `${calculateCardSideSize(_wrapperElement.offsetWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
+                    rowHeight: `${calculateCardSideSize(_wrapperElement.offsetWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
+                    cellWidth: `${calculateCardSideSize(_wrapperElement.offsetWidth, cellCount)}px`,
                     // cover
                     isShowCover: _isShowCover,
                     coverHeader: _initialData.struct.playground.coverHeader,
