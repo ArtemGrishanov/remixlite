@@ -1,8 +1,9 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
-import { validator, httpRequest } from './utils'
-import { API_URL, CDN_URL, MAX_REFRESH_SESSION_AWAITING } from './constants'
+import { validator } from './utils'
+import { CDN_URL, MAX_REFRESH_SESSION_AWAITING, MAX_REFRESH_READ_AWAITING } from './constants'
+import API from "./api";
 
 import googleAnalytics from './integrations/googleAnalytics'
 
@@ -28,7 +29,6 @@ window.RemixLoader = class RemixLoader {
     #preloader
     #error
     #iframe
-    #iframePosition
     #eventListeners = [
         // Example
         // {
@@ -39,6 +39,10 @@ window.RemixLoader = class RemixLoader {
         // }
     ]
 
+    #_integrations = {}
+
+    #_isDestroyed = false
+    #_clientId
     #_session = {
         instance: null,
         data: {
@@ -55,7 +59,12 @@ window.RemixLoader = class RemixLoader {
         updatedAt: null,
         maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
     }
-    #_integrations = {}
+    #_readPercent = {
+        value: 0,
+        sentValue: null,
+        inProgress: false,
+        maxRefreshAwaiting: MAX_REFRESH_READ_AWAITING
+    }
 
     constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, additionalTopOffset, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
@@ -197,8 +206,9 @@ window.RemixLoader = class RemixLoader {
                         this.#projectStructure = data.payload.projectStructure
                     }
 
-                    this.#getIframePosition(true)
+                    this.#_clientId = data.payload.clientId
 
+                    this.#getIframePosition(true)
                     this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
 
                     if (this.#needToDo('create-session')) {
@@ -215,7 +225,7 @@ window.RemixLoader = class RemixLoader {
 
                         this.#_session.data = {
                             ...this.#_session.data,
-                            clientId: data.payload.clientId,
+                            clientId: this.#_clientId,
                             projectId: this.#projectId,
                             utmCampaign,
                             utmSource,
@@ -229,7 +239,13 @@ window.RemixLoader = class RemixLoader {
                         const time = Date.now()
                         this.#_session.createdAt = time
                         this.#_session.updatedAt = time
+
+                        // Init read percent analyze
+                        this.#checkReadPercent()
+                        this.#addEventListener(window, 'scroll', this.#throttle(() => this.#checkReadPercent(), 500), false)
+                        this.#sendReadPercentByInterval()
                     }
+
                     if (this.#needToDo('create-integrations')) {
                         const integrations = this.#projectStructure.integrations
                         if (integrations) {
@@ -299,6 +315,7 @@ window.RemixLoader = class RemixLoader {
 
     // Destroy iframe (for example we need to remove all event listeners)
     destroyIframe = () => {
+        this.#_isDestroyed = true
         this.#removeAllEventListeners()
     }
 
@@ -432,7 +449,7 @@ window.RemixLoader = class RemixLoader {
 
     #getIframePosition = forceSendToIframe => {
         const rect = this.#iframe.getBoundingClientRect()
-        this.#iframePosition = {
+        const position = {
             top: rect.top,
             left: rect.left
         };
@@ -442,13 +459,68 @@ window.RemixLoader = class RemixLoader {
                 method: 'iframePosition',
                 payload: {
                     data: {
-                        ...this.#iframePosition,
-                        top: this.#iframePosition.top - this.#additionalTopOffset
+                        ...position,
+                        top: position.top - this.#additionalTopOffset
                     }
                 }
             }, this.#appOrigin)
         }
-        return this.#iframePosition
+        return position
+    }
+
+    #checkReadPercent = async () => {
+        if (this.#_readPercent.value < 100) {
+            const rect = this.#iframe.getBoundingClientRect()
+
+            const marginOfError = 50
+
+            const percentOfRead = (((rect.bottom - marginOfError) - window.innerHeight) / rect.height) * 100
+
+            const value = Math.round(100 - percentOfRead)
+            if (value > this.#_readPercent.value) {
+                this.#_readPercent.value = value > 100 ? 100 : value
+            }
+        }
+    }
+
+    #sendReadPercentByInterval = async () => {
+        if (this.#_session.instance) {
+            const sendData = async sessionId => {
+                if (sessionId) {
+                    await API.sendProjectReadPercent(this.#_clientId, sessionId, {
+                        value: this.#_readPercent.value
+                    })
+                    this.#_readPercent.sentValue = this.#_readPercent.value
+                }
+            }
+
+            try {
+                this.#_readPercent.inProgress = true
+                await sendData(this.#_session.instance.getSessionId())
+                this.#_readPercent.inProgress = false
+            } catch (err) {
+                console.error(err)
+                this.#_readPercent.inProgress = false
+            }
+
+            const intervalChecker = setInterval(async () => {
+                try {
+                    if (!this.#_readPercent.inProgress) {
+                        this.#_readPercent.inProgress = true
+                        if (!this.#_readPercent.sentValue || this.#_readPercent.sentValue < this.#_readPercent.value) {
+                            await sendData(this.#_session.instance.getSessionId())
+                            if (this.#_isDestroyed || this.#_readPercent.sentValue === 100) {
+                                clearInterval(intervalChecker)
+                            }
+                        }
+                        this.#_readPercent.inProgress = false
+                    }
+                } catch (err) {
+                    console.error(err)
+                    this.#_readPercent.inProgress = false
+                }
+            }, this.#_readPercent.maxRefreshAwaiting);
+        }
     }
 
     // Send event to container instance
@@ -567,8 +639,7 @@ window.RemixLoader = class RemixLoader {
                 let projectId = null
 
                 try {
-                    const response = await httpRequest(`${API_URL}/api/projects/${hash}/meta`, {timeout: 4000})
-                    const meta = await response.json()
+                    const meta = await API.getProjectMetaInfo(hash)
 
                     features = meta.features
                     projectId = meta.projectId

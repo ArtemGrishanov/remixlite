@@ -35,5 +35,8 @@ export const httpRequest = async (resource, options) => {
         signal: controller.signal
     });
     clearTimeout(id);
+    if (!response.ok) {
+        throw new Error('Request is failed')
+    }
     return response;
 }
