@@ -211,6 +211,18 @@ window.RemixLoader = class RemixLoader {
                     this.#getIframePosition(true)
                     this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
 
+                    this.#addEventListener(window, 'resize', this.#throttle(() => {
+                        this.#iframe.contentWindow.postMessage({
+                            method: 'windowResize',
+                            payload: {
+                                data: {
+                                    innerWidth: window.innerWidth,
+                                    innerHeight: window.innerHeight
+                                }
+                            }
+                        }, this.#appOrigin)
+                    }, 50), false)
+
                     if (this.#needToDo('create-session')) {
                         // Create session
                         const queryString = window.location.search;
