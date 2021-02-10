@@ -272,7 +272,6 @@ export default function (cnt, {M, methods, sendMessage}) {
                     _isShowCover = isShowCover
                     _isShowFeedBack = false
                     _renderSet = getCardsDataSet(cardLayout, pairList, cardBackImage)
-                    console.log(_renderSet)
                     setScreen(templateTitles.playground)
                     updateEventListeners(_wrapperElement, handlers)
                     if (initiator === 'memory-final-screen-restart') {
@@ -313,7 +312,6 @@ export default function (cnt, {M, methods, sendMessage}) {
 
     return {
         render: data => {
-            console.log('data', data)
             try {
                 _initialData = data
                 const wrapperId = `mc_${data.id}`
