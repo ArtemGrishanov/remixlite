@@ -53,16 +53,16 @@ const getProjectMetaInfo = async hash => {
     }
 }
 
-const sendProjectReadPercent = async (clientId, sessionId, { value }) => {
+const sendProjectReadPercent = async ({ clientId, projectId, value }) => {
     try {
         await httpRequest(`${API_URL}/api/actions/read`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json',
-                'Client-Key': clientId
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                sessionId,
+                clientKey: clientId,
+                projectId,
                 readPercent: value
             }),
             timeout: 3000

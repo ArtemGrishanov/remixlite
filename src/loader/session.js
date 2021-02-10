@@ -49,8 +49,4 @@ export default class SESSION {
             this.#inProgress = false
         }
     }
-
-    getSessionId = () => {
-        return this.#createdSession ? this.#createdSession.id : null
-    }
 }

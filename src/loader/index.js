@@ -2,7 +2,7 @@ import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
 import { validator } from './utils'
-import { CDN_URL, MAX_REFRESH_SESSION_AWAITING, MAX_REFRESH_READ_AWAITING } from './constants'
+import { CDN_URL, MAX_REFRESH_SESSION_AWAITING, SEND_READ_PERCENT_INTERVAL } from './constants'
 import API from "./api";
 
 import googleAnalytics from './integrations/googleAnalytics'
@@ -63,7 +63,7 @@ window.RemixLoader = class RemixLoader {
         value: 0,
         sentValue: null,
         inProgress: false,
-        maxRefreshAwaiting: MAX_REFRESH_READ_AWAITING
+        sendInterval: SEND_READ_PERCENT_INTERVAL
     }
 
     constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, additionalTopOffset, onEvent}) {
@@ -184,126 +184,7 @@ window.RemixLoader = class RemixLoader {
             this.#nodeElement.appendChild(this.#createPoweredLabel())
         }
 
-        this.#addEventListener(window, 'message', async ({ origin = null, data = {}, source = null }) => {
-            if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
-                return
-            }
-
-            switch (data.method) {
-                case 'initError': {
-                    this.#preloader.hideAndDestroy()
-                    this.#nodeElement.appendChild(this.#error.render())
-                    break;
-                }
-                case 'initialized': {
-                    this.#preloader.hideAndDestroy()
-                    this.#setSize({
-                        ...data.payload.sizes,
-                        width: 'maxWidth'
-                    })
-
-                    if (!this.#projectStructure) {
-                        this.#projectStructure = data.payload.projectStructure
-                    }
-
-                    this.#_clientId = data.payload.clientId
-
-                    this.#getIframePosition(true)
-                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
-
-                    this.#addEventListener(window, 'resize', this.#throttle(() => {
-                        this.#iframe.contentWindow.postMessage({
-                            method: 'windowResize',
-                            payload: {
-                                data: {
-                                    innerWidth: window.innerWidth,
-                                    innerHeight: window.innerHeight
-                                }
-                            }
-                        }, this.#appOrigin)
-                    }, 50), false)
-
-                    if (this.#needToDo('create-session')) {
-                        // Create session
-                        const queryString = window.location.search;
-                        const urlParams = new URLSearchParams(queryString);
-
-                        const utmCampaign = urlParams.get('utm_campaign')
-                        const utmSource = urlParams.get('utm_source')
-                        const utmMedium = urlParams.get('utm_medium')
-                        const utmContent = urlParams.get('utm_content')
-                        const referenceTail = queryString
-                        const sourceReference = document.referrer
-
-                        this.#_session.data = {
-                            ...this.#_session.data,
-                            clientId: this.#_clientId,
-                            projectId: this.#projectId,
-                            utmCampaign,
-                            utmSource,
-                            utmMedium,
-                            utmContent,
-                            referenceTail,
-                            sourceReference
-                        }
-                        this.#_session.instance = new session(this.#_session.data)
-                        await this.#_session.instance.sendActivity()
-                        const time = Date.now()
-                        this.#_session.createdAt = time
-                        this.#_session.updatedAt = time
-
-                        // Init read percent analyze
-                        this.#checkReadPercent()
-                        this.#addEventListener(window, 'scroll', this.#throttle(() => this.#checkReadPercent(), 500), false)
-                        this.#sendReadPercentByInterval()
-                    }
-
-                    if (this.#needToDo('create-integrations')) {
-                        const integrations = this.#projectStructure.integrations
-                        if (integrations) {
-                            if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
-                                this.#_integrations.googleAnalytics = new googleAnalytics({
-                                    id: integrations.googleAnalytics.id
-                                })
-                                this.#_integrations.googleAnalytics.init()
-                            }
-                        }
-                    }
-                    break;
-                }
-                case 'activity': {
-                    if (this.#needToDo('refresh-session')) {
-                        const time = Date.now()
-                        if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
-                            this.#_session.instance = new session(this.#_session.data)
-                            this.#_session.createdAt = time
-                            this.#_session.updatedAt = time
-                        } else {
-                            await this.#_session.instance.sendActivity()
-                            this.#_session.updatedAt = time
-                        }
-                    }
-                    break;
-                }
-                case 'setSize': {
-                    this.#setSize(data.payload.sizes)
-                    break;
-                }
-                case 'scrollParent': {
-                    if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
-                        window.scrollTo({
-                            top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
-                            behavior: "smooth"
-                        });
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            this.#sendEventToContainerInstance(data.method, data)
-        }, false)
+        this.#addEventListener(window, 'message', this.#iframeMessageHandler, false)
 
         const iframe = document.createElement('iframe')
         iframe.id = 'remix-iframe'
@@ -329,6 +210,118 @@ window.RemixLoader = class RemixLoader {
     destroyIframe = () => {
         this.#_isDestroyed = true
         this.#removeAllEventListeners()
+    }
+
+    #iframeMessageHandler = async ({ origin = null, data = {}, source = null }) => {
+        if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
+            return
+        }
+
+        switch (data.method) {
+            case 'initError': {
+                this.#preloader.hideAndDestroy()
+                this.#nodeElement.appendChild(this.#error.render())
+                break;
+            }
+            case 'initialized': {
+                this.#preloader.hideAndDestroy()
+                this.#setSize({
+                    ...data.payload.sizes,
+                    width: 'maxWidth'
+                })
+
+                if (!this.#projectStructure) {
+                    this.#projectStructure = data.payload.projectStructure
+                }
+
+                this.#_clientId = data.payload.clientId
+
+                this.#getIframePosition(true)
+                this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
+
+                this.#getWindowSize(true)
+                this.#addEventListener(window, 'resize', this.#throttle(() => this.#getWindowSize(true), 50), false)
+
+                if (this.#needToDo('create-session')) {
+                    const queryString = window.location.search;
+                    const urlParams = new URLSearchParams(queryString);
+
+                    const utmCampaign = urlParams.get('utm_campaign')
+                    const utmSource = urlParams.get('utm_source')
+                    const utmMedium = urlParams.get('utm_medium')
+                    const utmContent = urlParams.get('utm_content')
+                    const referenceTail = queryString
+                    const sourceReference = document.referrer
+
+                    this.#_session.data = {
+                        ...this.#_session.data,
+                        clientId: this.#_clientId,
+                        projectId: this.#projectId,
+                        utmCampaign,
+                        utmSource,
+                        utmMedium,
+                        utmContent,
+                        referenceTail,
+                        sourceReference
+                    }
+                    this.#_session.instance = new session(this.#_session.data)
+                    await this.#_session.instance.sendActivity()
+                    const time = Date.now()
+                    this.#_session.createdAt = time
+                    this.#_session.updatedAt = time
+                }
+
+                if (this.#needToDo('read-percent')) {
+                    this.#checkReadPercent()
+                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#checkReadPercent(), 500), false)
+                    this.#sendReadPercentByInterval()
+                }
+
+                if (this.#needToDo('create-integrations')) {
+                    const integrations = this.#projectStructure.integrations
+                    if (integrations) {
+                        if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
+                            this.#_integrations.googleAnalytics = new googleAnalytics({
+                                id: integrations.googleAnalytics.id
+                            })
+                            this.#_integrations.googleAnalytics.init()
+                        }
+                    }
+                }
+                break;
+            }
+            case 'activity': {
+                if (this.#needToDo('refresh-session')) {
+                    const time = Date.now()
+                    if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
+                        this.#_session.instance = new session(this.#_session.data)
+                        this.#_session.createdAt = time
+                        this.#_session.updatedAt = time
+                    } else {
+                        await this.#_session.instance.sendActivity()
+                        this.#_session.updatedAt = time
+                    }
+                }
+                break;
+            }
+            case 'setSize': {
+                this.#setSize(data.payload.sizes)
+                break;
+            }
+            case 'scrollParent': {
+                if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
+                    window.scrollTo({
+                        top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
+                        behavior: "smooth"
+                    });
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        this.#sendEventToContainerInstance(data.method, data)
     }
 
     // Change top offset
@@ -394,43 +387,25 @@ window.RemixLoader = class RemixLoader {
     }
 
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 0
-        const ANIMATION_DURATION = 500
-
         const html = `
-        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
-        >
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; opacity: 1; display: flex; align-items: center; justify-content: center;">
             <img src='${CDN_URL}/preloader.gif' alt="preloader" style="width: 100%; max-width: 380px;" />
-         </div>`
+        </div>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
         const element = div.firstChild;
 
-
-        let animationStart = 0
-        let animationEnd = 0
-
         return {
-            render: function () {
-                animationStart = Date.now()
+            render: () => {
                 return element
             },
-            hideAndDestroy: function () {
-                animationEnd = Date.now()
-                const diff = animationEnd - animationStart
-                const animationDelay = diff > MIN_ANIMATION_DELAY ? 0 : MIN_ANIMATION_DELAY - diff
-
-                window.setTimeout(() => {
-                    element.style.opacity = 0
-                    window.setTimeout(() => {
-                        const container = element.parentNode
-                        if (container && container.contains(element)) {
-                            container.removeChild(element)
-                        }
-                    }, ANIMATION_DURATION)
-                }, animationDelay)
-            },
+            hideAndDestroy: () => {
+                const container = element.parentNode
+                if (container && container.contains(element)) {
+                    container.removeChild(element)
+                }
+            }
         }
     }
     #createPoweredLabel = () => {
@@ -480,11 +455,28 @@ window.RemixLoader = class RemixLoader {
         return position
     }
 
+    #getWindowSize = forceSendToIframe => {
+        const sizes = {
+            innerWidth: window.innerWidth,
+            innerHeight: window.innerHeight
+        };
+
+        if (forceSendToIframe) {
+            this.#iframe.contentWindow.postMessage({
+                method: 'windowSize',
+                payload: {
+                    data: sizes
+                }
+            }, this.#appOrigin)
+        }
+        return sizes
+    }
+
     #checkReadPercent = async () => {
         if (this.#_readPercent.value < 100) {
             const rect = this.#iframe.getBoundingClientRect()
 
-            const marginOfError = 50
+            const marginOfError = 0
 
             const percentOfRead = (((rect.bottom - marginOfError) - window.innerHeight) / rect.height) * 100
 
@@ -496,43 +488,40 @@ window.RemixLoader = class RemixLoader {
     }
 
     #sendReadPercentByInterval = async () => {
-        if (this.#_session.instance) {
-            const sendData = async sessionId => {
-                if (sessionId) {
-                    await API.sendProjectReadPercent(this.#_clientId, sessionId, {
-                        value: this.#_readPercent.value
-                    })
-                    this.#_readPercent.sentValue = this.#_readPercent.value
-                }
+        const sendData = async () => {
+            await API.sendProjectReadPercent({
+                clientId: this.#_clientId,
+                projectId: this.#projectId,
+                value: this.#_readPercent.value
+            })
+            this.#_readPercent.sentValue = this.#_readPercent.value
+        }
+
+        try {
+            await sendData()
+        } catch (err) {
+            console.error(err)
+        }
+
+        const intervalChecker = setInterval(async () => {
+            if (this.#_isDestroyed || this.#_readPercent.sentValue === 100) {
+                clearInterval(intervalChecker)
+                return
             }
 
             try {
-                this.#_readPercent.inProgress = true
-                await sendData(this.#_session.instance.getSessionId())
-                this.#_readPercent.inProgress = false
+                if (!this.#_readPercent.inProgress) {
+                    this.#_readPercent.inProgress = true
+                    if (!this.#_readPercent.sentValue || (this.#_readPercent.sentValue < this.#_readPercent.value)) {
+                        await sendData()
+                    }
+                    this.#_readPercent.inProgress = false
+                }
             } catch (err) {
                 console.error(err)
                 this.#_readPercent.inProgress = false
             }
-
-            const intervalChecker = setInterval(async () => {
-                try {
-                    if (!this.#_readPercent.inProgress) {
-                        this.#_readPercent.inProgress = true
-                        if (!this.#_readPercent.sentValue || this.#_readPercent.sentValue < this.#_readPercent.value) {
-                            await sendData(this.#_session.instance.getSessionId())
-                            if (this.#_isDestroyed || this.#_readPercent.sentValue === 100) {
-                                clearInterval(intervalChecker)
-                            }
-                        }
-                        this.#_readPercent.inProgress = false
-                    }
-                } catch (err) {
-                    console.error(err)
-                    this.#_readPercent.inProgress = false
-                }
-            }, this.#_readPercent.maxRefreshAwaiting);
-        }
+        }, this.#_readPercent.sendInterval);
     }
 
     // Send event to container instance
@@ -575,6 +564,9 @@ window.RemixLoader = class RemixLoader {
             }
             case 'create-integrations': {
                 return this.#mode === 'published'
+            }
+            case 'read-percent': {
+                return this.#mode === 'published' && this.#projectId
             }
             default:
                 return false
