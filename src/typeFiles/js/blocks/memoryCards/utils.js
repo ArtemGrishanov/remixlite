@@ -1,3 +1,5 @@
+import getRandomId from "../../utils/getRandomId";
+
 export const getCoords = (elem) => {
     const box = elem.getBoundingClientRect();
     return {
@@ -23,54 +25,8 @@ export const updateEventListeners = (domElement, handlers, additionalPayload = {
     }
 }
 
-//Lodash throttle
-// Returns a function, that, when invoked, will only be triggered at most once
-// during a given window of time. Normally, the throttled function will run
-// as much as it can, without ever going more than once per `wait` duration;
-// but if you'd like to disable the execution on the leading edge, pass
-// `{leading: false}`. To disable execution on the trailing edge, ditto.
-export const throttle = (func, wait, options) => {
-    var context, args, result;
-    var timeout = null;
-    var previous = 0;
-    if (!options) options = {};
-    var later = function() {
-        previous = options.leading === false ? 0 : Date.now();
-        timeout = null;
-        result = func.apply(context, args);
-        if (!timeout) context = args = null;
-    };
-    return function() {
-        var now = Date.now();
-        if (!previous && options.leading === false) previous = now;
-        var remaining = wait - (now - previous);
-        context = this;
-        args = arguments;
-        if (remaining <= 0 || remaining > wait) {
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            previous = now;
-            result = func.apply(context, args);
-            if (!timeout) context = args = null;
-        } else if (!timeout && options.trailing !== false) {
-            timeout = setTimeout(later, remaining);
-        }
-        return result;
-    };
-};
-
 export const calculateCardSideSize = (wrapperWidth, cardCount, proportion = 1) => {
     return (wrapperWidth / cardCount) * proportion
-}
-
-export const getUniqueId = () => {
-    let firstPart = (Math.random() * 46656) | 0
-    let secondPart = (Math.random() * 46656) | 0
-    firstPart = ('000' + firstPart.toString(36)).slice(-3)
-    secondPart = ('000' + secondPart.toString(36)).slice(-3)
-    return firstPart + secondPart
 }
 
 export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
@@ -90,7 +46,7 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
             tmpPairList = [...pairList]
             while (pairList.length < pairsCount) {
                 arrSet.push({
-                    id: getUniqueId(),
+                    id: getRandomId(),
                     description: '',
                     firstImage: {
                         id: undefined,
@@ -116,14 +72,14 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
             .reduce((acc, item) => {
                 acc.push({
                     isActive: false,
-                    id: getUniqueId(),
+                    id: getRandomId(),
                     src: item.firstImage.src,
                     coverSrc: coverSrc,
                     pairId: item.id,
                 });
                 acc.push({
                     isActive: false,
-                    id: getUniqueId(),
+                    id: getRandomId(),
                     src: item.secondImage.src,
                     coverSrc: coverSrc,
                     pairId: item.id,

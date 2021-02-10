@@ -1,6 +1,7 @@
 import log from "../../utils/log";
 import invertColor from "../../utils/invertColor";
-import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners, throttle} from "./utils";
+import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners} from "./utils";
+import throttle from "../../utils/throttle";
 
 const templates = {
     wrapper: `

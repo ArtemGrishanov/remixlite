@@ -18,6 +18,9 @@ import blockMemoryCards from './blocks/memoryCards/memoryCards'
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
+//Import Utils
+import throttle from "./utils/throttle";
+import getRandomId from "./utils/getRandomId";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -355,38 +358,6 @@ function sendMessage(method, payload = null) {
             payload
         }, cntOrigin);
     }
-}
-function getRandomId(t = 21) {
-    let s = '', r = crypto.getRandomValues(new Uint8Array(t))
-    for (; t--; ) {
-        const n = 63 & r[t]
-        s += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? '_' : '-'
-    }
-    return s
-}
-function throttle(func, waitTime) {
-    let isThrottled = false,
-        savedArgs,
-        savedThis;
-
-    function wrapper() {
-        if (isThrottled) {
-            savedArgs = arguments;
-            savedThis = this;
-            return;
-        }
-        func.apply(this, arguments);
-        isThrottled = true;
-        setTimeout(function() {
-            isThrottled = false;
-            if (savedArgs) {
-                wrapper.apply(savedThis, savedArgs);
-                savedArgs = savedThis = null;
-            }
-        }, waitTime);
-    }
-
-    return wrapper;
 }
 
 /**
