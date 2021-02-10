@@ -6,6 +6,23 @@ export const getCoords = (elem) => {
     };
 }
 
+export const updateEventListeners = (domElement, handlers, additionalPayload = {}) => {
+    if (domElement) {
+        const handledElements = domElement.getElementsByClassName("is-handled");
+        for (const el of handledElements) {
+            for (const handle of el.dataset.handlers.split('|')) {
+                el.addEventListener(handle, evt => handlers[handle]({
+                    initiator: el.dataset.initiator,
+                    payload: {
+                        ...el.dataset,
+                        ...additionalPayload
+                    }
+                }, evt))
+            }
+        }
+    }
+}
+
 export const calculateCardSideSize = (wrapperWidth, cardCount, proportion = 1) => {
     return (wrapperWidth / cardCount) * proportion
 }
@@ -28,61 +45,60 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
 
     const pairsCount = (rowCount * cellCount) / 2
 
-    let arrSet = []
+    let tmpPairList = []
     if (pairList.length) {
         // Add or remove cards
         if (pairList.length < pairsCount) {
-            // let maxId = dataSetArray.sort(x => x.id)[dataSetArray.length - 1].id
-            // while (dataSet.length < pairsCount) {
-            //     dataSet.addElement({id: ++maxId, gameKey: null, src: null})
-            // }
-            // arrSet = dataSet.toArray()
+            tmpPairList = [...pairList]
+            while (pairList.length < pairsCount) {
+                arrSet.push({
+                    id: getUniqueId(),
+                    description: '',
+                    firstImage: {
+                        id: undefined,
+                        src: '',
+                    },
+                    secondImage: {
+                        id: undefined,
+                        src: '',
+                    },
+                })
+            }
         } else if (pairList.length > pairsCount) {
-            arrSet = pairList.splice(0, pairsCount)
+            tmpPairList = pairList.slice(0, pairsCount)
         } else {
-            arrSet = [...pairList]
+            tmpPairList = [...pairList]
         }
     }
 
     // Format to render specific view
-    let renderSet = []
-    if (pairList.length) {
-
-        const result = [];
-        for (let i = 0; i < arrSet.length; i++) {
-            const p = arrSet[i];
-            result.push({
-                isActive: false,
-                id: getUniqueId(),
-                src: p.firstImage.src,
-                coverSrc: coverSrc,
-                pairId: p.id,
-            });
-            result.push({
-                isActive: false,
-                id: getUniqueId(),
-                src: p.secondImage.src,
-                coverSrc: coverSrc,
-                pairId: p.id,
-            });
-        }
-
-        const tmpArr = result.sort(() => Math.random() - 0.5)
-
+    const renderSet = []
+    if (tmpPairList.length) {
+        const tmpRenderSet = tmpPairList
+            .reduce((acc, item) => {
+                acc.push({
+                    isActive: false,
+                    id: getUniqueId(),
+                    src: item.firstImage.src,
+                    coverSrc: coverSrc,
+                    pairId: item.id,
+                });
+                acc.push({
+                    isActive: false,
+                    id: getUniqueId(),
+                    src: item.secondImage.src,
+                    coverSrc: coverSrc,
+                    pairId: item.id,
+                });
+                return acc
+            }, [])
+            .sort(() => Math.random() - 0.5)
 
         for (let i = 0; i < rowCount; i++) {
-            const row = tmpArr.splice(0, cellCount).sort(() => Math.random() - 0.5)
+            const row = tmpRenderSet.splice(0, cellCount).sort(() => Math.random() - 0.5)
             renderSet.push(row)
         }
     }
 
     return renderSet
-}
-
-export const updateActive = (renderSet, cardId, isActive) => {
-    const data = [...renderSet]
-    const [row] = data.filter(x => x.some(y => y.id === cardId))
-    const [_card] = row.filter(x => x.id === cardId)
-    _card.isActive = isActive
-    return data
 }

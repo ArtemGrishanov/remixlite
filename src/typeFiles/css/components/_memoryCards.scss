@@ -24,23 +24,23 @@
           background-color: #d7d7d7;
           cursor: pointer;
 
-          .memory-playground__flip-card-inner{
+          .memory-playground__flip-card {
             height: 100%;
             width: 100%;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
 
-            .memory-playground__flip-card-front {
-              height: 100%;
-              width: 100%;
-              background-position: center;
-              background-size: cover;
-              background-repeat: no-repeat;
+            &.memory-playground__flip-card-front {
+              &[data-isactive='false'] {
+                display: none;
+              }
             }
-            .memory-playground__flip-card-back {
-              height: 100%;
-              width: 100%;
-              background-position: center;
-              background-size: cover;
-              background-repeat: no-repeat;
+
+            &.memory-playground__flip-card-back {
+              &[data-isactive='true'] {
+                display: none;
+              }
             }
           }
         }

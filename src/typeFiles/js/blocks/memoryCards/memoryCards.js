@@ -1,6 +1,6 @@
 import log from "../../utils/log";
 import invertColor from "../../utils/invertColor";
-import {getCardsDataSet, getCoords, calculateCardSideSize, updateActive} from "./utils";
+import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners} from "./utils";
 
 const templates = {
     wrapper: `
@@ -8,35 +8,27 @@ const templates = {
     `,
     playground: `
         <div class="memory-playground">
-            
-            <button class="is-handled" data-handlers="click" data-initiator="memory-cover-start">Cover</button>
-            <button class="is-handled" data-handlers="click" data-initiator="memory-feedback-next">Feed back</button>
-            <button class="is-handled" data-handlers="click" data-initiator="memory-playground-final">Final</button>
-                    
-  
             <div class="memory-playground__card-rows-wrapper">
                 {{#renderSet}}
                     <div class="memory-playground__card-row" style="height: {{rowHeight}}">
                         {{#.}}
-                        <div class="memory-playground__card-cell is-handled" 
-                            style="width: {{cellWidth}}" 
-                            data-handlers="click" 
-                            data-initiator="memory-playground-card">
-                            <div class="memory-playground__flip-card-inner">
-                            
-                                {{#isActive}}
-                                    <div class="memory-playground__flip-card-back" data-cardid="{{id}}" style="background-image: url({{src}})"></div>
-                                {{/isActive}}
-                                {{^isActive}}
-                                    <div class="memory-playground__flip-card-front" data-cardid="{{id}}" style="background-image: url({{coverSrc}})"></div>
-                                ({{/isActive}}
+                            <div class="memory-playground__card-cell is-handled" 
+                                style="width: {{cellWidth}}" 
+                                data-handlers="click" 
+                                data-initiator="memory-playground-card">  
+                                    <div class="memory-playground__flip-card memory-playground__flip-card-front" 
+                                        data-isactive="{{isActive}}" 
+                                        data-cardid="{{id}}" 
+                                        style="background-image: url({{src}})"></div>
+                                    <div class="memory-playground__flip-card memory-playground__flip-card-back" 
+                                        data-isactive="{{isActive}}" 
+                                        data-cardid="{{id}}" 
+                                        style="background-image: url({{coverSrc}})"></div>
                             </div>
-                        </div>
                         {{/.}}
                     </div>
                 {{/renderSet}}
             </div>
-            
             {{#isShowCover}}
                 <div class="memory-playground__cover-wrapper">
                     <div class="memory-playground__cover">
@@ -48,7 +40,6 @@ const templates = {
                     </div>
                 </div>
             {{/isShowCover}}
-                      
             {{#isShowFeedBack}}
                 <div class="memory-playground__feedback-wrapper">
                     <div class="memory-playground__feedback">
@@ -74,7 +65,6 @@ const templates = {
             <div class="memory-final-screen__content {{_classes.content}}">
                 <div class="memory-final-screen__content-header">{{header}}</div>
                 <div class="memory-final-screen__content-description">{{description}}</div>
-                
                 {{#callToActionButton}}
                     <div class="link-block">
                         <button class="is-handled" data-handlers="click" 
@@ -111,33 +101,15 @@ const CARD_PROPORTIONS_HEIGHT = {
 export default function (cnt, {M, methods, sendMessage}) {
     let _wrapperElement = null
     let _initialData = null
+    let _renderSet = null
+    let _prevSelectedCard = null
     let _isShowCover = false
     let _isShowFeedBack = false
-    //
-    let _renderSet = []
     let _isUserSelectionBlocked = false
-    let _prevSelectedCard = null
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
         M.parse(template)
-    }
-
-    const updateEventListeners = (additionalPayload = {}) => {
-        if (_wrapperElement) {
-            const handledElements = _wrapperElement.getElementsByClassName("is-handled");
-            for (const el of handledElements) {
-                for (const handle of el.dataset.handlers.split('|')) {
-                    el.addEventListener(handle, evt => handlers[handle]({
-                        initiator: el.dataset.initiator,
-                        payload: {
-                            ...el.dataset,
-                            ...additionalPayload
-                        }
-                    }, evt))
-                }
-            }
-        }
     }
 
     const sendAction = (target) => {
@@ -151,22 +123,25 @@ export default function (cnt, {M, methods, sendMessage}) {
         })
     }
 
-    const showCard = cardId => {
-        _renderSet = updateActive(_renderSet, cardId, true)
-        console.log(_renderSet)
+    const updateCardVisibility = (cardId, visibility) => {
+        _renderSet = _renderSet.reduce((acc, arr) => {
+            if(arr.some(card => card.id === cardId)) {
+                acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility}: card))
+            } else {
+                acc.push(arr)
+            }
+            return acc
+        },[])
         setScreen(templateTitles.playground)
-        updateEventListeners()
-    }
-
-    const hideCard = cardId => {
-        _renderSet = updateActive(_renderSet, cardId, false)
-        setScreen(templateTitles.playground)
-        updateEventListeners()
+        updateEventListeners(_wrapperElement, handlers)
     }
 
     const onCardClick = (evt) => {
+        if (_isUserSelectionBlocked) {
+            return
+        }
+
         const cardId = evt.target.dataset.cardid
-        console.log(cardId)
         const card = _renderSet.reduce((acc, row) => {
             const card = row.find(card => card.id === cardId)
             if (card) {
@@ -179,16 +154,12 @@ export default function (cnt, {M, methods, sendMessage}) {
             return
         }
 
-        if (_isUserSelectionBlocked) {
-            return
-        }
-
         // (1)First step: Store first selected card in 'prevSelectedCard' and show it.
         if (!_prevSelectedCard) {
             if (card.isActive) {
                 return
             }
-            showCard(card.id)
+            updateCardVisibility(card.id, true)
             _prevSelectedCard = card
             return
         }
@@ -198,34 +169,37 @@ export default function (cnt, {M, methods, sendMessage}) {
             return
         }
 
-        const isPair = _prevSelectedCard.pairId === card.pairId
-
         // React only on non active cards
         if (!card.isActive) {
             // (3)Third step: show card if pair or hide both selected and previous selected cards.
-            if (isPair) {
-                showCard(card.id)
-                const pair = _initialData.struct.pairs.pairList.find((pair) => pair.id === card.pairId)
-                handlers.click({initiator: 'memory-feedback-next', payload: pair})
+            if (_prevSelectedCard.pairId === card.pairId) {
+                updateCardVisibility(card.id, true)
 
-                // (4)Fourth step: clean previous selection
+                // (4)Fourth step: show card feedback.
+                const { showFeedback, pairList } = _initialData.struct.pairs
+                if (showFeedback) {
+                    const pair = pairList.find((pair) => pair.id === card.pairId)
+                    handlers.click({initiator: 'memory-feedback-next', payload: pair})
+                }
+
+                // (5)Fifth step: clean previous selection
                 _prevSelectedCard = null
             } else {
-                showCard(card.id)
-                showCard(_prevSelectedCard.id)
+                updateCardVisibility(card.id, true)
+                updateCardVisibility(_prevSelectedCard.id, true)
                 _isUserSelectionBlocked = true
                 setTimeout(() => {
-                    hideCard(card.id)
-                    hideCard(_prevSelectedCard.id)
+                    updateCardVisibility(card.id, false)
+                    updateCardVisibility(_prevSelectedCard.id, false)
                     _isUserSelectionBlocked = false
 
-                    // (4)Fourth step: clean previous selection
+                    // (5)Fifth step: clean previous selection
                     _prevSelectedCard = null
                 }, 1000)
             }
         }
 
-        // (5)Last step: Game over
+        // (6)Last step: Game over
         if (_renderSet.every(row => row.every(card => card.isActive))) {
             handlers.click({initiator: 'memory-playground-final'})
         }
@@ -235,7 +209,7 @@ export default function (cnt, {M, methods, sendMessage}) {
         switch (type) {
             case templateTitles.playground: {
                 const proportions = _initialData.struct.playground.cardProportions
-                const [cellCount, rowCount] = _initialData.struct.playground.cardLayout.split('x').map(x => Number(x))
+                const [ cellCount ] = _initialData.struct.playground.cardLayout.split('x').map(x => Number(x))
 
                 _wrapperElement.innerHTML = M.render(templates.playground, {
                     //playground
@@ -291,17 +265,32 @@ export default function (cnt, {M, methods, sendMessage}) {
         click: ({initiator, payload}, evt) => {
             if (evt) evt.preventDefault()
             switch (initiator) {
+                case 'memory-start':
+                case 'memory-final-screen-restart': {
+                    const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
+                    const {pairList} = _initialData.struct.pairs;
+                    _isShowCover = isShowCover
+                    _isShowFeedBack = false
+                    _renderSet = getCardsDataSet(cardLayout, pairList, cardBackImage)
+                    console.log(_renderSet)
+                    setScreen(templateTitles.playground)
+                    updateEventListeners(_wrapperElement, handlers)
+                    if (initiator === 'memory-final-screen-restart') {
+                        sendAction('memory-final-screen-restart')
+                    }
+                    break;
+                }
                 case 'memory-cover-start': {
                     _isShowCover = !_isShowCover
                     setScreen(templateTitles.playground)
-                    updateEventListeners()
+                    updateEventListeners(_wrapperElement, handlers)
                     sendAction('memory-cover-start')
                     break;
                 }
                 case 'memory-feedback-next': {
                     _isShowFeedBack = !_isShowFeedBack
                     setScreen(templateTitles.playground, payload)
-                    updateEventListeners()
+                    updateEventListeners(_wrapperElement, handlers)
                     sendAction('memory-feedback-next')
                     break;
                 }
@@ -312,23 +301,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 }
                 case 'memory-playground-final': {
                     setScreen(templateTitles.finalScreen)
-                    updateEventListeners()
+                    updateEventListeners(_wrapperElement, handlers)
                     sendAction('memory-playground-final')
-                    break;
-                }
-                case 'memory-start':
-                case 'memory-final-screen-restart': {
-                    const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
-                    const {pairList} = _initialData.struct.pairs;
-                    _isShowCover = isShowCover
-                    _isShowFeedBack = false
-                    _renderSet = getCardsDataSet(cardLayout, pairList, cardBackImage)
-                    console.log(_renderSet)
-                    setScreen(templateTitles.playground)
-                    updateEventListeners()
-                    if (initiator === 'memory-final-screen-restart') {
-                        sendAction('memory-final-screen-restart')
-                    }
                     break;
                 }
                 default:
@@ -342,7 +316,7 @@ export default function (cnt, {M, methods, sendMessage}) {
             console.log('data', data)
             try {
                 _initialData = data
-                const wrapperId = `mq_${data.id}`
+                const wrapperId = `mc_${data.id}`
                 const wrapper = M.render(templates.wrapper, {id: wrapperId})
 
                 methods.add(cnt, wrapper, data.t)
