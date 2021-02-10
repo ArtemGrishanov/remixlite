@@ -184,6 +184,7 @@ const f = {
                         quote_style: 1
                     }
                 }))
+                .pipe(replace('___API_URL___', `"${process.env.API_URL}"`))
                 .pipe(gulp.dest(path.build.loader))
         },
         [fConstants.loader.watch]: () => {

@@ -1,7 +1,9 @@
-import { API_URL } from './constants'
+import API from './api'
 
 export default class SESSION {
     #createdSession = null
+
+    #inProgress = false
 
     #clientId
     #projectId
@@ -15,47 +17,36 @@ export default class SESSION {
     constructor({clientId, projectId, utmCampaign, utmSource, utmMedium, utmContent, referenceTail, sourceReference}) {
         this.#clientId = clientId
         this.#projectId = projectId
-        this.#utmCampaign = utmCampaign || null
-        this.#utmSource = utmSource || null
-        this.#utmMedium = utmMedium || null
-        this.#utmContent = utmContent || null
-        this.#referenceTail = referenceTail || null
-        this.#sourceReference = sourceReference || null
+        this.#utmCampaign = utmCampaign
+        this.#utmSource = utmSource
+        this.#utmMedium = utmMedium
+        this.#utmContent = utmContent
+        this.#referenceTail = referenceTail
+        this.#sourceReference = sourceReference
     }
 
-    // [PUBLIC] Send activity to server
+    // Send activity to server
     sendActivity = async () => {
         try {
-            if (!this.#createdSession) {
-                const response = await fetch(`${API_URL}/api/sessions`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Client-Key': this.#clientId
-                    },
-                    body: JSON.stringify({
-                        id: null,
-                        projectId: this.#projectId,
-                        utmCampaign: this.#utmCampaign ? this.#utmCampaign.slice(0, 128) : null,
-                        utmSource: this.#utmSource ? this.#utmSource.slice(0, 128) : null,
-                        utmMedium: this.#utmMedium ? this.#utmMedium.slice(0, 128) : null,
-                        utmContent: this.#utmContent ? this.#utmContent.slice(0, 128) : null,
-                        referenceTail: this.#referenceTail ? this.#referenceTail.slice(1, 513) : null,
-                        sourceReference: this.#sourceReference ? this.#sourceReference.slice(0, 512) : null
-                    })
-                });
-                this.#createdSession = await response.json();
-            } else {
-                await fetch(`${___API_URL___}/api/sessions/${this.#createdSession.id}/refresh`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Client-Key': this.#clientId
-                    }
-                });
+            if (!this.#inProgress) {
+                this.#inProgress = true
+                if (!this.#createdSession) {
+                    this.#createdSession = await API.createSession(this.#clientId, this.#projectId, {
+                        utmCampaign: this.#utmCampaign,
+                        utmSource: this.#utmSource,
+                        utmMedium: this.#utmMedium,
+                        utmContent: this.#utmContent,
+                        referenceTail: this.#referenceTail,
+                        sourceReference: this.#sourceReference
+                    });
+                } else {
+                    await API.refreshSession(this.#clientId, this.#createdSession.id)
+                }
+                this.#inProgress = false
             }
         } catch (err) {
             console.error(err);
+            this.#inProgress = false
         }
     }
 }
