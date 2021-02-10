@@ -1,6 +1,6 @@
 import log from "../../utils/log";
 import invertColor from "../../utils/invertColor";
-import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners} from "./utils";
+import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners, throttle} from "./utils";
 
 const templates = {
     wrapper: `
@@ -65,18 +65,17 @@ const templates = {
             <div class="memory-final-screen__content {{_classes.content}}">
                 <div class="memory-final-screen__content-header">{{header}}</div>
                 <div class="memory-final-screen__content-description">{{description}}</div>
-                {{#callToActionButton}}
-                    <div class="link-block">
-                        <button class="is-handled" data-handlers="click" 
-                            data-initiator="result.callToAction" 
+                <div class="memory-final-screen__content-button-group">
+                    {{#isActionButton}}
+                        <button class="memory-final-screen__content-btn is-handled" 
+                            data-handlers="click" 
+                            data-initiator="memory-final-screen-redirect" 
                             style="background-color: {{colorTheme}}; 
-                            color: {{buttonColor}}">{{callToActionButtonText}}</button>
-                    </div>
-                {{/callToActionButton}}
-                <div class="button-block">
-                    <button class="memory-final-screen__content-btn is-handled" 
-                        data-handlers="click" 
-                        data-initiator="memory-final-screen-restart">Restart</button>
+                            color: {{buttonColor}}">{{actionButtonText}}</button>
+                    {{/isActionButton}}
+                        <button class="memory-final-screen__content-btn is-handled" 
+                            data-handlers="click" 
+                            data-initiator="memory-final-screen-restart">Restart</button>
                 </div>
                 {{#imageDisclaimer}}
                     <div class="memory-final-screen__content-image-disclaimer">{{imageDisclaimer}}</div>
@@ -205,6 +204,11 @@ export default function (cnt, {M, methods, sendMessage}) {
         }
     }
 
+    const resizeObserver = new ResizeObserver(throttle(() => {
+        setScreen(templateTitles.playground)
+        updateEventListeners(_wrapperElement, handlers)
+    }, 300))
+
     const setScreen = (type, payload = {}) => {
         switch (type) {
             case templateTitles.playground: {
@@ -239,8 +243,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                     description: _initialData.struct.finalScreen.description,
                     imageSrc: _initialData.struct.finalScreen.imageSrc,
                     imageDisclaimer: _initialData.struct.finalScreen.imageDisclaimer,
-                    callToActionButton: _initialData.callToActionEnabled,
-                    callToActionButtonText: _initialData.callToActionText,
+                    isActionButton: _initialData.isActionButton,
+                    actionButtonText: _initialData.actionButtonText,
                     // general
                     colorTheme: _initialData.colorTheme,
                     buttonColor: invertColor(_initialData.colorTheme, true),
@@ -304,6 +308,11 @@ export default function (cnt, {M, methods, sendMessage}) {
                     sendAction('memory-playground-final')
                     break;
                 }
+                case 'memory-final-screen-redirect': {
+                    window.open(_initialData.actionButtonLink, '_blank');
+                    sendAction('memory-final-screen-redirect')
+                    break;
+                }
                 default:
                     break;
             }
@@ -312,6 +321,7 @@ export default function (cnt, {M, methods, sendMessage}) {
 
     return {
         render: data => {
+            console.log(data)
             try {
                 _initialData = data
                 const wrapperId = `mc_${data.id}`
@@ -320,6 +330,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 methods.add(cnt, wrapper, data.t)
 
                 _wrapperElement = document.getElementById(wrapperId)
+                resizeObserver.observe(_wrapperElement);
                 handlers.click({initiator: 'memory-start'})
             } catch (err) {
                 log('error', '11 (MemoryCards)', data.id, null, err)
