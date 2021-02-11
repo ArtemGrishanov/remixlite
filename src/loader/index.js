@@ -1,7 +1,7 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
-import { validator } from './utils'
+import { validator, throttle } from './utils'
 import { CDN_URL, MAX_REFRESH_SESSION_AWAITING, SEND_READ_PERCENT_INTERVAL } from './constants'
 import API from "./api";
 
@@ -237,10 +237,10 @@ window.RemixLoader = class RemixLoader {
                 this.#_clientId = data.payload.clientId
 
                 this.#getIframePosition(true)
-                this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
+                this.#addEventListener(window, 'scroll', throttle(() => this.#getIframePosition(true), 50), false)
 
                 this.#getWindowSize(true)
-                this.#addEventListener(window, 'resize', this.#throttle(() => this.#getWindowSize(true), 50), false)
+                this.#addEventListener(window, 'resize', throttle(() => this.#getWindowSize(true), 50), false)
 
                 if (this.#needToDo('create-session')) {
                     const queryString = window.location.search;
@@ -273,7 +273,7 @@ window.RemixLoader = class RemixLoader {
 
                 if (this.#needToDo('read-percent')) {
                     this.#checkReadPercent()
-                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#checkReadPercent(), 500), false)
+                    this.#addEventListener(window, 'scroll', throttle(() => this.#checkReadPercent(), 500), false)
                     this.#sendReadPercentByInterval()
                 }
 
@@ -529,31 +529,6 @@ window.RemixLoader = class RemixLoader {
         if (this.#onEvent) {
             this.#onEvent(name, data)
         }
-    }
-
-    #throttle(func, waitTime) {
-        let isThrottled = false,
-            savedArgs,
-            savedThis;
-
-        function wrapper() {
-            if (isThrottled) {
-                savedArgs = arguments;
-                savedThis = this;
-                return;
-            }
-            func.apply(this, arguments);
-            isThrottled = true;
-            setTimeout(function() {
-                isThrottled = false;
-                if (savedArgs) {
-                    wrapper.apply(savedThis, savedArgs);
-                    savedArgs = savedThis = null;
-                }
-            }, waitTime);
-        }
-
-        return wrapper;
     }
 
     #needToDo = action => {
