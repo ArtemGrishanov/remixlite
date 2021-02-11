@@ -100,6 +100,8 @@ const CARD_PROPORTIONS_HEIGHT = {
 
 export default function (cnt, {M, methods, sendMessage}) {
     let _wrapperElement = null
+    let _wrapperWidth = null
+    let _activeScreen = null
     let _initialData = null
     let _renderSet = null
     let _prevSelectedCard = null
@@ -125,13 +127,13 @@ export default function (cnt, {M, methods, sendMessage}) {
 
     const updateCardVisibility = (cardId, visibility) => {
         _renderSet = _renderSet.reduce((acc, arr) => {
-            if(arr.some(card => card.id === cardId)) {
-                acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility}: card))
+            if (arr.some(card => card.id === cardId)) {
+                acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility} : card))
             } else {
                 acc.push(arr)
             }
             return acc
-        },[])
+        }, [])
         setScreen(templateTitles.playground)
         updateEventListeners(_wrapperElement, handlers)
     }
@@ -176,8 +178,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 updateCardVisibility(card.id, true)
 
                 // (4)Fourth step: show card feedback.
-                const { showFeedback, pairList } = _initialData.struct.pairs
-                if (showFeedback) {
+                const { isShowFeedback, pairList } = _initialData.struct.pairs
+                if (isShowFeedback) {
                     const pair = pairList.find((pair) => pair.id === card.pairId)
                     handlers.click({initiator: 'memory-feedback-next', payload: pair})
                 }
@@ -206,21 +208,24 @@ export default function (cnt, {M, methods, sendMessage}) {
     }
 
     const resizeObserver = new ResizeObserver(throttle(() => {
-        setScreen(templateTitles.playground)
-        updateEventListeners(_wrapperElement, handlers)
+        if (_wrapperElement.offsetWidth !== _wrapperWidth && _activeScreen === templateTitles.playground) {
+            _wrapperWidth = _wrapperElement.offsetWidth
+            setScreen(templateTitles.playground)
+            updateEventListeners(_wrapperElement, handlers)
+        }
     }, 300))
 
     const setScreen = (type, payload = {}) => {
         switch (type) {
             case templateTitles.playground: {
                 const proportions = _initialData.struct.playground.cardProportions
-                const [ cellCount ] = _initialData.struct.playground.cardLayout.split('x').map(x => Number(x))
+                const [cellCount] = _initialData.struct.playground.cardLayout.split('x').map(x => Number(x))
 
                 _wrapperElement.innerHTML = M.render(templates.playground, {
                     //playground
                     renderSet: _renderSet,
-                    rowHeight: `${calculateCardSideSize(_wrapperElement.offsetWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
-                    cellWidth: `${calculateCardSideSize(_wrapperElement.offsetWidth, cellCount)}px`,
+                    rowHeight: `${calculateCardSideSize(_wrapperWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
+                    cellWidth: `${calculateCardSideSize(_wrapperWidth, cellCount)}px`,
                     // cover
                     isShowCover: _isShowCover,
                     coverHeader: _initialData.struct.playground.coverHeader,
@@ -232,6 +237,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                     colorTheme: _initialData.colorTheme,
                     buttonColor: invertColor(_initialData.colorTheme, true),
                 });
+
+                _activeScreen = templateTitles.playground
 
                 sendMessage('scrollParent', {
                     top: getCoords(_wrapperElement).top - 20 // 20 = top offset
@@ -253,6 +260,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                         content: _initialData.struct.finalScreen.imageSrc ? '' : 'no-image'
                     }
                 });
+
+                _activeScreen = templateTitles.finalScreen
 
                 sendMessage('scrollParent', {
                     top: getCoords(_wrapperElement).top - 20 // 20 = top offset
@@ -300,7 +309,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 }
                 case 'memory-playground-card': {
                     onCardClick(evt)
-                    sendAction('memory-playground-final')
+                    sendAction('memory-playground-card')
                     break;
                 }
                 case 'memory-playground-final': {
@@ -331,7 +340,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 methods.add(cnt, wrapper, data.t)
 
                 _wrapperElement = document.getElementById(wrapperId)
-                resizeObserver.observe(_wrapperElement);
+                resizeObserver.observe(_wrapperElement)
                 handlers.click({initiator: 'memory-start'})
             } catch (err) {
                 log('error', '11 (MemoryCards)', data.id, null, err)
