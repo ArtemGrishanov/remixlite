@@ -219,7 +219,7 @@ export default function (cnt, {M, methods, sendMessage}) {
         switch (type) {
             case templateTitles.playground: {
                 const proportions = _initialData.struct.playground.cardProportions
-                const [cellCount] = _initialData.struct.playground.cardLayout.split('x').map(x => Number(x))
+                const [cellCount] = _initialData.struct.playground.cardLayout.value.split('x').map(x => Number(x))
 
                 _wrapperElement.innerHTML = M.render(templates.playground, {
                     //playground
@@ -285,7 +285,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                     const {pairList} = _initialData.struct.pairs;
                     _isShowCover = isShowCover
                     _isShowFeedBack = false
-                    _renderSet = getCardsDataSet(cardLayout, pairList, cardBackImage)
+                    _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
                     setScreen(templateTitles.playground)
                     updateEventListeners(_wrapperElement, handlers)
                     if (initiator === 'memory-final-screen-restart') {
