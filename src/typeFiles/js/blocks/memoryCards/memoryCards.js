@@ -289,10 +289,6 @@ export default function (cnt, {M, methods, sendMessage}) {
                 log('error', '11 (MemoryCards)', _initialData.id, `Screen type not detected - ${type}`)
                 break;
         }
-
-        sendMessage('scrollParent', {
-            top: getCoords(_screenElement).top - 20 // 20 = top offset
-        })
     }
 
     const handlers = {
