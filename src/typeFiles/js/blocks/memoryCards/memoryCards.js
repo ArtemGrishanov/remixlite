@@ -188,7 +188,11 @@ export default function (cnt, {M, methods, sendMessage}) {
                 const isAllActive = _renderSet.every(row => row.every(card => card.isActive))
                 if (isShowFeedback) {
                     const pair = pairList.find((pair) => pair.id === card.pairId)
-                    handlers.click({initiator: 'memory-feedback-show', payload: pair})
+                    _isUserSelectionBlocked = true
+                    setTimeout(() => {
+                        handlers.click({initiator: 'memory-feedback-show', payload: pair})
+                        _isUserSelectionBlocked = false
+                    }, 600)
 
                     // (6)Last step: If there is feedback show final screen after feedback
                     _isAllActive = isAllActive
