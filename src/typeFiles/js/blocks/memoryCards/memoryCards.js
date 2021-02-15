@@ -5,9 +5,12 @@ import throttle from "../../utils/throttle";
 
 const templates = {
     wrapper: `
-        <div class="memory-cards-wrapper" id="{{id}}"></div>
+        <div class="memory-cards-wrapper" id="{{id}}">
+            <div class="memory-cards-wrapper__screen-{{id}}"></div>
+            <div class="memory-cards-wrapper__modal-{{id}}"></div>
+        </div>
     `,
-    playground: `
+    playgroundScreen: `
         <div class="memory-playground">
             <div class="memory-playground__card-rows-wrapper">
                 {{#renderSet}}
@@ -15,47 +18,19 @@ const templates = {
                         {{#.}}
                             <div class="memory-playground__card-cell is-handled" 
                                 style="width: {{cellWidth}}" 
-                                data-handlers="click" 
+                                id="{{id}}" 
+                                data-isactive="{{isActive}}" 
+                                data-handlers="click"
                                 data-initiator="memory-playground-card">  
-                                    <div class="memory-playground__flip-card memory-playground__flip-card-front" 
-                                        data-isactive="{{isActive}}" 
-                                        data-cardid="{{id}}" 
-                                        style="background-image: url({{src}})"></div>
-                                    <div class="memory-playground__flip-card memory-playground__flip-card-back" 
-                                        data-isactive="{{isActive}}" 
-                                        data-cardid="{{id}}" 
-                                        style="background-image: url({{coverSrc}})"></div>
+                                <div class="memory-playground__card-cell-inner">
+                                    <div class="memory-playground__flip-card memory-playground__flip-card-front" style="background-image: url({{src}})"></div>
+                                    <div class="memory-playground__flip-card memory-playground__flip-card-back" style="background-image: url({{coverSrc}})"></div>
+                                </div>
                             </div>
                         {{/.}}
                     </div>
                 {{/renderSet}}
             </div>
-            {{#isShowCover}}
-                <div class="memory-playground__cover-wrapper">
-                    <div class="memory-playground__cover">
-                        <h2 class="memory-playground__cover-title">{{coverHeader}}</h2>
-                        <button class="memory-playground__cover-btn is-handled" 
-                            data-handlers="click" 
-                            data-initiator="memory-cover-start" 
-                            style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{coverButtonText}}</button>
-                    </div>
-                </div>
-            {{/isShowCover}}
-            {{#isShowFeedBack}}
-                <div class="memory-playground__feedback-wrapper">
-                    <div class="memory-playground__feedback">
-                        <div class="memory-playground__feedback-images">
-                            <div class="memory-playground__feedback-image back" style="background-image: url({{pair.firstImage.src}})"></div>
-                            <div class="memory-playground__feedback-image front" style="background-image: url({{pair.secondImage.src}})"></div>
-                        </div>
-                        <p class="memory-playground__feedback-description">{{pair.description}}</p>
-                        <button class="memory-playground__feedback-btn is-handled" 
-                            data-handlers="click" 
-                            data-initiator="memory-feedback-next"
-                            style="background-color: {{colorTheme}}; color: {{buttonColor}}">Next</button>
-                    </div>
-                </div>
-            {{/isShowFeedBack}}
         </div>
     `,
     finalScreen: `
@@ -63,10 +38,10 @@ const templates = {
             {{#imageSrc}}
                 <img class="memory-final-screen__image" src="{{imageSrc}}" alt="Cover image">
             {{/imageSrc}}
-            <div class="memory-final-screen__content {{_classes.content}}">
+            <div class="memory-final-screen__content {{_classes.content}}">btn-wrap
                 <div class="memory-final-screen__content-header">{{header}}</div>
                 <div class="memory-final-screen__content-description">{{description}}</div>
-                <div class="memory-final-screen__content-button-group">
+                <div>
                     {{#isActionButton}}
                         <button class="memory-final-screen__content-btn is-handled" 
                             data-handlers="click" 
@@ -74,9 +49,11 @@ const templates = {
                             style="background-color: {{colorTheme}}; 
                             color: {{buttonColor}}">{{actionButtonText}}</button>
                     {{/isActionButton}}
-                        <button class="memory-final-screen__content-btn is-handled" 
-                            data-handlers="click" 
-                            data-initiator="memory-final-screen-restart">Restart</button>
+                </div>
+                <div>
+                    <button class="memory-final-screen__content-btn memory-final-screen__content-btn-restart is-handled" 
+                        data-handlers="click" 
+                        data-initiator="memory-final-screen-restart">Restart</button>
                 </div>
                 {{#imageDisclaimer}}
                     <div class="memory-final-screen__content-image-disclaimer">{{imageDisclaimer}}</div>
@@ -84,12 +61,40 @@ const templates = {
             </div>
         </div>
     `,
+    coverModal: `
+        <div class="memory-playground__cover-wrapper">
+            <div class="memory-playground__cover">
+                <h2 class="memory-playground__cover-title">{{coverHeader}}</h2>
+                <button class="memory-playground__cover-btn is-handled" 
+                    data-handlers="click" 
+                    data-initiator="memory-cover-start" 
+                    style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{coverButtonText}}</button>
+            </div>
+        </div>
+    `,
+    feedbackModal: `
+        <div class="memory-playground__feedback-wrapper">
+            <div class="memory-playground__feedback">
+                <div class="memory-playground__feedback-images">
+                    <div class="memory-playground__feedback-image back" style="background-image: url({{pair.firstImage.src}})"></div>
+                    <div class="memory-playground__feedback-image front" style="background-image: url({{pair.secondImage.src}})"></div>
+                </div>
+                <p class="memory-playground__feedback-description">{{pair.description}}</p>
+                <button class="memory-playground__feedback-btn is-handled" 
+                    data-handlers="click" 
+                    data-initiator="memory-feedback-close"
+                    style="background-color: {{colorTheme}}; color: {{buttonColor}}">Next</button>
+            </div>
+        </div>
+    `,
 }
 
 const templateTitles = {
     wrapper: "wrapper",
-    playground: "playground",
+    playgroundScreen: "playgroundScreen",
     finalScreen: "finalScreen",
+    coverModal: 'coverModal',
+    feedbackModal: 'feedbackModal',
 }
 
 const CARD_PROPORTIONS_HEIGHT = {
@@ -99,14 +104,16 @@ const CARD_PROPORTIONS_HEIGHT = {
 }
 
 export default function (cnt, {M, methods, sendMessage}) {
-    let _wrapperElement = null
-    let _wrapperWidth = null
-    let _activeScreen = null
+    //common
     let _initialData = null
+    let _activeScreen = null
+    let _modalElement = null
+    let _screenElement = null
+    let _screenWidth = null
+    //memory logic
     let _renderSet = null
     let _prevSelectedCard = null
-    let _isShowCover = false
-    let _isShowFeedBack = false
+    let _isAllActive = false
     let _isUserSelectionBlocked = false
 
     // Pre-parse (for high speed loading)
@@ -126,6 +133,8 @@ export default function (cnt, {M, methods, sendMessage}) {
     }
 
     const updateCardVisibility = (cardId, visibility) => {
+        const cardElement = document.getElementById(cardId)
+        cardElement.dataset.isactive = visibility
         _renderSet = _renderSet.reduce((acc, arr) => {
             if (arr.some(card => card.id === cardId)) {
                 acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility} : card))
@@ -134,16 +143,13 @@ export default function (cnt, {M, methods, sendMessage}) {
             }
             return acc
         }, [])
-        setScreen(templateTitles.playground)
-        updateEventListeners(_wrapperElement, handlers)
     }
 
     const onCardClick = (evt) => {
         if (_isUserSelectionBlocked) {
             return
         }
-
-        const cardId = evt.target.dataset.cardid
+        const cardId = evt.currentTarget.id
         const card = _renderSet.reduce((acc, row) => {
             const card = row.find(card => card.id === cardId)
             if (card) {
@@ -178,14 +184,25 @@ export default function (cnt, {M, methods, sendMessage}) {
                 updateCardVisibility(card.id, true)
 
                 // (4)Fourth step: show card feedback.
-                const { isShowFeedback, pairList } = _initialData.struct.pairs
+                const {isShowFeedback, pairList} = _initialData.struct.pairs
+                const isAllActive = _renderSet.every(row => row.every(card => card.isActive))
                 if (isShowFeedback) {
                     const pair = pairList.find((pair) => pair.id === card.pairId)
-                    handlers.click({initiator: 'memory-feedback-next', payload: pair})
+                    handlers.click({initiator: 'memory-feedback-show', payload: pair})
+
+                    // (6)Last step: If there is feedback show final screen after feedback
+                    _isAllActive = isAllActive
+                } else {
+
+                    // (6)Last step: If there is no feedback immediately show final screen
+                    if (isAllActive) {
+                        handlers.click({initiator: 'memory-playground-final'})
+                    }
                 }
 
                 // (5)Fifth step: clean previous selection
                 _prevSelectedCard = null
+
             } else {
                 updateCardVisibility(card.id, true)
                 updateCardVisibility(_prevSelectedCard.id, true)
@@ -200,79 +217,82 @@ export default function (cnt, {M, methods, sendMessage}) {
                 }, 1000)
             }
         }
-
-        // (6)Last step: Game over
-        if (_renderSet.every(row => row.every(card => card.isActive))) {
-            handlers.click({initiator: 'memory-playground-final'})
-        }
     }
 
     const resizeObserver = new ResizeObserver(throttle(() => {
-        if (_wrapperElement.offsetWidth !== _wrapperWidth && _activeScreen === templateTitles.playground) {
-            _wrapperWidth = _wrapperElement.offsetWidth
-            setScreen(templateTitles.playground)
-            updateEventListeners(_wrapperElement, handlers)
+        if (_screenElement.offsetWidth !== _screenWidth && _activeScreen === templateTitles.playgroundScreen) {
+            _screenWidth = _screenElement.offsetWidth
+            renderTemplates(templateTitles.playgroundScreen)
+            updateEventListeners(_screenElement, handlers)
         }
     }, 300))
 
-    const setScreen = (type, payload = {}) => {
+    const renderTemplates = (type, payload = {}) => {
+        const generalSetting = {
+            colorTheme: _initialData.colorTheme,
+            buttonColor: invertColor(_initialData.colorTheme, true),
+        }
         switch (type) {
-            case templateTitles.playground: {
+            case templateTitles.playgroundScreen: {
                 const proportions = _initialData.struct.playground.cardProportions
                 const [cellCount] = _initialData.struct.playground.cardLayout.value.split('x').map(x => Number(x))
 
-                _wrapperElement.innerHTML = M.render(templates.playground, {
-                    //playground
+                _screenElement.innerHTML = M.render(templates.playgroundScreen, {
                     renderSet: _renderSet,
-                    rowHeight: `${calculateCardSideSize(_wrapperWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
-                    cellWidth: `${calculateCardSideSize(_wrapperWidth, cellCount)}px`,
-                    // cover
-                    isShowCover: _isShowCover,
-                    coverHeader: _initialData.struct.playground.coverHeader,
-                    coverButtonText: _initialData.struct.playground.coverButtonText,
-                    // feedBack
-                    isShowFeedBack: _isShowFeedBack,
-                    pair: payload,
-                    // general
-                    colorTheme: _initialData.colorTheme,
-                    buttonColor: invertColor(_initialData.colorTheme, true),
+                    rowHeight: `${calculateCardSideSize(_screenWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
+                    cellWidth: `${calculateCardSideSize(_screenWidth, cellCount)}px`,
+                    ...generalSetting
                 });
 
-                _activeScreen = templateTitles.playground
-
-                sendMessage('scrollParent', {
-                    top: getCoords(_wrapperElement).top - 20 // 20 = top offset
-                })
+                _activeScreen = templateTitles.playgroundScreen
                 break;
             }
             case templateTitles.finalScreen: {
-                _wrapperElement.innerHTML = M.render(templates.finalScreen, {
+                _screenElement.innerHTML = M.render(templates.finalScreen, {
                     header: _initialData.struct.finalScreen.header,
                     description: _initialData.struct.finalScreen.description,
                     imageSrc: _initialData.struct.finalScreen.imageSrc,
                     imageDisclaimer: _initialData.struct.finalScreen.imageDisclaimer,
                     isActionButton: _initialData.isActionButton,
                     actionButtonText: _initialData.actionButtonText,
-                    // general
-                    colorTheme: _initialData.colorTheme,
-                    buttonColor: invertColor(_initialData.colorTheme, true),
                     _classes: {
                         content: _initialData.struct.finalScreen.imageSrc ? '' : 'no-image'
-                    }
+                    },
+                    ...generalSetting
                 });
 
                 _activeScreen = templateTitles.finalScreen
-
-                sendMessage('scrollParent', {
-                    top: getCoords(_wrapperElement).top - 20 // 20 = top offset
-                })
-
+                break;
+            }
+            case templateTitles.coverModal: {
+                _modalElement.innerHTML = payload && payload.isShowCover ?
+                    M.render(templates.coverModal, {
+                        coverHeader: _initialData.struct.playground.coverHeader,
+                        coverButtonText: _initialData.struct.playground.coverButtonText,
+                        ...generalSetting
+                    })
+                    :
+                    ''
+                break;
+            }
+            case templateTitles.feedbackModal: {
+                _modalElement.innerHTML = payload && payload.isShowFeedBack ?
+                    M.render(templates.feedbackModal, {
+                        pair: payload.pair,
+                        ...generalSetting
+                    })
+                    :
+                    ''
                 break;
             }
             default:
                 log('error', '11 (MemoryCards)', _initialData.id, `Screen type not detected - ${type}`)
                 break;
         }
+
+        sendMessage('scrollParent', {
+            top: getCoords(_screenElement).top - 20 // 20 = top offset
+        })
     }
 
     const handlers = {
@@ -283,28 +303,34 @@ export default function (cnt, {M, methods, sendMessage}) {
                 case 'memory-final-screen-restart': {
                     const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
                     const {pairList} = _initialData.struct.pairs;
-                    _isShowCover = isShowCover
-                    _isShowFeedBack = false
                     _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
-                    setScreen(templateTitles.playground)
-                    updateEventListeners(_wrapperElement, handlers)
+                    renderTemplates(templateTitles.playgroundScreen)
+                    renderTemplates(templateTitles.coverModal, {isShowCover})
+                    updateEventListeners(_screenElement, handlers)
+                    updateEventListeners(_modalElement, handlers)
                     if (initiator === 'memory-final-screen-restart') {
                         sendAction('memory-final-screen-restart')
                     }
                     break;
                 }
                 case 'memory-cover-start': {
-                    _isShowCover = !_isShowCover
-                    setScreen(templateTitles.playground)
-                    updateEventListeners(_wrapperElement, handlers)
+                    renderTemplates(templateTitles.coverModal, {isShowCover: false})
                     sendAction('memory-cover-start')
                     break;
                 }
-                case 'memory-feedback-next': {
-                    _isShowFeedBack = !_isShowFeedBack
-                    setScreen(templateTitles.playground, payload)
-                    updateEventListeners(_wrapperElement, handlers)
-                    sendAction('memory-feedback-next')
+                case 'memory-feedback-show': {
+                    renderTemplates(templateTitles.feedbackModal, {isShowFeedBack: true, pair: payload})
+                    updateEventListeners(_modalElement, handlers)
+                    sendAction('memory-feedback-show')
+                    break;
+                }
+                case 'memory-feedback-close': {
+                    renderTemplates(templateTitles.feedbackModal, {isShowFeedBack: false})
+                    if (_isAllActive) {
+                        handlers.click({initiator: 'memory-playground-final'})
+                        return
+                    }
+                    sendAction('memory-feedback-close')
                     break;
                 }
                 case 'memory-playground-card': {
@@ -313,8 +339,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                     break;
                 }
                 case 'memory-playground-final': {
-                    setScreen(templateTitles.finalScreen)
-                    updateEventListeners(_wrapperElement, handlers)
+                    renderTemplates(templateTitles.finalScreen)
+                    updateEventListeners(_screenElement, handlers)
                     sendAction('memory-playground-final')
                     break;
                 }
@@ -331,7 +357,6 @@ export default function (cnt, {M, methods, sendMessage}) {
 
     return {
         render: data => {
-            console.log(data)
             try {
                 _initialData = data
                 const wrapperId = `mc_${data.id}`
@@ -339,8 +364,11 @@ export default function (cnt, {M, methods, sendMessage}) {
 
                 methods.add(cnt, wrapper, data.t)
 
-                _wrapperElement = document.getElementById(wrapperId)
-                resizeObserver.observe(_wrapperElement)
+                const [screenElement, modalElement] = document.getElementById(wrapperId).children
+                _screenElement = screenElement
+                _modalElement = modalElement
+
+                resizeObserver.observe(screenElement)
                 handlers.click({initiator: 'memory-start'})
             } catch (err) {
                 log('error', '11 (MemoryCards)', data.id, null, err)
