@@ -2,41 +2,29 @@ class BlocksNavigation {
     #blocks = [];
     #navDots = [];
     #blockNavigationLabels = new Map();
-    #navigationElements = {};
-    #currentBlockIndexData = {
-        internalValue: null,
-        listener: val => {},
-        set value(val) {
-            this.listener(val, this.internalValue);
-            this.internalValue = val;
-        },
-        get value() {
-            return this.internalValue;
-        },
-        onValueChange: function(listener) {
-            console.log('currentBlockIndex register onChange', listener);
-            this.listener = listener;
-        }
+    #navigationElements = {
+        topButton: null,
+        centerDots: null,
+        bottomButton: null,
+    };
+    #navigationElementsPositions = {
+        topButton: null,
+        centerDots: null,
+        bottomButton: null,
+    };
+    #navigationElementsVisibility = {
+        topButton: false,
+        centerDots: false,
+        bottomButton: false,
+    };
+    #navigationButtonsCurrentBlockIndex = {
+        topButton: null,
+        centerDots: null,
+        bottomButton: null,
     }
+    #navigationButtonsOffset = 20; // Расстояние по вертикали от краев экрана до кнопок, px
     #lastBlock;
     #sendMessage;
-
-    // TODO Верхняя кнопка
-    // ПОЯВЛЯЕТСЯ, как только верхняя граница экрана пересекает Верхнюю границу Первого блока;
-    // СОДЕРЖИТ текст блока, Верхняя граница которого скрыта за экраном;
-    // ИСЧЕЗАЕТ, когда Нижняя граница Последнего блока скрывается за экраном;
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-
 
     constructor(messageSender) {
         this.#sendMessage = messageSender;
@@ -52,10 +40,6 @@ class BlocksNavigation {
             this.#lastBlock = this.#blocks[this.#blocks.length - 1];
 
             this.#createNavigationElements(containerElement);
-
-            this.#currentBlockIndexData.onValueChange(this.#updateNavigationLabels);
-            this.#currentBlockIndexData.value = -1;
-
             this.#createWindowMessageListener();
         }
     }
@@ -63,35 +47,27 @@ class BlocksNavigation {
     #createWindowMessageListener = () => {
         window.addEventListener("message", ({data = {}}) => {
             const { method, payload = {} } = data
-            switch (method) {
-                case 'iframePosition': {
-                    // Расстояние от ВЕРХНЕЙ границы iframe о верхней границы viewport
-                    const iframeViewportTopOffset = -payload.data.top;
-                    // Расстояние от НИЖНЕЙ границы iframe о верхней границы viewport
-                    const iframeViewportBottomOffset = -payload.data.windowBottom;
-                    console.log({
-                        top: iframeViewportTopOffset,
-                        bottom: iframeViewportBottomOffset,
-                    });
-                    // console.log('top:', iframeViewportTopOffset);
-                    // console.log('bottom:', iframeViewportBottomOffset);
-                    this.#updateNavigationPositions(iframeViewportTopOffset, iframeViewportBottomOffset);
-                    this.#updateCurrentBlock(iframeViewportTopOffset, iframeViewportBottomOffset);
-                    break;
-                }
-                default:
-                    break;
+            if (method === 'iframePosition') {
+                // Позиция ВЕРХНЕЙ границы iframe относительно ВЕРХНЕЙ границы viewport
+                const iframeViewportTopOffset = -payload.data.top;
+                // Позиция ВЕРХНЕЙ границы iframe до НИЖНЕЙ границы viewport
+                const iframeViewportBottomOffset = -payload.data.windowBottom;
+
+                this.#updateNavigationPositions(iframeViewportTopOffset, iframeViewportBottomOffset);
+                this.#updateNavCurrentBlocks();
+                this.#updateNavLabels();
             }
         }, false);
     }
+
     #createNavigationElements = (containerElement) => {
         const topButton = document.createElement('div');
         topButton.className = 'navigation-top';
-        topButton.onclick = this.#navigateToCurrent;
+        topButton.onclick = this.#bottomButtonNavigation;
 
         const bottomButton = document.createElement('div');
         bottomButton.className = 'navigation-bottom';
-        bottomButton.onclick = this.#navigateToNext;
+        bottomButton.onclick = this.#topButtonNavigation;
 
         const centerDots = document.createElement('div');
         centerDots.className = 'navigation-center';
@@ -101,82 +77,98 @@ class BlocksNavigation {
             dot.onclick = () => {
                 this.#navigateTo(index);
             };
-
             this.#navDots.push(dot);
             centerDots.appendChild(dot);
         })
 
         this.#navigationElements = {
             topButton,
-            bottomButton,
             centerDots,
+            bottomButton,
         }
         containerElement.appendChild(topButton);
-        containerElement.appendChild(bottomButton);
         containerElement.appendChild(centerDots);
-    }
-    #updateNavigationPositions = (topPosition, bottomPosition) => {
-        const {topButton, bottomButton, centerDots} = this.#navigationElements;
-
-        if (this.#isInsideNavigationLimits(topPosition)) {
-            // TODO Оптимизация, проверка на класс
-            // TODO Вынести в отдельный метод, который будет знать мапы нав-элементов на их классы
-            topButton.classList.remove('navigation-top--invisible');
-            centerDots.classList.remove('navigation-top--invisible');
-            topButton.style.top = topPosition + 100 + 'px';
-            centerDots.style.top = topPosition + (bottomPosition - topPosition) / 2 + 'px';
-        } else {
-            topButton.classList.add('navigation-top--invisible');
-            centerDots.classList.add('navigation-top--invisible');
-        }
-
-        if (this.#isInsideNavigationLimits(bottomPosition) && this.#currentBlockIndexData.value !== (this.#blocks.length - 1)) {
-            bottomButton.classList.remove('navigation-top--invisible');
-            bottomButton.style.top = bottomPosition - 100 + 'px';
-        } else {
-            bottomButton.classList.add('navigation-top--invisible');
-        }
+        containerElement.appendChild(bottomButton);
     }
 
-    #updateCurrentBlock = (viewportTop) => {
-        let newBlockIndex = -1;
-        if (this.#isInsideNavigationLimits(viewportTop)) {
-            // находим блок, до которого верхняя граница экрана ещё не дошла
-            const nextBlockIndex = this.#blocks.findIndex(block => {
-                return block.offsetTop > viewportTop;
-            });
-            if (nextBlockIndex !== - 1) {
-                // находимся между блоками
-                newBlockIndex = nextBlockIndex - 1;
-            } else {
-                // находимся на последнем блоке
-                newBlockIndex = this.#blocks.length - 1;
-            }
-        }
-        if (newBlockIndex !== this.#currentBlockIndexData.value) {
-            this.#currentBlockIndexData.value = newBlockIndex;
+    #updateNavigationPositions = (topOffset, bottomOffset) => {
+        const {topButton, centerDots, bottomButton} = this.#navigationElements;
+
+        this.#navigationElementsPositions.topButton = topOffset + this.#navigationButtonsOffset;
+        this.#navigationElementsPositions.centerDots = (bottomOffset + topOffset) / 2;
+        this.#navigationElementsPositions.bottomButton = bottomOffset - bottomButton.offsetHeight - this.#navigationButtonsOffset;
+
+        this.#navigationElementsVisibility.topButton = this.#isInsideNavigationLimits(this.#navigationElementsPositions.topButton);
+        this.#navigationElementsVisibility.centerDots = this.#isInsideNavigationLimits(this.#navigationElementsPositions.centerDots);
+        this.#navigationElementsVisibility.bottomButton =
+            this.#isInsideNavigationLimits(this.#navigationElementsPositions.bottomButton)
+            && (this.#navigationElementsPositions.bottomButton < this.#blocks[this.#blocks.length - 1].offsetTop);
+
+        this.#updateNavElementVisibility(
+            topButton,
+            this.#navigationElementsPositions.topButton,
+            this.#navigationElementsVisibility.topButton
+        );
+        this.#updateNavElementVisibility(
+            centerDots,
+            this.#navigationElementsPositions.centerDots,
+            this.#navigationElementsVisibility.centerDots
+        );
+        this.#updateNavElementVisibility(
+            bottomButton,
+            this.#navigationElementsPositions.bottomButton,
+            this.#navigationElementsVisibility.bottomButton
+        );
+    }
+
+    #updateNavElementVisibility = (navElement, positionOffset, isVisible) => {
+        if (isVisible) {
+            navElement.classList.remove('navigation-top--invisible');
+            navElement.style.top = positionOffset + 'px';
+        } else {
+            navElement.classList.add('navigation-top--invisible');
         }
     }
 
-    #updateNavigationLabels = (currentBlockIndex, prevBlockIndex) => {
-        console.log('navDots', this.#navDots);
-        console.log('indexes', currentBlockIndex, prevBlockIndex);
+    #updateNavCurrentBlocks = () => {
+        const { topButton, centerDots, bottomButton } = this.#navigationElementsVisibility;
+        if (topButton || centerDots || bottomButton) {
+            let topBlock = null;
+            let centerBlock = null;
+            let bottomBlock = null;
 
-        const {topButton, bottomButton} = this.#navigationElements;
-        const currentDotClass = 'navigation-center__dot--current';
+            this.#blocks.forEach((block, index) => {
+                if (topButton && block.offsetTop < this.#navigationElementsPositions.topButton) {
+                    topBlock = index;
+                }
+                if (centerDots && block.offsetTop < this.#navigationElementsPositions.centerDots) {
+                    centerBlock = index;
+                }
+                if (bottomButton && block.offsetTop < this.#navigationElementsPositions.bottomButton) {
+                    bottomBlock = index;
+                }
+            })
 
-        if (prevBlockIndex !== null && prevBlockIndex > -1) {
-            this.#navDots[prevBlockIndex].classList.remove(currentDotClass);
+            this.#navigationButtonsCurrentBlockIndex.topButton = topBlock;
+            this.#navigationButtonsCurrentBlockIndex.centerDots = centerBlock;
+            this.#navigationButtonsCurrentBlockIndex.bottomButton = bottomBlock + 1;
         }
+    }
 
-        if (currentBlockIndex === -1) {
-            this.#setNavElementText(bottomButton, 0);
-        } else {
-            this.#navDots[currentBlockIndex].classList.add(currentDotClass);
-            this.#setNavElementText(topButton, currentBlockIndex);
-            if (currentBlockIndex < this.#blocks.length - 1) {
-                this.#setNavElementText(bottomButton, currentBlockIndex + 1);
-            }
+    #updateNavLabels = () => {
+        const { topButton, centerDots, bottomButton } = this.#navigationButtonsCurrentBlockIndex;
+        if (Number.isInteger(topButton)) {
+            this.#setNavElementText(this.#navigationElements.topButton, topButton);
+        }
+        if (Number.isInteger(centerDots)) {
+            const activeDotClass = 'navigation-center__dot--current';
+            this.#navDots.forEach((dot) => {
+                dot.classList.remove(activeDotClass);
+            })
+            this.#navDots[centerDots].classList.add(activeDotClass);
+        }
+        if (Number.isInteger(bottomButton)) {
+            this.#setNavElementText(this.#navigationElements.bottomButton, bottomButton);
         }
     }
 
@@ -188,20 +180,6 @@ class BlocksNavigation {
     #setNavElementText = (navElement, blockIndex) => {
         navElement.textContent = this.#getBlockNavigationLabel(this.#blocks[blockIndex]);
     }
-
-    // #updateNavigationLabels = (topPosition, bottomOffset) => {
-    //     if (topPosition > 0) {
-    //         const nextBlockIndex = this.#blocks.findIndex(block => block.offsetTop > topPosition);
-    //         if (nextBlockIndex !== undefined) {
-    //             this.#navigationElements.bottomButton.textContent = this.#getBlockNavigationLabel(this.#blocks[nextBlockIndex]);
-    //             if (nextBlockIndex > 0) {
-    //                 this.#navigationElements.topButton.textContent = this.#getBlockNavigationLabel(this.#blocks[nextBlockIndex-1]);
-    //             }
-    //         }
-    //     } else {
-    //         this.#navigationElements.bottomButton.textContent = this.#getBlockNavigationLabel(this.#blocks[0]);
-    //     }
-    // }
 
     /**
      * Вычисляет зону для отображения навигации. От верхней границы первого блока, до нижней границы последнего блока.
@@ -218,20 +196,24 @@ class BlocksNavigation {
     }
 
     #navigateTo = (blockIndex) => {
-        console.log('NAVIGATING TO ' + this.#blocks[blockIndex].offsetTop);
+        // console.log(`NAVIGATING TO [${blockIndex}] ${this.#blocks[blockIndex].offsetTop}`);
+        // const diff_1 = 400;
+        const viewportOffsetCenterCorrection = this.#navigationElementsPositions.centerDots - this.#navigationElementsPositions.topButton;
+        // console.log({
+        //     diff: this.#navigationElementsPositions.centerDots - this.#navigationElementsPositions.topButton,
+        // });
         this.#sendMessage('scrollParent', {
-            top: this.#blocks[blockIndex].offsetTop - 20 // 20 = top offset
+            top: this.#blocks[blockIndex].offsetTop - viewportOffsetCenterCorrection + 50
         })
     }
 
-    #navigateToCurrent = () => {
-        this.#navigateTo(this.#currentBlockIndexData.value);
+    #bottomButtonNavigation = () => {
+        this.#navigateTo(this.#navigationButtonsCurrentBlockIndex.topButton);
     }
 
-    #navigateToNext = () => {
-        this.#navigateTo(this.#currentBlockIndexData.value + 1);
+    #topButtonNavigation = () => {
+        this.#navigateTo(this.#navigationButtonsCurrentBlockIndex.bottomButton);
     }
-
 }
 
 export default BlocksNavigation;

@@ -27,10 +27,10 @@
   background-color: $timeline-items-color;
   top: 0;
   bottom: 0;
-  left: 40px;
+  left: $timeline-left-indent;
   z-index: 0;
 
   @include maxWidth(799) {
-    left: 7vw;
+    left: $timeline-left-indent--mobile;
   }
 }

@@ -447,7 +447,7 @@ window.RemixLoader = class RemixLoader {
                         top: this.#iframePosition.top - this.#additionalTopOffset,
                         bottom: this.#iframePosition.bottom - this.#additionalTopOffset - window.innerHeight,
                         bottomOffset: this.#iframePosition.top - window.innerHeight,
-                        windowBottom: this.#iframePosition.top - this.#additionalTopOffset - window.innerHeight,
+                        windowBottom: this.#iframePosition.top - window.innerHeight,
                     }
                 }
             }, this.#appOrigin)
