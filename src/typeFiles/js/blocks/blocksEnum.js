@@ -9,7 +9,7 @@ const BLOCK = {
     hiddenObjects: 8,
     quiz: 9,
     thenNow: 10,
-    timeline: 11,
+    timeline: 12,
 }
 Object.freeze(BLOCK)
 

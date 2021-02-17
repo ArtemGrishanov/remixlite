@@ -1,3 +1,18 @@
+export const httpRequest = async (resource, options) => {
+    const { timeout = 30000 } = options;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    const response = await fetch(resource, {
+        ...options,
+        signal: controller.signal
+    });
+    clearTimeout(id);
+    if (!response.ok) {
+        throw new Error('Request is failed')
+    }
+    return response;
+}
+
 export const validator = {
     isValue: value => {
         try {
@@ -26,14 +41,27 @@ export const validator = {
     }
 }
 
-export const httpRequest = async (resource, options) => {
-    const { timeout = 30000 } = options;
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal
-    });
-    clearTimeout(id);
-    return response;
+export const throttle = (func, waitTime) => {
+    let isThrottled = false,
+        savedArgs,
+        savedThis;
+
+    function wrapper() {
+        if (isThrottled) {
+            savedArgs = arguments;
+            savedThis = this;
+            return;
+        }
+        func.apply(this, arguments);
+        isThrottled = true;
+        setTimeout(function() {
+            isThrottled = false;
+            if (savedArgs) {
+                wrapper.apply(savedThis, savedArgs);
+                savedArgs = savedThis = null;
+            }
+        }, waitTime);
+    }
+
+    return wrapper;
 }
