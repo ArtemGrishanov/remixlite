@@ -1,9 +1,5 @@
-import invertColor from "../utils/invertColor"
-
-// Log function
-function log(type = 'log', blockId = '[NO BLOCK ID]', message = '[NO ERROR MESSAGE]', data = null) {
-    console[type](`[RemixLite | Block type: 9 (TriviaQuiz), ID: ${blockId}] ${message}`, data ? data : '');
-}
+import log from "../utils/log";
+import invertColor from "../utils/invertColor";
 
 // Templates
 const templates = {
@@ -398,7 +394,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
                 handlers.click({initiator: 'start', payload: {}})
             } catch (err) {
-                log('error', data.id, null, err)
+                log('error', '9 (TriviaQuiz)', data.id, null, err)
             }
         },
         postRender: null
