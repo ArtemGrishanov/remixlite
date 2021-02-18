@@ -387,21 +387,17 @@ export default function(cnt, { M, methods, sendMessage }) {
     return {
         render: data => {
             initialData = data
-            if (initialData.struct._isValid) {
-                try {
-                    const wrapperId = `tq_${data.id}`
-                    const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
+            try {
+                const wrapperId = `tq_${data.id}`
+                const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
 
-                    methods.add(cnt, wrapper, data.t)
+                methods.add(cnt, wrapper, data.t)
 
-                    wrapperElement = document.getElementById(wrapperId)
+                wrapperElement = document.getElementById(wrapperId)
 
-                    handlers.click({initiator: 'start', payload: {}})
-                } catch (err) {
-                    log('error', data.id, null, err)
-                }
-            } else {
-                log('warn', data.id, 'Block will not render because "struct._isValid" is not true.')
+                handlers.click({initiator: 'start', payload: {}})
+            } catch (err) {
+                log('error', data.id, null, err)
             }
         },
         postRender: null
