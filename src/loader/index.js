@@ -197,7 +197,8 @@ window.RemixLoader = class RemixLoader {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
-                    projectStructure: this.#projectStructure
+                    projectStructure: this.#projectStructure,
+                    lng: this.#lng
                 }
             }, this.#appOrigin)
         }
