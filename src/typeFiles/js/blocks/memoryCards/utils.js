@@ -1,4 +1,5 @@
 import getRandomId from "../../utils/getRandomId";
+import log from "../../utils/log";
 
 export const getCoords = (elem) => {
     const box = elem.getBoundingClientRect();
@@ -10,19 +11,52 @@ export const getCoords = (elem) => {
 
 export const updateEventListeners = (domElement, handlers, additionalPayload = {}) => {
     if (domElement) {
-        const handledElements = domElement.getElementsByClassName("is-handled");
-        for (const el of handledElements) {
-            for (const handle of el.dataset.handlers.split('|')) {
-                el.addEventListener(handle, evt => handlers[handle]({
-                    initiator: el.dataset.initiator,
-                    payload: {
-                        ...el.dataset,
-                        ...additionalPayload
-                    }
-                }, evt))
+        try {
+            const handledElements = domElement.getElementsByClassName("is-handled");
+            for (const el of handledElements) {
+                for (const handle of el.dataset.handlers.split('|')) {
+                    el.addEventListener(handle, evt => handlers[handle]({
+                        initiator: el.dataset.initiator,
+                        payload: {
+                            ...el.dataset,
+                            ...additionalPayload
+                        }
+                    }, evt))
+                }
             }
+        } catch (err) {
+            log('error', '11 (MemoryCards)', data.id, null, err)
         }
     }
+}
+
+export function createStopwatch() {
+    this.isPaused = false
+    this.timer = null
+    this.second = 0
+    this.minute = 0
+    this.startTimer = (callback) => {
+        this.timer = setInterval(() => {
+            if (!this.isPaused) {
+                this.second++;
+                if (this.second == 60) {
+                    this.minute++;
+                    this.second = 0;
+                }
+                callback({minute: this.minute, second: this.second})
+            }
+        }, 1000);
+    }
+    this.clearTimer = () => {
+        clearInterval(this.timer)
+    }
+    this.pauseTimer = () => {
+        this.isPaused = true
+    }
+    this.unPauseTimer = () => {
+        this.isPaused = false
+    }
+    this.getTime = () => `${String(this.minute).padStart(2, '0')}:${String(this.second).padStart(2, '0')}`
 }
 
 export const calculateCardSideSize = (wrapperWidth, cardCount, proportion = 1) => {

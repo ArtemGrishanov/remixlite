@@ -1,6 +1,11 @@
 import log from "../../utils/log";
 import invertColor from "../../utils/invertColor";
-import {getCardsDataSet, getCoords, calculateCardSideSize, updateEventListeners} from "./utils";
+import {
+    getCardsDataSet,
+    calculateCardSideSize,
+    updateEventListeners,
+    createStopwatch
+} from "./utils";
 import throttle from "../../utils/throttle";
 
 const templates = {
@@ -12,6 +17,17 @@ const templates = {
     `,
     playgroundScreen: `
         <div class="memory-playground">
+            {{#enableTimer}}
+                <div class="memory-playground__statistic-wrapper">
+                    <div class="memory-playground__statistic-moves-wrapper">
+                        <span class="memory-playground__statistic-moves-title">Number of moves:</span>
+                        <span class="memory-playground__statistic-moves">{{movesCount}}</span>
+                    </div>
+                    <div>
+                        <div class="memory-playground__statistic-timer">{{stopWatchTime}}</div>
+                    </div>
+                </div>
+            {{/enableTimer}}
             <div class="memory-playground__card-rows-wrapper">
                 {{#renderSet}}
                     <div class="memory-playground__card-row" style="height: {{rowHeight}}">
@@ -38,10 +54,14 @@ const templates = {
             {{#imageSrc}}
                 <img class="memory-final-screen__image" src="{{imageSrc}}" alt="Cover image">
             {{/imageSrc}}
-            <div class="memory-final-screen__content {{_classes.content}}">btn-wrap
+            <div class="memory-final-screen__content {{_classes.content}}">     
+                {{#enableTimer}}
+                    <div class="memory-playground__timer-wrapper">
+                        <div class="memory-playground__timer-counter">{{stopWatchTime}}</div>
+                    </div>
+                {{/enableTimer}}       
                 <div class="memory-final-screen__content-header">{{header}}</div>
                 <div class="memory-final-screen__content-description">{{description}}</div>
-                <div>
                     {{#isActionButton}}
                         <button class="memory-final-screen__content-btn is-handled" 
                             data-handlers="click" 
@@ -49,12 +69,9 @@ const templates = {
                             style="background-color: {{colorTheme}}; 
                             color: {{buttonColor}}">{{actionButtonText}}</button>
                     {{/isActionButton}}
-                </div>
-                <div>
                     <button class="memory-final-screen__content-btn memory-final-screen__content-btn-restart is-handled" 
                         data-handlers="click" 
                         data-initiator="memory-final-screen-restart">Restart</button>
-                </div>
                 {{#imageDisclaimer}}
                     <div class="memory-final-screen__content-image-disclaimer">{{imageDisclaimer}}</div>
                 {{/imageDisclaimer}}
@@ -76,8 +93,10 @@ const templates = {
         <div class="memory-playground__feedback-wrapper">
             <div class="memory-playground__feedback">
                 <div class="memory-playground__feedback-images">
-                    <div class="memory-playground__feedback-image back" style="background-image: url({{pair.firstImage.src}})"></div>
-                    <div class="memory-playground__feedback-image front" style="background-image: url({{pair.secondImage.src}})"></div>
+                    <div class="memory-playground__feedback-image back" 
+                    style="background-image: url({{pair.firstImage.src}}); width: {{imageWidth}}; height: {{imageHeight}}"></div>
+                    <div class="memory-playground__feedback-image front" 
+                    style="background-image: url({{pair.secondImage.src}}); width: {{imageWidth}}; height: {{imageHeight}}"></div>
                 </div>
                 <p class="memory-playground__feedback-description">{{pair.description}}</p>
                 <button class="memory-playground__feedback-btn is-handled" 
@@ -115,6 +134,10 @@ export default function (cnt, {M, methods, sendMessage}) {
     let _prevSelectedCard = null
     let _isAllActive = false
     let _isUserSelectionBlocked = false
+    //Statistic
+    const _stopWatch = new createStopwatch()
+    let stopWatchTime = '00:00'
+    let movesCount = 0
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -133,25 +156,40 @@ export default function (cnt, {M, methods, sendMessage}) {
     }
 
     const updateCardVisibility = (cardId, visibility) => {
-        const cardElement = document.getElementById(cardId)
-        cardElement.dataset.isactive = visibility
-        _renderSet = _renderSet.reduce((acc, arr) => {
-            if (arr.some(card => card.id === cardId)) {
-                acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility} : card))
-            } else {
-                acc.push(arr)
+        try {
+            const cardElement = document.getElementById(cardId)
+            cardElement.dataset.isactive = visibility
+            _renderSet = _renderSet.reduce((acc, arr) => {
+                if (arr.some(card => card.id === cardId)) {
+                    acc.push(arr.map(card => card.id === cardId ? {...card, isActive: visibility} : card))
+                } else {
+                    acc.push(arr)
+                }
+                return acc
+            }, [])
+        } catch (err) {
+            log('error', '11 (MemoryCards)', data.id, null, err)
+        }
+    }
+
+    const updateDomElement = (elementClass, content) => {
+        try {
+            const [DOMElement] = _screenElement.getElementsByClassName(elementClass)
+            if (DOMElement) {
+                DOMElement.innerHTML = content
             }
-            return acc
-        }, [])
+        } catch (err) {
+            log('error', '11 (MemoryCards)', data.id, null, err)
+        }
     }
 
     const onCardClick = (evt) => {
         if (_isUserSelectionBlocked) {
             return
         }
-        const cardId = evt.currentTarget.id
+
         const card = _renderSet.reduce((acc, row) => {
-            const card = row.find(card => card.id === cardId)
+            const card = row.find(card => card.id === evt.currentTarget.id)
             if (card) {
                 acc = card
             }
@@ -179,13 +217,16 @@ export default function (cnt, {M, methods, sendMessage}) {
 
         // React only on non active cards
         if (!card.isActive) {
+
             // (3)Third step: show card if pair or hide both selected and previous selected cards.
+            updateDomElement('memory-playground__statistic-moves', ++movesCount)
             if (_prevSelectedCard.pairId === card.pairId) {
                 updateCardVisibility(card.id, true)
 
                 // (4)Fourth step: show card feedback.
                 const {isShowFeedback, pairList} = _initialData.struct.pairs
                 const isAllActive = _renderSet.every(row => row.every(card => card.isActive))
+
                 if (isShowFeedback) {
                     const pair = pairList.find((pair) => pair.id === card.pairId)
                     _isUserSelectionBlocked = true
@@ -243,6 +284,9 @@ export default function (cnt, {M, methods, sendMessage}) {
 
                 _screenElement.innerHTML = M.render(templates.playgroundScreen, {
                     renderSet: _renderSet,
+                    enableTimer: _initialData.enableTimer,
+                    movesCount: movesCount,
+                    stopWatchTime: stopWatchTime,
                     rowHeight: `${calculateCardSideSize(_screenWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
                     cellWidth: `${calculateCardSideSize(_screenWidth, cellCount)}px`,
                     ...generalSetting
@@ -259,6 +303,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                     imageDisclaimer: _initialData.struct.finalScreen.imageDisclaimer,
                     isActionButton: _initialData.isActionButton,
                     actionButtonText: _initialData.actionButtonText,
+                    enableTimer: _initialData.enableTimer,
+                    stopWatchTime: _stopWatch.getTime(),
                     _classes: {
                         content: _initialData.struct.finalScreen.imageSrc ? '' : 'no-image'
                     },
@@ -280,9 +326,13 @@ export default function (cnt, {M, methods, sendMessage}) {
                 break;
             }
             case templateTitles.feedbackModal: {
+                const proportions = _initialData.struct.playground.cardProportions
+
                 _modalElement.innerHTML = payload && payload.isShowFeedBack ?
                     M.render(templates.feedbackModal, {
                         pair: payload.pair,
+                        imageHeight: `${160 * CARD_PROPORTIONS_HEIGHT[proportions]}px`,
+                        imageWidth: `160px`,
                         ...generalSetting
                     })
                     :
@@ -303,6 +353,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 case 'memory-final-screen-restart': {
                     const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
                     const {pairList} = _initialData.struct.pairs;
+                    _stopWatch.clearTimer()
                     _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
                     renderTemplates(templateTitles.playgroundScreen)
                     renderTemplates(templateTitles.coverModal, {isShowCover})
@@ -314,6 +365,14 @@ export default function (cnt, {M, methods, sendMessage}) {
                     break;
                 }
                 case 'memory-cover-start': {
+                    const {enableTimer} = _initialData;
+                    if (enableTimer) {
+                        _stopWatch.startTimer((prop) => {
+                            const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+                            updateDomElement('memory-playground__statistic-timer', time)
+                            stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+                        })
+                    }
                     renderTemplates(templateTitles.coverModal, {isShowCover: false})
                     sendAction('memory-cover-start')
                     break;
@@ -321,6 +380,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 case 'memory-feedback-show': {
                     renderTemplates(templateTitles.feedbackModal, {isShowFeedBack: true, pair: payload})
                     updateEventListeners(_modalElement, handlers)
+                    _stopWatch.pauseTimer()
                     sendAction('memory-feedback-show')
                     break;
                 }
@@ -330,6 +390,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                         handlers.click({initiator: 'memory-playground-final'})
                         return
                     }
+                    _stopWatch.unPauseTimer()
                     sendAction('memory-feedback-close')
                     break;
                 }
@@ -341,6 +402,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 case 'memory-playground-final': {
                     renderTemplates(templateTitles.finalScreen)
                     updateEventListeners(_screenElement, handlers)
+                    _stopWatch.pauseTimer()
                     sendAction('memory-playground-final')
                     break;
                 }
