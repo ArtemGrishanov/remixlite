@@ -122,7 +122,7 @@ window.RemixLoader = class RemixLoader {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'projectStructure': {
-                        if (validator.isJSON(value)) {
+                        if (validator.isJsonString(value)) {
                             return JSON.parse(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
@@ -197,7 +197,8 @@ window.RemixLoader = class RemixLoader {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
-                    projectStructure: this.#projectStructure
+                    projectStructure: this.#projectStructure,
+                    lng: this.#lng
                 }
             }, this.#appOrigin)
         }

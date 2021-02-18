@@ -21,10 +21,10 @@ export const validator = {
             return false
         }
     },
-    isJSON: value => {
+    isJsonString: value => {
         try {
             return (JSON.parse(value) && !!value);
-        } catch (e) {
+        } catch (err) {
             return false;
         }
     },
