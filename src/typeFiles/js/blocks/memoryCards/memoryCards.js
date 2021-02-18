@@ -136,8 +136,8 @@ export default function (cnt, {M, methods, sendMessage}) {
     let _isUserSelectionBlocked = false
     //Statistic
     const _stopWatch = new createStopwatch()
-    let stopWatchTime = '00:00'
-    let movesCount = 0
+    let _stopWatchTime = '00:00'
+    let _movesCount = 0
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -219,7 +219,7 @@ export default function (cnt, {M, methods, sendMessage}) {
         if (!card.isActive) {
 
             // (3)Third step: show card if pair or hide both selected and previous selected cards.
-            updateDomElement('memory-playground__statistic-moves', ++movesCount)
+            updateDomElement('memory-playground__statistic-moves', ++_movesCount)
             if (_prevSelectedCard.pairId === card.pairId) {
                 updateCardVisibility(card.id, true)
 
@@ -285,8 +285,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 _screenElement.innerHTML = M.render(templates.playgroundScreen, {
                     renderSet: _renderSet,
                     enableTimer: _initialData.enableTimer,
-                    movesCount: movesCount,
-                    stopWatchTime: stopWatchTime,
+                    movesCount: _movesCount,
+                    stopWatchTime: _stopWatchTime,
                     rowHeight: `${calculateCardSideSize(_screenWidth, cellCount, CARD_PROPORTIONS_HEIGHT[proportions])}px`,
                     cellWidth: `${calculateCardSideSize(_screenWidth, cellCount)}px`,
                     ...generalSetting
@@ -354,6 +354,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                     const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
                     const {pairList} = _initialData.struct.pairs;
                     _stopWatch.clearTimer()
+                    _stopWatchTime = '00:00'
+                    _movesCount = 0
                     _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
                     renderTemplates(templateTitles.playgroundScreen)
                     renderTemplates(templateTitles.coverModal, {isShowCover})
@@ -370,7 +372,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                         _stopWatch.startTimer((prop) => {
                             const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
                             updateDomElement('memory-playground__statistic-timer', time)
-                            stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+                            _stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
                         })
                     }
                     renderTemplates(templateTitles.coverModal, {isShowCover: false})

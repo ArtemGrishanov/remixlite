@@ -81,6 +81,10 @@
           border-radius: 12px;
           cursor: pointer;
 
+          @include maxWidth(799) {
+            border-radius: 8px;
+          }
+
           &[data-isactive='true'] {
             .memory-playground__card-cell-inner {
               transform: rotateY(180deg);
@@ -95,6 +99,10 @@
             transition: transform 0.6s;
             transform-style: preserve-3d;
 
+            @include maxWidth(799) {
+              border-radius: 8px;
+            }
+
             .memory-playground__flip-card {
               position: absolute;
               height: 100%;
@@ -105,6 +113,10 @@
               background-repeat: no-repeat;
               -webkit-backface-visibility: hidden;
               backface-visibility: hidden;
+
+              @include maxWidth(799) {
+                border-radius: 8px;
+              }
 
               &.memory-playground__flip-card-front {
                 transform: rotateY(180deg);
