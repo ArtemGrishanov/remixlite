@@ -682,18 +682,27 @@
 
 // region Timeline block
 .timeline-block {
-  padding: 33px 12px 30px 70px;
+  padding: 33px 12px 30px $timeline-block-left-padding;
 
-  ~ .block:not(.timeline-block):not(.text-block) {
-    &::before {
-      @include timeLinePseudoElement();
+  ~ .block {
+    &:not(.timeline-block) {
+      &::before {
+        @include timeLinePseudoElement();
 
-      top: -$block-top-margin;
+        top: -$block-top-margin;
+      }
+    }
+
+    &.text-block {
+      padding-left: $timeline-block-left-padding;
     }
   }
   &.timeline-end ~ .block {
     &::before {
       display: none;
+    }
+    &.text-block {
+      padding-left: 15px;
     }
   }
   @include maxWidth(799) {
