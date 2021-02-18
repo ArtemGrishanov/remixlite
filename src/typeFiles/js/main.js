@@ -21,7 +21,7 @@ import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
 
-import BlocksNavigation from "./utils/blocksNavigation";
+import BlocksNavigation from "./utils/navigation/blocksNavigation";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',

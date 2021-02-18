@@ -7,6 +7,8 @@
     position: absolute;
     top: 100px;
     opacity: 1;
+
+    // transition of showing
     transition:
             top,
             left,
@@ -14,8 +16,21 @@
     transition-timing-function:
             ease-out,
             ease-out,
-            ease-out;
-    transition-duration: 0.2s, 0.2s, 0.2s;
+            cubic-bezier(0.7, 0, 0.84, 0);
+    transition-duration: 0.3s, 0.2s, 0.2s;
+
+    &--invisible {
+        opacity: 0;
+
+        // transition of hiding
+        transition:
+                left,
+                opacity;
+        transition-timing-function:
+                ease-in,
+                cubic-bezier(0.16, 1, 0.3, 1);
+        transition-duration: 0.2s, 0.2s;
+    }
 }
 
 .navigation-top,
@@ -37,8 +52,8 @@
 
     &--invisible {
         left: -250px;
-        opacity: 0;
     }
+
     &:after {
         content: " ";
         display: block;
@@ -60,9 +75,11 @@
 
 .navigation-center {
     left: $timeline-left-indent / 2;
+
     @include maxWidth(799) {
         left: $timeline-left-indent--mobile / 2;
     }
+
     transform: translateY(-50%);
     width: 0;
     overflow: visible;
@@ -78,6 +95,11 @@
         transform: translateX(-50%);
         background-color: #FFFFFF;
     }
+
+    &--invisible {
+        left: -50px;
+    }
+
     &__dot {
         width: 16px;
         height: 16px;
@@ -91,6 +113,7 @@
         &:first-child {
             margin-top: 0;
         }
+
         &:after {
             content: " ";
             width: 6px;
@@ -102,6 +125,7 @@
             transform: translateX(-50%) translateY(-50%);
             background-color: #B0B0B0;
         }
+
         &--current:after {
             background-color: #000000;
         }
