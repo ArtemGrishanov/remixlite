@@ -1,5 +1,7 @@
 import Mustache from 'mustache'
 
+import { setLanguage, getTranslation } from './i18n'
+
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
 // Import blocks
@@ -169,7 +171,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation
         }),
         // Then\Now
         [BLOCK.thenNow]: container => blockThenNow(container, {
@@ -311,6 +314,8 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                     isInitialized = true;
 
                     const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
+
+                    setLanguage(payload.lng)
 
                     const root = document.getElementById('remix-app-root');
 

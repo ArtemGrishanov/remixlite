@@ -1,4 +1,4 @@
-import invertColor from "../utils/invertColor";
+import invertColor from "../utils/invertColor"
 
 // Log function
 function log(type = 'log', blockId = '[NO BLOCK ID]', message = '[NO ERROR MESSAGE]', data = null) {
@@ -103,7 +103,7 @@ const templates = {
                         </div>
                     {{/callToActionButton}}
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">Restart</button>
+                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">{{restartText}}</button>
                     </div>
                 </div>
                 {{#result.imageDisclaimer}}
@@ -118,7 +118,7 @@ function getParsedHTML(M, templateName, view) {
     return M.render(templates[templateName], view);
 }
 
-export default function(cnt, { M, methods, sendMessage }) {
+export default function(cnt, { M, methods, sendMessage, getTranslation }) {
     let wrapperElement = null
     let initialData = {}
     let scores = 0
@@ -208,6 +208,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     showScores: initialData.showScores,
                     callToActionButton: initialData.callToActionEnabled,
                     callToActionButtonText: initialData.callToActionText,
+                    restartText: getTranslation('Restart'),
                     scores: {
                         current: scores,
                         all: initialData.struct.questions.length
@@ -284,7 +285,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
-                        text: payload.qIndex === (initialData.struct.questions.length - 1) ? "See result" : "Next",
+                        text: payload.qIndex === (initialData.struct.questions.length - 1) ? getTranslation('See result') : getTranslation('Next'),
                         colorTheme: initialData.colorTheme,
                         buttonColor: invertColor(initialData.colorTheme, true)
                     }))
