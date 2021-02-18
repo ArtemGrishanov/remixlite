@@ -9,6 +9,7 @@ const BLOCK = {
     hiddenObjects: 8,
     quiz: 9,
     thenNow: 10,
+    memoryCards: 11,
 }
 Object.freeze(BLOCK)
 
