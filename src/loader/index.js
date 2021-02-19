@@ -410,11 +410,11 @@ window.RemixLoader = class RemixLoader {
         }
     }
     #createPoweredLabel = () => {
-        const html = `<a href="https://google.com" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
+        const html = `<a href="https://interacty.me" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
-        div.firstChild.addEventListener('click', evt => this.#sendEventToContainerInstance('createPoweredLabel clicked', null))
+        // div.firstChild.addEventListener('click', () => {})
         return div.firstChild;
     }
     #createError = () => {

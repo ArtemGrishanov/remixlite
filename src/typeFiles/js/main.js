@@ -328,7 +328,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         clientId,
                         projectStructure,
                         sizes: {
-                            maxWidth: projectStructure.app.maxWidth || 800,
+                            maxWidth: projectStructure.app.maxWidth ? Number(projectStructure.app.maxWidth) : 800,
                             height: root.scrollHeight
                         }
                     })
