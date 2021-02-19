@@ -1,5 +1,7 @@
 import Mustache from 'mustache'
 
+import { setLanguage, getTranslation } from './i18n'
+
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
 // Import blocks
@@ -169,7 +171,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation
         }),
         // Then\Now
         [BLOCK.thenNow]: container => blockThenNow(container, {
@@ -312,6 +315,8 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
 
+                    setLanguage(payload.lng)
+
                     const root = document.getElementById('remix-app-root');
 
                     root.style.backgroundColor = projectStructure.app.bg || '#fff'
@@ -323,7 +328,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         clientId,
                         projectStructure,
                         sizes: {
-                            maxWidth: projectStructure.app.maxWidth || 800,
+                            maxWidth: projectStructure.app.maxWidth ? Number(projectStructure.app.maxWidth) : 800,
                             height: root.scrollHeight
                         }
                     })
