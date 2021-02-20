@@ -198,7 +198,8 @@ window.RemixLoader = class RemixLoader {
                 method: 'init',
                 payload: {
                     projectStructure: this.#projectStructure,
-                    lng: this.#lng
+                    lng: this.#lng,
+                    mode: this.#mode
                 }
             }, this.#appOrigin)
         }
