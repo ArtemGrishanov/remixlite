@@ -440,7 +440,6 @@ window.RemixLoader = class RemixLoader {
         const rect = this.#iframe.getBoundingClientRect()
         const position = {
             top: rect.top,
-            bottom: rect.bottom,
             left: rect.left
         };
 

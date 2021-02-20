@@ -325,8 +325,13 @@ class Remix {
                 this.#timelineLastBlockId = blockData.id;
             }
         });
-            // TODO Remove event listener on destroy
     }
+
+    /**
+     * Get options for specific block. Allows to pass some data into the block component before it renders
+     * @param blockData
+     * @returns {Object|undefined} Block options
+     */
     #getBlockOptions = blockData => {
         const options = {};
         switch (blockData.t) {
@@ -400,7 +405,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         }
                         sendMessage('setSize', {
                             sizes: {
-                                height: entries[0].target.scrollHeight
+                                height: target.scrollHeight
                             }
                         })
                     })
@@ -428,6 +433,7 @@ function sendMessage(method, payload = null) {
         }, cntOrigin);
     }
 }
+
 /**
  * Hack for server screenshot (server is not inject loader file, that mean we need to send "init" method manually)
  */

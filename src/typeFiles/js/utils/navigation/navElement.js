@@ -30,11 +30,9 @@ class NavElement {
 
     #applyVisibility = () => {
         if (this._isVisible) {
-            console.log('visible');
             this.element.classList.remove(this.#cssInvisibleClass);
             this.element.style.top = this.position + 'px';
         } else {
-            console.log('INvisible');
             this.element.classList.add(this.#cssInvisibleClass);
         }
     }
