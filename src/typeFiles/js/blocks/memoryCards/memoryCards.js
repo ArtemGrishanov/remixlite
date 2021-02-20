@@ -4,9 +4,12 @@ import {
     getCardsDataSet,
     calculateCardSideSize,
     updateEventListeners,
-    CreateStopwatch
+    CreateStopwatch,
+    getMobileCardLayout,
+    updateCardsDataSet
 } from "./utils";
 import throttle from "../../utils/throttle";
+import {START_WEB_PAGE_SIZE} from "../../utils/constants";
 
 const templates = {
     wrapper: `
@@ -129,6 +132,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
     let _modalElement = null
     let _screenElement = null
     let _screenWidth = null
+    let _isMobileLayout = false
     //memory logic
     let _renderSet = null
     let _prevSelectedCard = null
@@ -275,7 +279,20 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
     const resizeObserver = new ResizeObserver(throttle(() => {
         if (_screenElement.offsetWidth !== _screenWidth && _activeScreen === templateTitles.playgroundScreen) {
             _screenWidth = _screenElement.offsetWidth
-            renderTemplates(templateTitles.playgroundScreen)
+            if (_screenWidth < START_WEB_PAGE_SIZE) {
+                const mobileLayout = getMobileCardLayout(_initialData.struct.playground.cardLayout)
+                if(!_isMobileLayout) {
+                    _renderSet = updateCardsDataSet(mobileLayout.value, _renderSet)
+                    _isMobileLayout = true
+                }
+                renderTemplates(templateTitles.playgroundScreen, {cardLayout: mobileLayout})
+            } else {
+                if(_isMobileLayout) {
+                    _renderSet = updateCardsDataSet(_initialData.struct.playground.cardLayout.value, _renderSet)
+                    _isMobileLayout = false
+                }
+                renderTemplates(templateTitles.playgroundScreen)
+            }
             updateEventListeners(_screenElement, handlers)
         }
     }, 300))
@@ -288,7 +305,8 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
         switch (type) {
             case templateTitles.playgroundScreen: {
                 const proportions = _initialData.struct.playground.cardProportions
-                const [cellCount] = _initialData.struct.playground.cardLayout.value.split('x').map(x => Number(x))
+                const cardLayout  = payload.cardLayout ? payload.cardLayout : _initialData.struct.playground.cardLayout
+                const [cellCount] = cardLayout.value.split('x').map(x => Number(x))
 
                 _screenElement.innerHTML = M.render(templates.playgroundScreen, {
                     renderSet: _renderSet,
@@ -363,14 +381,24 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
                 case 'memory-final-screen-restart': {
                     const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
                     const {pairList} = _initialData.struct.pairs;
+
                     _stopWatch.clearTimer()
                     _stopWatchTime = '00:00'
                     _movesCount = 0
-                    _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
-                    renderTemplates(templateTitles.playgroundScreen)
+
+                    if(_screenWidth < START_WEB_PAGE_SIZE) {
+                        const mobileLayout = getMobileCardLayout(_initialData.struct.playground.cardLayout)
+                        _renderSet = getCardsDataSet(mobileLayout.value, pairList, cardBackImage)
+                        renderTemplates(templateTitles.playgroundScreen, {cardLayout: mobileLayout})
+                    } else {
+                        _renderSet = getCardsDataSet(cardLayout.value, pairList, cardBackImage)
+                        renderTemplates(templateTitles.playgroundScreen)
+                    }
+
                     renderTemplates(templateTitles.coverModal, {isShowCover})
                     updateEventListeners(_screenElement, handlers)
                     updateEventListeners(_modalElement, handlers)
+
                     if (initiator === 'memory-final-screen-restart') {
                         sendAction('memory-final-screen-restart')
                     }
@@ -439,6 +467,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
                 methods.add(cnt, wrapper, data.t)
 
                 const [screenElement, modalElement] = document.getElementById(wrapperId).children
+                _screenWidth = screenElement.offsetWidth
                 _screenElement = screenElement
                 _modalElement = modalElement
 
