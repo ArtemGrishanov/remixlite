@@ -1,6 +1,8 @@
 import Mustache from 'mustache'
 
-// Import blocks Enums
+import { setLanguage, getTranslation } from './i18n'
+
+// Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
 import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
 // Import blocks
@@ -14,12 +16,16 @@ import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
+import blockMemoryCards from './blocks/memoryCards/memoryCards'
 import blockTimeline from './blocks/timeline'
 
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
+//Import Utils
+import throttle from "./utils/throttle";
+import getRandomId from "./utils/getRandomId";
 
 import BlocksNavigation from "./utils/navigation/blocksNavigation";
 
@@ -170,7 +176,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation,
         }),
         // Then\Now
         [BLOCK.thenNow]: container => blockThenNow(container, {
@@ -178,6 +185,15 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             }
+        }),
+        // Memory cards
+        [BLOCK.memoryCards]: container => blockMemoryCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage
         }),
         // Timeline
         [BLOCK.timeline]: (container, blockOptions) => blockTimeline(
@@ -351,6 +367,8 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
 
+                    setLanguage(payload.lng)
+
                     const root = document.getElementById('remix-app-root');
 
                     root.style.backgroundColor = projectStructure.app.bg || '#fff'
@@ -362,7 +380,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         clientId,
                         projectStructure,
                         sizes: {
-                            maxWidth: projectStructure.app.maxWidth || 800,
+                            maxWidth: projectStructure.app.maxWidth ? Number(projectStructure.app.maxWidth) : 800,
                             height: root.scrollHeight
                         }
                     })
@@ -398,38 +416,6 @@ function sendMessage(method, payload = null) {
             payload
         }, cntOrigin);
     }
-}
-function getRandomId(t = 21) {
-    let s = '', r = crypto.getRandomValues(new Uint8Array(t))
-    for (; t--; ) {
-        const n = 63 & r[t]
-        s += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? '_' : '-'
-    }
-    return s
-}
-function throttle(func, waitTime) {
-    let isThrottled = false,
-        savedArgs,
-        savedThis;
-
-    function wrapper() {
-        if (isThrottled) {
-            savedArgs = arguments;
-            savedThis = this;
-            return;
-        }
-        func.apply(this, arguments);
-        isThrottled = true;
-        setTimeout(function() {
-            isThrottled = false;
-            if (savedArgs) {
-                wrapper.apply(savedThis, savedArgs);
-                savedArgs = savedThis = null;
-            }
-        }, waitTime);
-    }
-
-    return wrapper;
 }
 /**
  * Hack for server screenshot (server is not inject loader file, that mean we need to send "init" method manually)

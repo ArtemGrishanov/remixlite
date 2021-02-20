@@ -122,7 +122,7 @@ window.RemixLoader = class RemixLoader {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'projectStructure': {
-                        if (validator.isJSON(value)) {
+                        if (validator.isJsonString(value)) {
                             return JSON.parse(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
@@ -197,7 +197,9 @@ window.RemixLoader = class RemixLoader {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
-                    projectStructure: this.#projectStructure
+                    projectStructure: this.#projectStructure,
+                    lng: this.#lng,
+                    mode: this.#mode
                 }
             }, this.#appOrigin)
         }
@@ -409,11 +411,11 @@ window.RemixLoader = class RemixLoader {
         }
     }
     #createPoweredLabel = () => {
-        const html = `<a href="https://google.com" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
+        const html = `<a href="https://interacty.me" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
-        div.firstChild.addEventListener('click', evt => this.#sendEventToContainerInstance('createPoweredLabel clicked', null))
+        // div.firstChild.addEventListener('click', () => {})
         return div.firstChild;
     }
     #createError = () => {

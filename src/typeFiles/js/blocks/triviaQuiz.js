@@ -1,9 +1,5 @@
+import log from "../utils/log";
 import invertColor from "../utils/invertColor";
-
-// Log function
-function log(type = 'log', blockId = '[NO BLOCK ID]', message = '[NO ERROR MESSAGE]', data = null) {
-    console[type](`[RemixLite | Block type: 9 (TriviaQuiz), ID: ${blockId}] ${message}`, data ? data : '');
-}
 
 // Templates
 const templates = {
@@ -103,7 +99,7 @@ const templates = {
                         </div>
                     {{/callToActionButton}}
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">Restart</button>
+                        <button class="is-handled" data-handlers="click" data-initiator="result.restart">{{restartText}}</button>
                     </div>
                 </div>
                 {{#result.imageDisclaimer}}
@@ -118,7 +114,7 @@ function getParsedHTML(M, templateName, view) {
     return M.render(templates[templateName], view);
 }
 
-export default function(cnt, { M, methods, sendMessage }) {
+export default function(cnt, { M, methods, sendMessage, getTranslation }) {
     let wrapperElement = null
     let initialData = {}
     let scores = 0
@@ -208,6 +204,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     showScores: initialData.showScores,
                     callToActionButton: initialData.callToActionEnabled,
                     callToActionButtonText: initialData.callToActionText,
+                    restartText: getTranslation('Restart'),
                     scores: {
                         current: scores,
                         all: initialData.struct.questions.length
@@ -284,7 +281,7 @@ export default function(cnt, { M, methods, sendMessage }) {
                     }
 
                     wrapperElement.getElementsByClassName('list')[0].insertAdjacentHTML('afterEnd', getParsedHTML(M, 'question.next', {
-                        text: payload.qIndex === (initialData.struct.questions.length - 1) ? "See result" : "Next",
+                        text: payload.qIndex === (initialData.struct.questions.length - 1) ? getTranslation('See result') : getTranslation('Next'),
                         colorTheme: initialData.colorTheme,
                         buttonColor: invertColor(initialData.colorTheme, true)
                     }))
@@ -387,21 +384,17 @@ export default function(cnt, { M, methods, sendMessage }) {
     return {
         render: data => {
             initialData = data
-            if (initialData.struct._isValid) {
-                try {
-                    const wrapperId = `tq_${data.id}`
-                    const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
+            try {
+                const wrapperId = `tq_${data.id}`
+                const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
 
-                    methods.add(cnt, wrapper, data.t)
+                methods.add(cnt, wrapper, data.t)
 
-                    wrapperElement = document.getElementById(wrapperId)
+                wrapperElement = document.getElementById(wrapperId)
 
-                    handlers.click({initiator: 'start', payload: {}})
-                } catch (err) {
-                    log('error', data.id, null, err)
-                }
-            } else {
-                log('warn', data.id, 'Block will not render because "struct._isValid" is not true.')
+                handlers.click({initiator: 'start', payload: {}})
+            } catch (err) {
+                log('error', '9 (TriviaQuiz)', data.id, null, err)
             }
         },
         postRender: null
