@@ -2,7 +2,7 @@ import NavElement from "./navElement";
 
 class NavDots extends NavElement {
     #dots = [];
-    #dotCssClassName = this.cssName + '__dot';
+    #dotCssClassName = this.cssClass + '__dot';
     #activeDotCssClassName = this.#dotCssClassName + '--current';
 
     constructor(name, containerElement, messageSender, blocksCount) {

@@ -1,18 +1,19 @@
 class NavElement {
     element; // HTMLElement
     position; // Number
-    cssName = '';
+    cssClass = '';
     navigate;
     _currentBlockIndex; // Number
     _isVisible = false; // Boolean
+    #cssInvisibleClass = '';
 
     constructor(name, containerElement, navigateCallback) {
         this.element = document.createElement('div');
-        this.cssName = 'navigation-' + name;
-        this.element.className = this.cssName;
+        this.cssClass = 'navigation-' + name;
+        this.#cssInvisibleClass = this.cssClass + '--invisible';
+        this.element.classList.add(this.cssClass, this.#cssInvisibleClass);
         containerElement.appendChild(this.element);
         this.navigate = navigateCallback;
-        this.#applyVisibility();
     }
 
     set isVisible(newValue) {
@@ -28,12 +29,13 @@ class NavElement {
     }
 
     #applyVisibility = () => {
-        const cssInvisibleClass = this.cssName + '--invisible';
         if (this._isVisible) {
-            this.element.classList.remove(cssInvisibleClass);
+            console.log('visible');
+            this.element.classList.remove(this.#cssInvisibleClass);
             this.element.style.top = this.position + 'px';
         } else {
-            this.element.classList.add(cssInvisibleClass);
+            console.log('INvisible');
+            this.element.classList.add(this.#cssInvisibleClass);
         }
     }
 }

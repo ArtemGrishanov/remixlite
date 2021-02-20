@@ -368,6 +368,7 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                     })
 
                     const resizeObserver = new ResizeObserver(entries => {
+                        // check mobile size
                         sendMessage('setSize', {
                             sizes: {
                                 height: entries[0].target.scrollHeight

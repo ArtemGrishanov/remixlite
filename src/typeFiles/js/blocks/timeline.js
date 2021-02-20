@@ -14,8 +14,9 @@ export default function(containerElement, remixMethods, blockOptions) {
                 markSubtitle: markSubtitle ? '<h3 class="timeline-block__mark-subtitle">{{markSubtitle}}</h3>' : '',
                 imageDescription: imageDescription ? '<div class="timeline-block__image-description">{{imageDescription}}</div>' : '',
             };
+            const onlyImageCssClass = !imageDescription ? 'timeline-block__image-with-description--no-description' : '';
             templates.image = imageUrl ?
-                `<div class="timeline-block__image-with-description">
+                `<div class="timeline-block__image-with-description ${onlyImageCssClass}">
                     <div class="timeline-block__image-container">
                         <img class="timeline-block__image" src={{imageUrl}} alt="" />
                     </div>

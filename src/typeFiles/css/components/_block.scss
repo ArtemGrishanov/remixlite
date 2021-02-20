@@ -695,6 +695,10 @@
 
     &.text-block {
       padding-left: $timeline-block-left-padding;
+      @include maxWidth(799) {
+        padding-right: 4vw;
+        padding-left: 15vw;
+      }
     }
   }
   &.timeline-end ~ .block {
@@ -706,7 +710,7 @@
     }
   }
   @include maxWidth(799) {
-    padding: 20px 4vw 20px 14vw;
+    padding: 20px 4vw 20px 15vw;
   }
 
   ~ .timeline-block, // All but first
@@ -736,7 +740,7 @@
 
     @include maxWidth(799) {
       top: 42px;
-      left: calc(7vw + 1px);
+      left: $timeline-left-indent--mobile;
       transform: translateX(-50%);
     }
   }
@@ -761,9 +765,21 @@
   }
   &__image-with-description {
     @include minWidth(800) {
-      width: 33%;
-      min-width: 33%;
-      margin-right: 20px;
+      width: 35%;
+      min-width: 35%;
+    }
+    @include maxWidth(799) {
+      // В мобилке по умолчанию отключаем обтекание
+      display: flex;
+
+      &--no-description {
+        // и включаем его только если есть только картинка
+        display: block;
+
+        .timeline-block__image-container {
+          float: left;
+        }
+      }
     }
   }
   &__image-container {
@@ -772,18 +788,17 @@
     }
     @include maxWidth(799) {
       width: 32vw;
-      float: left;
       margin: 0 4vw 4vw 0;
     }
   }
   &__image {
     width: 100%;
 
-    //@include maxWidth(799) {
-    //  width: 32vw;
-    //  float: left;
-    //  margin: 0 4vw 3vw 0;
-    //}
+    @include maxWidth(799) {
+      width: 32vw;
+      //float: left;
+      margin: 0 4vw 3vw 0;
+    }
   }
   &__image-description {
     color: $timeline-image-description-color;
@@ -799,13 +814,25 @@
       margin-bottom: 4vw;
     }
   }
-  &__content {
+  &__image-container,
+  &__image-description {
     @include minWidth(800) {
-      display: flex;
+      float: left;
+      margin-right: 20px;
     }
+
+  }
+  &__content {
+    //@include minWidth(800) {
+    //  display: flex;
+    //}
   }
   &__text {
     flex-grow: 1;
   }
+}
+
+.iframe_wrapper.mobile {
+
 }
 // endregion
