@@ -41,42 +41,51 @@ export default function(cnt, { methods }) {
             const updateContainerHeight = () => {
                 container.style.height = Math.round(container.getBoundingClientRect().width * (+imgPrp[1]) / (+imgPrp[0])) + 'px';
             }
-            const setDelimiterLeft = newLeft => {
-                delimiterDiv.style.left = newLeft + 'px';
-                imgParentDiv.style.left = newLeft + 'px';
-                imgInnerDiv.style.left = '-' + newLeft + 'px';
+            const setDelimiterPosition = position => {
+                if (position < 0) position = 0;
+                else if (position > 100) position = 100;
+                delimiterDiv.style.left = position + '%';
+                imgParentDiv.style.left = position + '%';
+                imgInnerDiv.style.left = '-' + position + '%';
             }
 
             updateContainerHeight();
             window.addEventListener('resize', () => {
                 if (container) {
                     updateContainerHeight();
-                    setDelimiterLeft(Math.round(container.getBoundingClientRect().width / 2));
+                    setDelimiterPosition(50);
                 }
             })
 
-            delimiterSvg.addEventListener('mousedown', event => {
-                event.preventDefault();
+            const mouseDownEventHandler = event => {
+                const isTouch = !!event.touches;
+                const clientX = isTouch ? event.touches[0].clientX : event.clientX;
+                const position = Math.round((clientX - container.getBoundingClientRect().left) / container.getBoundingClientRect().width * 100);
+                setDelimiterPosition(position);
+                delimiterDiv.style.opacity = '0.7';
+                delimiterSvg.style.opacity = '0.7';
 
-                const onMouseMove = mmEvent => {
-                    let newLeft = mmEvent.clientX - container.getBoundingClientRect().left;
-                    const width = container.getBoundingClientRect().width;
-                    if (newLeft < 0) {
-                        newLeft = 0
-                    } else if (newLeft > width) {
-                        newLeft = width
-                    }
-                    setDelimiterLeft(newLeft)
+                const onMove = moveEvent => {
+                    if (!isTouch) moveEvent.preventDefault();
+                    const clientX = isTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    const position = Math.round((clientX - container.getBoundingClientRect().left) / container.getBoundingClientRect().width * 100);
+                    setDelimiterPosition(position);
                 }
 
-                const onMouseUp = () => {
-                    document.removeEventListener('mouseup', onMouseUp);
-                    document.removeEventListener('mousemove', onMouseMove);
+                const onUp = () => {
+                    delimiterDiv.style.opacity = '1';
+                    delimiterSvg.style.opacity = '1';
+                    document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', onMove);
+                    document.removeEventListener(isTouch ? 'touchend' : 'mouseup', onUp);
+
                 }
 
-                document.addEventListener('mouseup', onMouseUp)
-                document.addEventListener('mousemove', onMouseMove)
-            })
+                document.addEventListener(isTouch ? 'touchmove' : 'mousemove', onMove);
+                document.addEventListener(isTouch ? 'touchend' : 'mouseup', onUp);
+            }
+
+            container.onmousedown = mouseDownEventHandler;
+            container.ontouchstart = mouseDownEventHandler;
         }
     }
 }
