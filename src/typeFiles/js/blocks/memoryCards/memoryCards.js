@@ -4,7 +4,7 @@ import {
     getCardsDataSet,
     calculateCardSideSize,
     updateEventListeners,
-    createStopwatch
+    CreateStopwatch
 } from "./utils";
 import throttle from "../../utils/throttle";
 
@@ -135,7 +135,7 @@ export default function (cnt, {M, methods, sendMessage}) {
     let _isAllActive = false
     let _isUserSelectionBlocked = false
     //Statistic
-    const _stopWatch = new createStopwatch()
+    const _stopWatch = new CreateStopwatch()
     let _stopWatchTime = '00:00'
     let _movesCount = 0
 
@@ -181,6 +181,14 @@ export default function (cnt, {M, methods, sendMessage}) {
         } catch (err) {
             log('error', '11 (MemoryCards)', data.id, null, err)
         }
+    }
+
+    const startStopWatch = () => {
+        _stopWatch.startTimer((prop) => {
+            const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+            updateDomElement('memory-playground__statistic-timer', time)
+            _stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+        })
     }
 
     const onCardClick = (evt) => {
@@ -368,12 +376,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 }
                 case 'memory-cover-start': {
                     const {enableTimer} = _initialData;
-                    if (enableTimer) {
-                        _stopWatch.startTimer((prop) => {
-                            const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
-                            updateDomElement('memory-playground__statistic-timer', time)
-                            _stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
-                        })
+                    if (enableTimer && !_stopWatch.isTimerStarted()) {
+                        startStopWatch()
                     }
                     renderTemplates(templateTitles.coverModal, {isShowCover: false})
                     sendAction('memory-cover-start')
@@ -397,6 +401,10 @@ export default function (cnt, {M, methods, sendMessage}) {
                     break;
                 }
                 case 'memory-playground-card': {
+                    const {enableTimer} = _initialData;
+                    if(enableTimer &&!_stopWatch.isTimerStarted()) {
+                        startStopWatch()
+                    }
                     onCardClick(evt)
                     sendAction('memory-playground-card')
                     break;
