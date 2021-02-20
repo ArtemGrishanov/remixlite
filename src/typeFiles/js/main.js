@@ -385,8 +385,19 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         }
                     })
 
+                    const isPreviewMode = payload.mode === 'preview';
+                    const mobilePreviewStateCssClass = 'is-mobile-preview';
+
                     const resizeObserver = new ResizeObserver(entries => {
-                        // check mobile size
+                        const target = entries[0].target;
+
+                        if (isPreviewMode) {
+                            if (target.clientWidth < 700) {
+                                root.classList.add(mobilePreviewStateCssClass);
+                            } else {
+                                root.classList.remove(mobilePreviewStateCssClass);
+                            }
+                        }
                         sendMessage('setSize', {
                             sizes: {
                                 height: entries[0].target.scrollHeight

@@ -33,6 +33,14 @@
     }
 }
 
+.is-mobile-preview {
+    .navigation-top,
+    .navigation-bottom,
+    .navigation-center {
+        display: none;
+    }
+}
+
 .navigation-top,
 .navigation-bottom {
     left: 10px;
