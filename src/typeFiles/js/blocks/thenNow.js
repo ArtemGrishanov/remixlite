@@ -1,11 +1,18 @@
+//Image placeholder
+const placeholderSVG = `<svg width="800" height="340" viewBox="0 0 800 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="340" fill="#EEEEEE"/>
+<rect x="262" y="66" width="276" height="209" rx="4" fill="#EEEEEE"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M388.93 143.169C388.93 153.756 380.464 162.338 370.021 162.338C359.578 162.338 351.111 153.756 351.111 143.169C351.111 132.582 359.578 124 370.021 124C380.464 124 388.93 132.582 388.93 143.169ZM332.202 210.261L364.675 186.461L386.843 195.635L425.536 158.504L466.459 210.261H383.667H332.202Z" fill="#D8D8D8"/>
+</svg>`
+
 // Template
 const template = `
     <div class="then-now-block">
-        <div class="then-now-block__img" style="background-image:url({{leftSrc}})"></div>
+        <div class="then-now-block__img"></div>
         <div class="then-now-block__img-container">
             <div class="then-now-block__img-inner-container" style="left:50%; overflow: hidden">
                 <div class="then-now-block__img-inner-container" style="left:-50%">
-                    <div class="then-now-block__img" style="background-image:url({{rightSrc}})"></div>
+                    <div class="then-now-block__img"></div>
                 </div>
             </div>
         </div>
@@ -35,7 +42,12 @@ export default function(cnt, { methods }) {
             imgInnerDiv = imgParentDiv.querySelector('div');
             delimiterDiv = container.querySelector('.then-now-block__delimiter');
             delimiterSvg = delimiterDiv.querySelector('svg');
-            imgPrp = data.imageProportions.value.split('|')
+            imgPrp = data.imageProportions.value.split('|');
+            const images = container.querySelectorAll('.then-now-block__img');
+            const SVG64 = window.btoa(placeholderSVG);
+            images[0].style.backgroundImage = `url(${data.leftSrc ? data.leftSrc : `'data:image/svg+xml;base64,${SVG64}'`})`;
+            images[1].style.backgroundImage = `url(${data.rightSrc ? data.rightSrc : `'data:image/svg+xml;base64,${SVG64}'`})`;
+            images[1].style.opacity = data.rightSrc ? '1' : '0.9';
         },
         postRender: () => {
             const updateContainerHeight = () => {
