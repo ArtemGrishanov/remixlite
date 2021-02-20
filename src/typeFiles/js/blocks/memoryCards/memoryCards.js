@@ -4,7 +4,7 @@ import {
     getCardsDataSet,
     calculateCardSideSize,
     updateEventListeners,
-    createStopwatch
+    CreateStopwatch
 } from "./utils";
 import throttle from "../../utils/throttle";
 
@@ -71,7 +71,7 @@ const templates = {
                     {{/isActionButton}}
                     <button class="memory-final-screen__content-btn memory-final-screen__content-btn-restart is-handled" 
                         data-handlers="click" 
-                        data-initiator="memory-final-screen-restart">Restart</button>
+                        data-initiator="memory-final-screen-restart">{{restartButtonText}}</button>
                 {{#imageDisclaimer}}
                     <div class="memory-final-screen__content-image-disclaimer">{{imageDisclaimer}}</div>
                 {{/imageDisclaimer}}
@@ -102,7 +102,7 @@ const templates = {
                 <button class="memory-playground__feedback-btn is-handled" 
                     data-handlers="click" 
                     data-initiator="memory-feedback-close"
-                    style="background-color: {{colorTheme}}; color: {{buttonColor}}">Next</button>
+                    style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{nextButtonText}}</button>
             </div>
         </div>
     `,
@@ -122,7 +122,7 @@ const CARD_PROPORTIONS_HEIGHT = {
     '4:5': 1.2
 }
 
-export default function (cnt, {M, methods, sendMessage}) {
+export default function (cnt, {M, methods, sendMessage, getTranslation}) {
     //common
     let _initialData = null
     let _activeScreen = null
@@ -135,7 +135,7 @@ export default function (cnt, {M, methods, sendMessage}) {
     let _isAllActive = false
     let _isUserSelectionBlocked = false
     //Statistic
-    const _stopWatch = new createStopwatch()
+    const _stopWatch = new CreateStopwatch()
     let _stopWatchTime = '00:00'
     let _movesCount = 0
 
@@ -181,6 +181,14 @@ export default function (cnt, {M, methods, sendMessage}) {
         } catch (err) {
             log('error', '11 (MemoryCards)', data.id, null, err)
         }
+    }
+
+    const startStopWatch = () => {
+        _stopWatch.startTimer((prop) => {
+            const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+            updateDomElement('memory-playground__statistic-timer', time)
+            _stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
+        })
     }
 
     const onCardClick = (evt) => {
@@ -305,6 +313,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                     actionButtonText: _initialData.actionButtonText,
                     enableTimer: _initialData.enableTimer,
                     stopWatchTime: _stopWatch.getTime(),
+                    restartButtonText: getTranslation('Restart'),
                     _classes: {
                         content: _initialData.struct.finalScreen.imageSrc ? '' : 'no-image'
                     },
@@ -331,6 +340,7 @@ export default function (cnt, {M, methods, sendMessage}) {
                 _modalElement.innerHTML = payload && payload.isShowFeedBack ?
                     M.render(templates.feedbackModal, {
                         pair: payload.pair,
+                        nextButtonText: getTranslation('Next'),
                         imageHeight: `${160 * CARD_PROPORTIONS_HEIGHT[proportions]}px`,
                         imageWidth: `160px`,
                         ...generalSetting
@@ -368,12 +378,8 @@ export default function (cnt, {M, methods, sendMessage}) {
                 }
                 case 'memory-cover-start': {
                     const {enableTimer} = _initialData;
-                    if (enableTimer) {
-                        _stopWatch.startTimer((prop) => {
-                            const time = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
-                            updateDomElement('memory-playground__statistic-timer', time)
-                            _stopWatchTime = `${String(prop.minute).padStart(2, '0')}:${String(prop.second).padStart(2, '0')}`
-                        })
+                    if (enableTimer && !_stopWatch.isTimerStarted()) {
+                        startStopWatch()
                     }
                     renderTemplates(templateTitles.coverModal, {isShowCover: false})
                     sendAction('memory-cover-start')
@@ -397,6 +403,10 @@ export default function (cnt, {M, methods, sendMessage}) {
                     break;
                 }
                 case 'memory-playground-card': {
+                    const {enableTimer} = _initialData;
+                    if(enableTimer &&!_stopWatch.isTimerStarted()) {
+                        startStopWatch()
+                    }
                     onCardClick(evt)
                     sendAction('memory-playground-card')
                     break;

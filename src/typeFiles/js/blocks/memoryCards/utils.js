@@ -1,5 +1,6 @@
 import getRandomId from "../../utils/getRandomId";
 import log from "../../utils/log";
+import {DEFAULT_IMAGE_URL} from "../../utils/constants";
 
 export const getCoords = (elem) => {
     const box = elem.getBoundingClientRect();
@@ -30,7 +31,7 @@ export const updateEventListeners = (domElement, handlers, additionalPayload = {
     }
 }
 
-export function createStopwatch() {
+export function CreateStopwatch() {
     this.isPaused = false
     this.timer = null
     this.second = 0
@@ -56,6 +57,7 @@ export function createStopwatch() {
     this.unPauseTimer = () => {
         this.isPaused = false
     }
+    this.isTimerStarted = () => !!this.timer
     this.getTime = () => `${String(this.minute).padStart(2, '0')}:${String(this.second).padStart(2, '0')}`
 }
 
@@ -107,15 +109,15 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.firstImage.src,
-                    coverSrc: coverSrc,
+                    src: item.firstImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
                     pairId: item.id,
                 });
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.secondImage.src,
-                    coverSrc: coverSrc,
+                    src: item.secondImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
                     pairId: item.id,
                 });
                 return acc

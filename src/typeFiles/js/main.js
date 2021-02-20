@@ -188,7 +188,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation
         }),
     }
 

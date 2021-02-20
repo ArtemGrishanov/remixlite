@@ -214,8 +214,6 @@
       text-align: center;
 
       @include maxWidth(799) {
-        margin: 0;
-        box-shadow: none;
         padding: 20px;
         width: 80%;
       }
