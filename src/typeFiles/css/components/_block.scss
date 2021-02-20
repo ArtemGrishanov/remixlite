@@ -124,6 +124,7 @@
           > div.btn-wrap {
             overflow: hidden;
             > div.button-block {
+              margin-top: 8px;
               margin-bottom: 24px;
               > button {
                 outline: none;
@@ -136,9 +137,10 @@
                 border-radius: 4px;
                 color: #fff;
                 font-size: 20px;
-                @include transition(0.1s, ease-in-out, 0s, (opacity));
+                animation: pulse 2s infinite;
                 &:hover {
                   opacity: .8;
+                  animation: unset;
                 }
                 @include maxWidth(799) {
                   height: 46px;
