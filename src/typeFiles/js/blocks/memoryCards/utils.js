@@ -1,5 +1,6 @@
 import getRandomId from "../../utils/getRandomId";
 import log from "../../utils/log";
+import {DEFAULT_IMAGE_URL} from "../../utils/constants";
 
 export const getCoords = (elem) => {
     const box = elem.getBoundingClientRect();
@@ -30,7 +31,7 @@ export const updateEventListeners = (domElement, handlers, additionalPayload = {
     }
 }
 
-export function createStopwatch() {
+export function CreateStopwatch() {
     this.isPaused = false
     this.timer = null
     this.second = 0
@@ -56,6 +57,7 @@ export function createStopwatch() {
     this.unPauseTimer = () => {
         this.isPaused = false
     }
+    this.isTimerStarted = () => !!this.timer
     this.getTime = () => `${String(this.minute).padStart(2, '0')}:${String(this.second).padStart(2, '0')}`
 }
 
@@ -100,22 +102,22 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
     }
 
     // Format to render specific view
-    const renderSet = []
+    const cardsSet = []
     if (tmpPairList.length) {
-        const tmpRenderSet = tmpPairList
+        const flatCardList = tmpPairList
             .reduce((acc, item) => {
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.firstImage.src,
-                    coverSrc: coverSrc,
+                    src: item.firstImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
                     pairId: item.id,
                 });
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.secondImage.src,
-                    coverSrc: coverSrc,
+                    src: item.secondImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
                     pairId: item.id,
                 });
                 return acc
@@ -123,10 +125,53 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
             .sort(() => Math.random() - 0.5)
 
         for (let i = 0; i < rowCount; i++) {
-            const row = tmpRenderSet.splice(0, cellCount).sort(() => Math.random() - 0.5)
-            renderSet.push(row)
+            const row = flatCardList.splice(0, cellCount).sort(() => Math.random() - 0.5)
+            cardsSet.push(row)
         }
     }
 
-    return renderSet
+    return cardsSet
+}
+
+export const getMobileCardLayout = (webLayout) => {
+    switch (webLayout.value) {
+        case '6x6': {
+            return {
+                value: '4x9',
+                label: '4x9'
+            }
+        }
+        case '6x4': {
+            return {
+                value: '4x6',
+                label: '4x6'
+            }
+        }
+        default: {
+            return webLayout
+        }
+    }
+}
+
+export const updateCardsDataSet = (cardLayout, dataSet) => {
+    const [cellCount, rowCount] = cardLayout.split('x').map(x => Number(x))
+    const isValidProp = x => typeof x === 'number' && x > 0
+
+    if (!isValidProp(rowCount) && !isValidProp(cellCount)) {
+        return console.warn('[Memory]: Bad props from cardRowsCount!')
+    }
+
+    const flatCardList = dataSet.reduce((acc, row) => {
+        acc = [...acc, ...row]
+        return acc
+    },[])
+
+    const cardsSet = []
+    if (flatCardList.length) {
+        for (let i = 0; i < rowCount; i++) {
+            const row = flatCardList.splice(0, cellCount)
+            cardsSet.push(row)
+        }
+    }
+    return cardsSet
 }
