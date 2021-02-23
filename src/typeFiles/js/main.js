@@ -4,6 +4,7 @@ import { setLanguage, getTranslation } from './i18n'
 
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -16,6 +17,8 @@ import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
 import blockMemoryCards from './blocks/memoryCards/memoryCards'
+import blockTimeline from './blocks/timeline'
+
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -23,6 +26,8 @@ import uiButton from './ui/button'
 //Import Utils
 import throttle from "./utils/throttle";
 import getRandomId from "./utils/getRandomId";
+
+import BlocksNavigation from "./utils/navigation/blocksNavigation";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -172,7 +177,7 @@ class Remix {
                 parse: this.#parse,
             },
             sendMessage,
-            getTranslation
+            getTranslation,
         }),
         // Then\Now
         [BLOCK.thenNow]: container => blockThenNow(container, {
@@ -191,7 +196,19 @@ class Remix {
             sendMessage,
             getTranslation
         }),
+        // Timeline
+        [BLOCK.timeline]: (container, blockOptions) => blockTimeline(
+            container,
+            {
+                add: this.#addBlock,
+                parse: this.#parse,
+                useFont: this.#useFont,
+            },
+            blockOptions,
+        ),
     }
+    #timelineLastBlockId;
+    #navigator = new BlocksNavigation(sendMessage);
 
     constructor() {}
 
@@ -205,28 +222,34 @@ class Remix {
         container.innerHTML = ''
 
         if (projectStructure.hasOwnProperty('blocks')) {
+            this.#processBlocks(projectStructure.blocks);
             projectStructure.blocks.forEach(blockData => {
                 const block = this.#blocks[blockData.t];
                 if (block) {
-                    const newBlock = new block(container)
+                    const newBlock = new block(container, this.#getBlockOptions(blockData))
                     newBlock.render(blockData)
                     if (newBlock.postRender) newBlock.postRender()
                 } else {
                     console.warn(`Block type "${blockData.t}" not supported`)
                 }
             });
+            this.#navigator.start(container);
         }
     }
 
     // Private methods
-    #addBlock = (container, html, blockType, classes, props = null) => {
+    #addBlock = (container, html, blockType, classes, props = null, navigationLabel = null) => {
         const div = document.createElement('div')
 
         if (blockType) {
-            div.classList = 'block __' + blockType
+            div.classList.add(
+                'block',
+                '__' + blockType,
+                BLOCK_NAMES_DICTIONARY[blockType] + '-block'
+            );
         }
         if (classes) {
-            div.classList += classes
+            div.classList.add(...classes);
         }
 
         if (props && props.styles) {
@@ -237,6 +260,10 @@ class Remix {
 
         div.innerHTML = html
         container.appendChild(div)
+
+        if (navigationLabel) {
+            this.#navigator.addBlock(navigationLabel, div);
+        }
         return div
     }
     #parse = (template, data) => {
@@ -288,6 +315,36 @@ class Remix {
         }
         return o
     }
+
+    /**
+     * Extension point. Allows to analyze project structure on-init
+     * @param {Array} blocks
+     */
+    #processBlocks = blocks => {
+        blocks.forEach(blockData => {
+            if (blockData.t === BLOCK.timeline) {
+                this.#timelineLastBlockId = blockData.id;
+            }
+        });
+    }
+
+    /**
+     * Get options for specific block. Allows to pass some data into the block component before it renders
+     * @param blockData
+     * @returns {Object|undefined} Block options
+     */
+    #getBlockOptions = blockData => {
+        const options = {};
+        switch (blockData.t) {
+            case BLOCK.timeline:
+                if (blockData.id === this.#timelineLastBlockId) {
+                    options.isLastTimelineBlock = true;
+                }
+                return options;
+            default:
+                return undefined;
+        }
+    }
 }
 
 let cntOrigin, cntSource, isInitialized = false, clientId = null, R = undefined
@@ -334,10 +391,22 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                         }
                     })
 
+                    const isPreviewMode = payload.mode === 'preview';
+                    const mobilePreviewStateCssClass = 'is-mobile-preview';
+
                     const resizeObserver = new ResizeObserver(entries => {
+                        const target = entries[0].target;
+
+                        if (isPreviewMode) {
+                            if (target.clientWidth < 700) {
+                                root.classList.add(mobilePreviewStateCssClass);
+                            } else {
+                                root.classList.remove(mobilePreviewStateCssClass);
+                            }
+                        }
                         sendMessage('setSize', {
                             sizes: {
-                                height: entries[0].target.scrollHeight
+                                height: target.scrollHeight
                             }
                         })
                     })

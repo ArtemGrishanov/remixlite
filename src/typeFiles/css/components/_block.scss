@@ -1,8 +1,17 @@
+@import './../variables';
+@import './../mixins';
+
 .block {
   font-family: 'Helvetica', 'Arial', sans-serif;
   position: relative;
-  margin: 10px 0;
+  margin-top: $block-top-margin;
 
+  > * {
+    position: relative;
+  }
+  &:last-child {
+    margin-bottom: 10px;
+  }
   a {
     color: #06c;
     &:hover {
@@ -11,6 +20,9 @@
   }
   strong {
     font-weight: bold;
+  }
+  img {
+    vertical-align: top;
   }
 
   &.__1 {
@@ -31,7 +43,6 @@
     min-height: 100px;
     width: 100%;
     text-align: center;
-    overflow: hidden;
     img {
       max-width: 100%;
     }
