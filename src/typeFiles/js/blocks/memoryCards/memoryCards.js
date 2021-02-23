@@ -382,7 +382,6 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
                     const {isShowCover, cardLayout, cardBackImage} = _initialData.struct.playground;
                     const {pairList} = _initialData.struct.pairs;
 
-                    _stopWatch.clearTimer()
                     _stopWatchTime = '00:00'
                     _movesCount = 0
 
@@ -442,7 +441,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
                 case 'memory-playground-final': {
                     renderTemplates(templateTitles.finalScreen)
                     updateEventListeners(_screenElement, handlers)
-                    _stopWatch.pauseTimer()
+                    _stopWatch.clearTimer()
                     sendAction('memory-playground-final')
                     break;
                 }

@@ -50,6 +50,10 @@ export function CreateStopwatch() {
     }
     this.clearTimer = () => {
         clearInterval(this.timer)
+        this.isPaused = false
+        this.timer = null
+        this.second = 0
+        this.minute = 0
     }
     this.pauseTimer = () => {
         this.isPaused = true
