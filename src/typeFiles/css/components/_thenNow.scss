@@ -1,0 +1,38 @@
+.then-now-block {
+  width: 100%;
+  height: inherit;
+  &__img {
+    background-size: cover;
+    background-position: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+  &__img-container {
+    position: relative;
+    width: inherit;
+    height: inherit;
+  }
+  &__img-inner-container {
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    top: 0;
+    background-color: #000;
+  }
+  &__delimiter {
+    position: absolute;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: opacity .25s;
+    background-color: #FFFFFF;
+    > svg {
+      position: absolute;
+      left: -22px;
+      animation: pulse 2s infinite;
+    }
+  }
+}

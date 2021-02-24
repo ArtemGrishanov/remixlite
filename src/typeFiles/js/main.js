@@ -1,7 +1,10 @@
 import Mustache from 'mustache'
 
+import { setLanguage, getTranslation } from './i18n'
+
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -12,10 +15,19 @@ import blockCtaButton from './blocks/ctaButton'
 import blockZoomMap from './blocks/zoomMap'
 import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
+import blockThenNow from './blocks/thenNow'
+import blockMemoryCards from './blocks/memoryCards/memoryCards'
+import blockTimeline from './blocks/timeline'
+
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
+//Import Utils
+import throttle from "./utils/throttle";
+import getRandomId from "./utils/getRandomId";
+
+import BlocksNavigation from "./utils/navigation/blocksNavigation";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -164,9 +176,39 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation,
         }),
+        // Then\Now
+        [BLOCK.thenNow]: container => blockThenNow(container, {
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            }
+        }),
+        // Memory cards
+        [BLOCK.memoryCards]: container => blockMemoryCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage,
+            getTranslation
+        }),
+        // Timeline
+        [BLOCK.timeline]: (container, blockOptions) => blockTimeline(
+            container,
+            {
+                add: this.#addBlock,
+                parse: this.#parse,
+                useFont: this.#useFont,
+            },
+            blockOptions,
+        ),
     }
+    #timelineLastBlockId;
+    #navigator = new BlocksNavigation(sendMessage);
 
     constructor() {}
 
@@ -180,28 +222,34 @@ class Remix {
         container.innerHTML = ''
 
         if (projectStructure.hasOwnProperty('blocks')) {
+            this.#processBlocks(projectStructure.blocks);
             projectStructure.blocks.forEach(blockData => {
                 const block = this.#blocks[blockData.t];
                 if (block) {
-                    const newBlock = new block(container)
+                    const newBlock = new block(container, this.#getBlockOptions(blockData))
                     newBlock.render(blockData)
                     if (newBlock.postRender) newBlock.postRender()
                 } else {
                     console.warn(`Block type "${blockData.t}" not supported`)
                 }
             });
+            this.#navigator.start(container);
         }
     }
 
     // Private methods
-    #addBlock = (container, html, blockType, classes, props = null) => {
+    #addBlock = (container, html, blockType, classes, props = null, navigationLabel = null) => {
         const div = document.createElement('div')
 
         if (blockType) {
-            div.classList = 'block __' + blockType
+            div.classList.add(
+                'block',
+                '__' + blockType,
+                BLOCK_NAMES_DICTIONARY[blockType] + '-block'
+            );
         }
         if (classes) {
-            div.classList += classes
+            div.classList.add(...classes);
         }
 
         if (props && props.styles) {
@@ -212,6 +260,10 @@ class Remix {
 
         div.innerHTML = html
         container.appendChild(div)
+
+        if (navigationLabel) {
+            this.#navigator.addBlock(navigationLabel, div);
+        }
         return div
     }
     #parse = (template, data) => {
@@ -263,6 +315,36 @@ class Remix {
         }
         return o
     }
+
+    /**
+     * Extension point. Allows to analyze project structure on-init
+     * @param {Array} blocks
+     */
+    #processBlocks = blocks => {
+        blocks.forEach(blockData => {
+            if (blockData.t === BLOCK.timeline) {
+                this.#timelineLastBlockId = blockData.id;
+            }
+        });
+    }
+
+    /**
+     * Get options for specific block. Allows to pass some data into the block component before it renders
+     * @param blockData
+     * @returns {Object|undefined} Block options
+     */
+    #getBlockOptions = blockData => {
+        const options = {};
+        switch (blockData.t) {
+            case BLOCK.timeline:
+                if (blockData.id === this.#timelineLastBlockId) {
+                    options.isLastTimelineBlock = true;
+                }
+                return options;
+            default:
+                return undefined;
+        }
+    }
 }
 
 let cntOrigin, cntSource, isInitialized = false, clientId = null, R = undefined
@@ -289,7 +371,9 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                 if (!isInitialized) {
                     isInitialized = true;
 
-                    const projectStructure = JSON.parse(payload.projectStructure || replacesValues.projectStructure)
+                    const projectStructure = payload.projectStructure || JSON.parse(replacesValues.projectStructure)
+
+                    setLanguage(payload.lng)
 
                     const root = document.getElementById('remix-app-root');
 
@@ -300,16 +384,29 @@ function receiveMessage({origin = null, data = {}, source = null}) {
 
                     sendMessage('initialized', {
                         clientId,
+                        projectStructure,
                         sizes: {
-                            maxWidth: projectStructure.app.maxWidth || 800,
+                            maxWidth: projectStructure.app.maxWidth ? Number(projectStructure.app.maxWidth) : 800,
                             height: root.scrollHeight
-                        },
+                        }
                     })
 
+                    const isPreviewMode = payload.mode === 'preview';
+                    const mobilePreviewStateCssClass = 'is-mobile-preview';
+
                     const resizeObserver = new ResizeObserver(entries => {
+                        const target = entries[0].target;
+
+                        if (isPreviewMode) {
+                            if (target.clientWidth < 700) {
+                                root.classList.add(mobilePreviewStateCssClass);
+                            } else {
+                                root.classList.remove(mobilePreviewStateCssClass);
+                            }
+                        }
                         sendMessage('setSize', {
                             sizes: {
-                                height: entries[0].target.scrollHeight
+                                height: target.scrollHeight
                             }
                         })
                     })
@@ -336,38 +433,6 @@ function sendMessage(method, payload = null) {
             payload
         }, cntOrigin);
     }
-}
-function getRandomId(t = 21) {
-    let s = '', r = crypto.getRandomValues(new Uint8Array(t))
-    for (; t--; ) {
-        const n = 63 & r[t]
-        s += n < 36 ? n.toString(36) : n < 62 ? (n - 26).toString(36).toUpperCase() : n < 63 ? '_' : '-'
-    }
-    return s
-}
-function throttle(func, waitTime) {
-    let isThrottled = false,
-        savedArgs,
-        savedThis;
-
-    function wrapper() {
-        if (isThrottled) {
-            savedArgs = arguments;
-            savedThis = this;
-            return;
-        }
-        func.apply(this, arguments);
-        isThrottled = true;
-        setTimeout(function() {
-            isThrottled = false;
-            if (savedArgs) {
-                wrapper.apply(savedThis, savedArgs);
-                savedArgs = savedThis = null;
-            }
-        }, waitTime);
-    }
-
-    return wrapper;
 }
 
 /**

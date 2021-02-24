@@ -1,8 +1,9 @@
 import smoothScroll from 'smoothscroll-polyfill'
 
 import session from './session'
-import { validator } from './utils'
-import { MAX_REFRESH_SESSION_AWAITING } from './constants'
+import { validator, throttle } from './utils'
+import { CDN_URL, MAX_REFRESH_SESSION_AWAITING, SEND_READ_PERCENT_INTERVAL } from './constants'
+import API from "./api";
 
 import googleAnalytics from './integrations/googleAnalytics'
 
@@ -28,7 +29,6 @@ window.RemixLoader = class RemixLoader {
     #preloader
     #error
     #iframe
-    #iframePosition
     #eventListeners = [
         // Example
         // {
@@ -39,6 +39,10 @@ window.RemixLoader = class RemixLoader {
         // }
     ]
 
+    #_integrations = {}
+
+    #_isDestroyed = false
+    #_clientId
     #_session = {
         instance: null,
         data: {
@@ -55,7 +59,12 @@ window.RemixLoader = class RemixLoader {
         updatedAt: null,
         maxRefreshAwaiting: MAX_REFRESH_SESSION_AWAITING
     }
-    #_integrations = {}
+    #_readPercent = {
+        value: 0,
+        sentValue: null,
+        inProgress: false,
+        sendInterval: SEND_READ_PERCENT_INTERVAL
+    }
 
     constructor({mode, nodeElement, remixUrl, features, projectId, projectStructure, initialWidth, initialHeight, lng, additionalTopOffset, onEvent}) {
         this.#mode = this.#validateConstructorParam('mode', mode, false, 'published')
@@ -113,8 +122,8 @@ window.RemixLoader = class RemixLoader {
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String' })
                     }
                     case 'projectStructure': {
-                        if (validator.isJSON(value)) {
-                            return value
+                        if (validator.isJsonString(value)) {
+                            return JSON.parse(value)
                         }
                         return this.#throwExceptionManually('CV', { type: 'format', key, value, expected: 'String (JSON)' })
                     }
@@ -157,7 +166,7 @@ window.RemixLoader = class RemixLoader {
         }
     })
 
-    // [PUBLIC] Create iframe in container instance
+    // Create iframe in container instance
     createIframe = () => {
         this.#nodeElement.innerHTML = ''
         this.#nodeElement.className = 'remix_cnt'
@@ -175,103 +184,7 @@ window.RemixLoader = class RemixLoader {
             this.#nodeElement.appendChild(this.#createPoweredLabel())
         }
 
-        this.#addEventListener(window, 'message', ({ origin = null, data = {}, source = null }) => {
-            if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
-                return
-            }
-
-            switch (data.method) {
-                case 'initError': {
-                    this.#preloader.hideAndDestroy()
-                    this.#nodeElement.appendChild(this.#error.render())
-                    break;
-                }
-                case 'initialized': {
-                    this.#preloader.hideAndDestroy()
-                    this.#setSize({
-                        ...data.payload.sizes,
-                        width: 'maxWidth'
-                    })
-
-                    this.#getIframePosition(true)
-
-                    this.#addEventListener(window, 'scroll', this.#throttle(() => this.#getIframePosition(true), 50), false)
-
-                    if (this.#needToDo('create-session')) {
-                        // Create session
-                        const queryString = window.location.search;
-                        const urlParams = new URLSearchParams(queryString);
-
-                        const utmCampaign = urlParams.get('utm_campaign')
-                        const utmSource = urlParams.get('utm_source')
-                        const utmMedium = urlParams.get('utm_medium')
-                        const utmContent = urlParams.get('utm_content')
-                        const referenceTail = queryString
-                        const sourceReference = document.referrer
-
-                        this.#_session.data = {
-                            ...this.#_session.data,
-                            clientId: data.payload.clientId,
-                            projectId: this.#projectId,
-                            utmCampaign,
-                            utmSource,
-                            utmMedium,
-                            utmContent,
-                            referenceTail,
-                            sourceReference
-                        }
-                        const time = Date.now()
-                        this.#_session.createdAt = time
-                        this.#_session.updatedAt = time
-                        this.#_session.instance = new session(this.#_session.data)
-                    }
-                    if (this.#needToDo('create-integrations')) {
-                        const integrations = JSON.parse(this.#projectStructure).integrations
-                        if (integrations) {
-                            if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
-                                this.#_integrations.googleAnalytics = new googleAnalytics({
-                                    id: integrations.googleAnalytics.id
-                                })
-                                this.#_integrations.googleAnalytics.init()
-                            }
-                        }
-                    }
-                    break;
-                }
-                case 'activity': {
-                    if (this.#needToDo('refresh-session')) {
-                        // Update session
-                        const time = Date.now()
-                        if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
-                            this.#_session.instance = new session(this.#_session.data)
-                            this.#_session.createdAt = time
-                            this.#_session.updatedAt = time
-                        } else {
-                            this.#_session.instance.sendActivity()
-                            this.#_session.updatedAt = time
-                        }
-                    }
-                    break;
-                }
-                case 'setSize': {
-                    this.#setSize(data.payload.sizes)
-                    break;
-                }
-                case 'scrollParent': {
-                    if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
-                        window.scrollTo({
-                            top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
-                            behavior: "smooth"
-                        });
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            this.#sendEventToContainerInstance(data.method, data)
-        }, false)
+        this.#addEventListener(window, 'message', this.#iframeMessageHandler, false)
 
         const iframe = document.createElement('iframe')
         iframe.id = 'remix-iframe'
@@ -284,7 +197,9 @@ window.RemixLoader = class RemixLoader {
             iframe.contentWindow.postMessage({
                 method: 'init',
                 payload: {
-                    projectStructure: this.#projectStructure
+                    projectStructure: this.#projectStructure,
+                    lng: this.#lng,
+                    mode: this.#mode
                 }
             }, this.#appOrigin)
         }
@@ -293,19 +208,131 @@ window.RemixLoader = class RemixLoader {
         this.#iframe = iframe
     }
 
-    // [PUBLIC] Destroy iframe (for example we need to remove all event listeners)
+    // Destroy iframe (for example we need to remove all event listeners)
     destroyIframe = () => {
+        this.#_isDestroyed = true
         this.#removeAllEventListeners()
     }
 
-    // [PUBLIC] Change top offset
+    #iframeMessageHandler = async ({ origin = null, data = {}, source = null }) => {
+        if (!this.#iframe || this.#iframe.contentWindow !== source || origin !== this.#appOrigin) {
+            return
+        }
+
+        switch (data.method) {
+            case 'initError': {
+                this.#preloader.hideAndDestroy()
+                this.#nodeElement.appendChild(this.#error.render())
+                break;
+            }
+            case 'initialized': {
+                this.#preloader.hideAndDestroy()
+                this.#setSize({
+                    ...data.payload.sizes,
+                    width: 'maxWidth'
+                })
+
+                if (!this.#projectStructure) {
+                    this.#projectStructure = data.payload.projectStructure
+                }
+
+                this.#_clientId = data.payload.clientId
+
+                this.#getIframePosition(true)
+                this.#addEventListener(window, 'scroll', throttle(() => this.#getIframePosition(true), 50), false)
+
+                this.#getWindowSize(true)
+                this.#addEventListener(window, 'resize', throttle(() => this.#getWindowSize(true), 50), false)
+
+                if (this.#needToDo('create-session')) {
+                    const queryString = window.location.search;
+                    const urlParams = new URLSearchParams(queryString);
+
+                    const utmCampaign = urlParams.get('utm_campaign')
+                    const utmSource = urlParams.get('utm_source')
+                    const utmMedium = urlParams.get('utm_medium')
+                    const utmContent = urlParams.get('utm_content')
+                    const referenceTail = queryString
+                    const sourceReference = document.referrer
+
+                    this.#_session.data = {
+                        ...this.#_session.data,
+                        clientId: this.#_clientId,
+                        projectId: this.#projectId,
+                        utmCampaign,
+                        utmSource,
+                        utmMedium,
+                        utmContent,
+                        referenceTail,
+                        sourceReference
+                    }
+                    this.#_session.instance = new session(this.#_session.data)
+                    await this.#_session.instance.sendActivity()
+                    const time = Date.now()
+                    this.#_session.createdAt = time
+                    this.#_session.updatedAt = time
+                }
+
+                if (this.#needToDo('read-percent')) {
+                    this.#checkReadPercent()
+                    this.#addEventListener(window, 'scroll', throttle(() => this.#checkReadPercent(), 500), false)
+                    this.#sendReadPercentByInterval()
+                }
+
+                if (this.#needToDo('create-integrations')) {
+                    const integrations = this.#projectStructure.integrations
+                    if (integrations) {
+                        if (integrations.googleAnalytics && integrations.googleAnalytics.id) {
+                            this.#_integrations.googleAnalytics = new googleAnalytics({
+                                id: integrations.googleAnalytics.id
+                            })
+                            this.#_integrations.googleAnalytics.init()
+                        }
+                    }
+                }
+                break;
+            }
+            case 'activity': {
+                if (this.#needToDo('refresh-session')) {
+                    const time = Date.now()
+                    if (time - this.#_session.updatedAt > this.#_session.maxRefreshAwaiting) {
+                        this.#_session.instance = new session(this.#_session.data)
+                        this.#_session.createdAt = time
+                        this.#_session.updatedAt = time
+                    } else {
+                        await this.#_session.instance.sendActivity()
+                        this.#_session.updatedAt = time
+                    }
+                }
+                break;
+            }
+            case 'setSize': {
+                this.#setSize(data.payload.sizes)
+                break;
+            }
+            case 'scrollParent': {
+                if (validator.isValue(data.payload.top) && validator.isNumber(data.payload.top)) {
+                    window.scrollTo({
+                        top: this.#getIframePosition().top + pageYOffset + data.payload.top - this.#additionalTopOffset,
+                        behavior: "smooth"
+                    });
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        this.#sendEventToContainerInstance(data.method, data)
+    }
+
+    // Change top offset
     changeAdditionalTopOffset = value => {
         if (validator.isNumber(value)) {
             this.#additionalTopOffset = value
         }
     }
 
-    // [PRIVATE]
     #addEventListener = (target, type, func, capture = false) => {
         try {
             this.#eventListeners.push({
@@ -319,7 +346,6 @@ window.RemixLoader = class RemixLoader {
             console.error(err);
         }
     }
-    // [PRIVATE]
     #removeAllEventListeners = () => {
         try {
             this.#eventListeners.forEach(el => {
@@ -331,7 +357,7 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
-    // [PRIVATE] Get language from window.navigator
+    // Get language from window.navigator
     #getWindowLanguage = () => {
         try {
             const language = window.navigator ? (
@@ -345,7 +371,7 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
-    // [PRIVATE] Set nodeElement size
+    // Set nodeElement size
     #setSize = ({ width, height, maxWidth }) => {
         try {
             if (validator.isValue(width) && width === 'maxWidth') {
@@ -362,61 +388,36 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
-    // [PRIVATE]
     #createPreloader = () => {
-        const MIN_ANIMATION_DELAY = 0
-        const ANIMATION_DURATION = 500
-
         const html = `
-        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; transition: opacity ${ANIMATION_DURATION}ms; opacity: 1; display: flex; align-items: center; justify-content: center;"
-        >
-            <img src="https://interacty.me/static/media/preloader.gif?v=${Math.random()}" alt="preloader" style="width: 100%; max-width: 380px;" />
-         </div>`
+        <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; opacity: 1; display: flex; align-items: center; justify-content: center;">
+            <img src='${CDN_URL}/preloader.gif' alt="preloader" style="width: 100%; max-width: 380px;" />
+        </div>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
         const element = div.firstChild;
 
-
-        let animationStart = 0
-        let animationEnd = 0
-
         return {
-            render: function () {
-                animationStart = Date.now()
+            render: () => {
                 return element
             },
-            hideAndDestroy: function () {
-                animationEnd = Date.now()
-                const diff = animationEnd - animationStart
-                const animationDelay = diff > MIN_ANIMATION_DELAY ? 0 : MIN_ANIMATION_DELAY - diff
-
-                window.setTimeout(() => {
-                    element.style.opacity = 0
-                    window.setTimeout(() => {
-                        const container = element.parentNode
-                        if (container && container.contains(element)) {
-                            container.removeChild(element)
-                        }
-                    }, ANIMATION_DURATION)
-                }, animationDelay)
-            },
+            hideAndDestroy: () => {
+                const container = element.parentNode
+                if (container && container.contains(element)) {
+                    container.removeChild(element)
+                }
+            }
         }
     }
-    // [PRIVATE]
     #createPoweredLabel = () => {
-        const html = `
-            <a href="https://google.com" target="_blank">
-                <img src="https://interacty.me/static/media/powered_by.svg" style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" />
-            </a>
-        `
+        const html = `<a href="https://interacty.me" target="_blank"><img src='${CDN_URL}/powered_by.svg' style="position: absolute; bottom: 0; right: 0;" alt="Powered by Interacty" /></a>`
 
         const div = document.createElement('div');
         div.innerHTML = html.trim();
-        div.firstChild.addEventListener('click', evt => this.#sendEventToContainerInstance('createPoweredLabel clicked', null))
+        // div.firstChild.addEventListener('click', () => {})
         return div.firstChild;
     }
-    // [PRIVATE]
     #createError = () => {
         const html = `
         <div style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: #fff; display: flex; align-items: center; justify-content: center;"
@@ -435,10 +436,9 @@ window.RemixLoader = class RemixLoader {
         }
     }
 
-    // [PRIVATE]
     #getIframePosition = forceSendToIframe => {
         const rect = this.#iframe.getBoundingClientRect()
-        this.#iframePosition = {
+        const position = {
             top: rect.top,
             left: rect.left
         };
@@ -448,49 +448,92 @@ window.RemixLoader = class RemixLoader {
                 method: 'iframePosition',
                 payload: {
                     data: {
-                        ...this.#iframePosition,
-                        top: this.#iframePosition.top - this.#additionalTopOffset
+                        ...position,
+                        top: position.top - this.#additionalTopOffset,
+                        windowBottom: position.top - window.innerHeight,
                     }
                 }
             }, this.#appOrigin)
         }
-        return this.#iframePosition
+        return position
     }
 
-    // [PRIVATE] Send event to container instance
+    #getWindowSize = forceSendToIframe => {
+        const sizes = {
+            innerWidth: window.innerWidth,
+            innerHeight: window.innerHeight
+        };
+
+        if (forceSendToIframe) {
+            this.#iframe.contentWindow.postMessage({
+                method: 'windowSize',
+                payload: {
+                    data: sizes
+                }
+            }, this.#appOrigin)
+        }
+        return sizes
+    }
+
+    #checkReadPercent = async () => {
+        if (this.#_readPercent.value < 100) {
+            const rect = this.#iframe.getBoundingClientRect()
+
+            const marginOfError = 0
+
+            const percentOfRead = (((rect.bottom - marginOfError) - window.innerHeight) / rect.height) * 100
+
+            const value = Math.round(100 - percentOfRead)
+            if (value > this.#_readPercent.value) {
+                this.#_readPercent.value = value > 100 ? 100 : value
+            }
+        }
+    }
+
+    #sendReadPercentByInterval = async () => {
+        const sendData = async () => {
+            await API.sendProjectReadPercent({
+                clientId: this.#_clientId,
+                projectId: this.#projectId,
+                value: this.#_readPercent.value
+            })
+            this.#_readPercent.sentValue = this.#_readPercent.value
+        }
+
+        try {
+            await sendData()
+        } catch (err) {
+            console.error(err)
+        }
+
+        const intervalChecker = setInterval(async () => {
+            if (this.#_isDestroyed || this.#_readPercent.sentValue === 100) {
+                clearInterval(intervalChecker)
+                return
+            }
+
+            try {
+                if (!this.#_readPercent.inProgress) {
+                    this.#_readPercent.inProgress = true
+                    if (!this.#_readPercent.sentValue || (this.#_readPercent.sentValue < this.#_readPercent.value)) {
+                        await sendData()
+                    }
+                    this.#_readPercent.inProgress = false
+                }
+            } catch (err) {
+                console.error(err)
+                this.#_readPercent.inProgress = false
+            }
+        }, this.#_readPercent.sendInterval);
+    }
+
+    // Send event to container instance
     #sendEventToContainerInstance = (name, data) => {
         if (this.#onEvent) {
             this.#onEvent(name, data)
         }
     }
 
-    // [PRIVATE]
-    #throttle(func, waitTime) {
-        let isThrottled = false,
-            savedArgs,
-            savedThis;
-
-        function wrapper() {
-            if (isThrottled) {
-                savedArgs = arguments;
-                savedThis = this;
-                return;
-            }
-            func.apply(this, arguments);
-            isThrottled = true;
-            setTimeout(function() {
-                isThrottled = false;
-                if (savedArgs) {
-                    wrapper.apply(savedThis, savedArgs);
-                    savedArgs = savedThis = null;
-                }
-            }, waitTime);
-        }
-
-        return wrapper;
-    }
-
-    // [PRIVATE]
     #needToDo = action => {
         switch (action) {
             case 'create-session':
@@ -500,18 +543,20 @@ window.RemixLoader = class RemixLoader {
             case 'create-integrations': {
                 return this.#mode === 'published'
             }
+            case 'read-percent': {
+                return this.#mode === 'published' && this.#projectId
+            }
             default:
                 return false
         }
     }
 
-    // [PRIVATE]
     #throwExceptionManually = (initiator, data) => {
-        let errorMessage = '[REMIX CONTAINER] Unhandled exception';
+        let errorMessage = '[RemixLoader] Unhandled exception';
 
         switch (initiator) {
             case 'CV': {
-                const errorPrefix = '[CONSTRUCTOR VALIDATOR]'
+                const errorPrefix = '[RemixLoader | CONSTRUCTOR VALIDATOR]'
                 switch (data.type) {
                     case 'undefined': {
                         errorMessage = `${errorPrefix} Field "${data.key}" is required. Received value: "${data.value}"`
@@ -561,74 +606,36 @@ window.RemixLoader = class RemixLoader {
             const initialized = element.getAttribute(initializedAttrName)
             if (!initialized) {
                 element.setAttribute(initializedAttrName, 'true')
-                const contentUrl = element.getAttribute('content')
+                const hash = element.getAttribute('hash')
                 const initialWidth = element.getAttribute('initialWidth')
                 const initialHeight = element.getAttribute('initialHeight')
                 const lng = element.getAttribute('lng')
 
-                const params = {
-                    mode: 'published',
-                    features: [],
-                    projectStructure: null,
-                    remixUrl: null,
-                    projectId: null
+                if (!hash) {
+                    console.error(`[RemixLoader auto-initiator] "hash" attribute is required for remix-app element`);
+                    return
                 }
 
-                const useDebug = element.getAttribute('useDebug')
-                if (useDebug) {
-                    const mode = element.getAttribute('DEBUG_mode')
-                    if (mode) {
-                        params.mode = mode
-                    }
+                let mode = 'published'
+                let features = null
+                let projectId = null
 
-                    const features = element.getAttribute('DEBUG_features')
-                    if (features) {
-                        try {
-                            params.features = JSON.parse(features)
-                        } catch (err) {
-                            throw new Error(`Cannot parse "DEBUG_features" to JSON`)
-                        }
-                    }
+                try {
+                    const meta = await API.getProjectMetaInfo(hash)
 
-                    const projectId = element.getAttribute('DEBUG_projectId')
-                    if (projectId) {
-                        params.projectId = projectId
-                    } else {
-                        throw new Error(`"DEBUG_projectId" attribute is required for DEBUG`)
-                    }
-
-                    const projectStructure = element.getAttribute('DEBUG_projectStructure')
-                    if (projectStructure) {
-                        params.projectStructure = projectStructure
-                    } else {
-                        throw new Error(`"DEBUG_projectStructure" attribute is required for DEBUG`)
-                    }
-
-                    const remixUrl = element.getAttribute('DEBUG_remixUrl')
-                    if (remixUrl) {
-                        params.remixUrl = remixUrl
-                    } else {
-                        throw new Error(`"DEBUG_remixUrl" attribute is required for DEBUG`)
-                    }
-                } else {
-                    try {
-                        const response = await fetch(contentUrl)
-                        const content = await response.json()
-                        params.features = content.features
-                        params.projectId = content.projectId
-                        params.remixUrl = content.files.find(el => el.mediaType === 'text/html').url
-                    } catch (err) {
-                        throw new Error(`Cannot get content from ${contentUrl}`)
-                    }
+                    features = meta.features
+                    projectId = meta.projectId
+                } catch (err) {
+                    mode = 'emergency'
+                    console.warn(`[RemixLoader auto-initiator] Cannot get project meta information from server. Emergency mode activated`);
                 }
 
                 new window.RemixLoader({
-                    mode: params.mode,
+                    mode,
                     nodeElement: element,
-                    remixUrl: params.remixUrl,
-                    features: params.features,
-                    projectId: params.projectId,
-                    projectStructure: params.projectStructure,
+                    remixUrl: `${CDN_URL}/${hash}/index.html`,
+                    features,
+                    projectId,
                     initialWidth,
                     initialHeight,
                     lng: lng || null

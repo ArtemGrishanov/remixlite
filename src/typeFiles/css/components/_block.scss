@@ -1,13 +1,28 @@
+@import './../variables';
+@import './../mixins';
+
 .block {
   font-family: 'Helvetica', 'Arial', sans-serif;
   position: relative;
-  margin: 10px 0;
+  margin-top: $block-top-margin;
 
+  > * {
+    position: relative;
+  }
+  &:last-child {
+    margin-bottom: 10px;
+  }
   a {
     color: #06c;
+    &:hover {
+      text-decoration: underline;
+    }
   }
   strong {
     font-weight: bold;
+  }
+  img {
+    vertical-align: top;
   }
 
   &.__1 {
@@ -28,7 +43,6 @@
     min-height: 100px;
     width: 100%;
     text-align: center;
-    overflow: hidden;
     img {
       max-width: 100%;
     }
@@ -59,7 +73,7 @@
   }
   &.__9 {
     background-color: #fff;
-    padding: 40px 0;
+    padding: 0 0 20px;
     > div.wrapper {
       font-family: 'Roboto', sans-serif;
       font-style: normal;
@@ -121,6 +135,7 @@
           > div.btn-wrap {
             overflow: hidden;
             > div.button-block {
+              margin-top: 8px;
               margin-bottom: 24px;
               > button {
                 outline: none;
@@ -133,9 +148,10 @@
                 border-radius: 4px;
                 color: #fff;
                 font-size: 20px;
-                @include transition(0.1s, ease-in-out, 0s, (opacity));
+                animation: pulse 2s infinite;
                 &:hover {
                   opacity: .8;
+                  animation: unset;
                 }
                 @include maxWidth(799) {
                   height: 46px;
@@ -663,5 +679,9 @@
         }
       }
     }
+  }
+  &.__11 {
+    background-color: #fff;
+    padding: 0 0 20px;
   }
 }

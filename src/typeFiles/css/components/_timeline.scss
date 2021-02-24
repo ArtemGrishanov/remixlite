@@ -1,0 +1,140 @@
+@import './../variables';
+@import './../mixins';
+
+.timeline-block {
+  padding: 33px 12px 30px $timeline-block-left-padding;
+
+  ~ .block {
+    &:not(.timeline-block) {
+      &::before {
+        @include timeLinePseudoElement();
+
+        top: -$block-top-margin;
+      }
+    }
+
+    &.text-block {
+      padding-left: $timeline-block-left-padding;
+      @include maxWidth(799) {
+        padding-right: 4vw;
+        padding-left: 15vw;
+      }
+    }
+  }
+  &.timeline-end ~ .block {
+    &::before {
+      display: none;
+    }
+    &.text-block {
+      padding-left: 15px;
+    }
+  }
+  @include maxWidth(799) {
+    padding: 20px 4vw 20px 15vw;
+  }
+
+  ~ .timeline-block, // All but first
+  + :not(.timeline-block) { // If next one is not a timeline block - pull it up!
+    margin-top: 0;
+  }
+  + .timeline-block {
+    // Because of using padding instead of margins we have to imitate the margin-collapsing
+    padding-top: 3px;
+
+    &::after {
+      top: 25px;
+    }
+  }
+  &::before {
+    @include timeLinePseudoElement();
+  }
+  &::after {
+    content: ' ';
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background-color: $timeline-items-color;
+    top: 53px;
+    left: 35px;
+    border-radius: 5.5px;
+
+    @include maxWidth(799) {
+      top: 42px;
+      left: $timeline-left-indent--mobile;
+      transform: translateX(-50%);
+    }
+  }
+  &__mark-title,
+  &__mark-subtitle {
+    font-family: Georgia;
+    font-style: normal;
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  &__mark-title {
+    font-size: 40px;
+    line-height: 45px;
+  }
+  &__mark-subtitle {
+    font-size: 32px;
+    line-height: 28px;
+  }
+  &__image-with-description {
+    @include minWidth(800) {
+      width: 35%;
+      min-width: 35%;
+    }
+    @include maxWidth(799) {
+      // В мобилке по умолчанию отключаем обтекание
+      display: flex;
+
+      &--no-description {
+        // и включаем его только если есть картинка и она без подписи
+        display: block;
+
+        .timeline-block__image-container {
+          float: left;
+        }
+      }
+    }
+  }
+  &__image-container {
+    @include minWidth(800) {
+      margin-bottom: 15px;
+    }
+    @include maxWidth(799) {
+      width: 32vw;
+      margin: 0 4vw 4vw 0;
+    }
+  }
+  &__image {
+    width: 100%;
+
+    @include maxWidth(799) {
+      width: 32vw;
+      margin: 0 4vw 3vw 0;
+    }
+  }
+  &__image-description {
+    color: $timeline-image-description-color;
+    font-family: Roboto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: 0;
+    text-align: left;
+
+    @include maxWidth(799) {
+      margin-bottom: 4vw;
+    }
+  }
+  &__image-container,
+  &__image-description {
+    @include minWidth(800) {
+      float: left;
+      margin-right: 20px;
+    }
+
+  }
+}
