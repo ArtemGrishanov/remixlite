@@ -3,6 +3,7 @@
 
 .timeline-block {
   padding: 33px 12px 30px $timeline-block-left-padding;
+  overflow: hidden;
 
   ~ .block {
     &:not(.timeline-block) {
