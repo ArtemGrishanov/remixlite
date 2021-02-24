@@ -1,4 +1,6 @@
-export default function(cnt, { methods }) {
+import {DEFAULT_IMAGE_BG_WIDE_URL} from "../utils/constants";
+
+export default function (cnt, {methods}) {
     const
         bc = '__blur',
         cr = `<div class="cur">
@@ -10,15 +12,13 @@ export default function(cnt, { methods }) {
 
     return {
         render: data => {
-            //if (data.blur) {
-            tt = `<div class="icnt ${data.blur ? '__blur': ''}"><img src="{{url}}">${data.blur ? cr : ''}</div>`
-            // data.cl = bc
-            // b = data.blur
-            // tt += cr
-            //}
-            d = methods.add(cnt, methods.parse(tt, data), data.t)
+            tt = `<div class="icnt ${data.blur ? '__blur' : ''}"><img src="{{url}}">${data.blur ? cr : ''}</div>`
+            d = methods.add(cnt, methods.parse(tt, {
+                ...data,
+                url: data.url ? data.url : DEFAULT_IMAGE_BG_WIDE_URL
+            }), data.t)
             if (data.blur) {
-                icnt = d.querySelector('.'+bc)
+                icnt = d.querySelector('.' + bc)
             }
         },
         postRender: () => {
