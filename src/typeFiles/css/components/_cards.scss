@@ -5,7 +5,7 @@
   align-content: stretch;
   align-items: stretch;
   padding: 5%;
-  transition: all 5s ease;
+  transition: all 1s ease;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -14,26 +14,27 @@
     padding: 2%;
     box-sizing: border-box;
     cursor: pointer;
-  }
-
-  &__card-cover-image {
-    object-fit: cover;
-    aspect-ratio: 1/1;
-    border-radius: 8px;
     width: 140px;
     min-width: 60px;
     max-width: 200px;
-    transition: all 0.25s ease;
-    &:hover  {
-      transform: scale(1.05);
-    }
-
     @include maxWidth(799) {
       max-width: 80px;
     }
   }
 
+  &__card-cover-image {
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    width: 100%;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    &:hover  {
+      transform: scale(1.05);
+    }
+  }
+
   &__card-disclaimer {
+    width: 100%;
     padding-top: 6px;
     font-family: 'Roboto';
     font-size: 20px;
