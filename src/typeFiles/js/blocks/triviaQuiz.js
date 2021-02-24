@@ -50,6 +50,7 @@ const templates = {
                 {{#question.answers}}
                     <li class="item is-handled {{_classes.answer}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
                         {{#isText}}
+                            <div class="hover-border" style="border-color: {{colorTheme}}"></div>
                             <div class="text">{{text}}</div>
                         {{/isText}}
                         {{^isText}}

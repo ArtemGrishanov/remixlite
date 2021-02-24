@@ -83,7 +83,7 @@
       > div.cover {
         > img {
           width: 100%;
-          height: 600px;
+          height: 540px;
           object-fit: cover;
           @include maxWidth(799) {
             height: 320px;
@@ -335,8 +335,23 @@
             &:last-child {
               margin-bottom: 0;
             }
+            &:hover > .hover-border {
+              opacity: 1;
+            }
+            > .hover-border {
+              opacity: 0;
+              position: absolute;
+              top: -2px;
+              left: -2px;
+              width: calc(100% + 4px);
+              height: calc(100% + 4px);
+              box-sizing: border-box;
+              border: 2px solid;
+              border-radius: 4px;
+              transition: opacity .2s ease-in-out;
+            }
             &.is-image {
-              box-shadow: none;
+              box-shadow: none !important;
               margin: 0 16px 24px 0;
               padding: 0;
               width: 178px;
@@ -533,7 +548,7 @@
         }
         > img {
           width: 100%;
-          height: 600px;
+          height: 540px;
           object-fit: cover;
           @include maxWidth(799) {
             height: 314px;
