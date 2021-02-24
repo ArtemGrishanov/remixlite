@@ -25,21 +25,14 @@
     top: 0;
     width: 4px;
     height: 100%;
-    transform: translateX(-50%);
     display: flex;
     align-items: center;
     transition: opacity .25s;
     background-color: #FFFFFF;
     > svg {
       position: absolute;
-      margin-left: 50%;
-      transform: translateX(-50%);
+      left: -22px;
       animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      from { transform: scale3d(1, 1, 1) translateX(-50%) }
-      50% { transform: scale3d(1.1, 1.1, 1.1) translateX(-45%) }
-      to { transform: scale3d(1, 1, 1) translateX(-50%) }
     }
   }
 }
