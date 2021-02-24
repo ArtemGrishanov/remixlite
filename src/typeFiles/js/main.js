@@ -16,6 +16,7 @@ import blockFindObject from './blocks/findObject'
 import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
 import blockMemoryCards from './blocks/memoryCards/memoryCards'
+import blockCards from './blocks/cards'
 // Import UI
 import uiModal from './ui/modal'
 import uiPin from './ui/pin'
@@ -23,6 +24,7 @@ import uiButton from './ui/button'
 //Import Utils
 import throttle from "./utils/throttle";
 import getRandomId from "./utils/getRandomId";
+import log from "./utils/log";
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -191,6 +193,22 @@ class Remix {
             sendMessage,
             getTranslation
         }),
+        [BLOCK.cookies]: container => blockCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage
+        }),
+        [BLOCK.horoscope]: container => blockCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage
+        }),
     }
 
     constructor() {}
@@ -209,7 +227,12 @@ class Remix {
                 const block = this.#blocks[blockData.t];
                 if (block) {
                     const newBlock = new block(container)
-                    newBlock.render(blockData)
+                    try {
+                        newBlock.render(blockData)
+                    }
+                    catch (err) {
+                        log('error', blockData.t, blockData.id, null, err)
+                    }
                     if (newBlock.postRender) newBlock.postRender()
                 } else {
                     console.warn(`Block type "${blockData.t}" not supported`)

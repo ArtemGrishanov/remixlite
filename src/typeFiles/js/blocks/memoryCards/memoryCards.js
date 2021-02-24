@@ -431,22 +431,18 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
 
     return {
         render: data => {
-            try {
-                _initialData = data
-                const wrapperId = `mc_${data.id}`
-                const wrapper = M.render(templates.wrapper, {id: wrapperId})
+            _initialData = data
+            const wrapperId = `mc_${data.id}`
+            const wrapper = M.render(templates.wrapper, {id: wrapperId})
 
-                methods.add(cnt, wrapper, data.t)
+            methods.add(cnt, wrapper, data.t)
 
-                const [screenElement, modalElement] = document.getElementById(wrapperId).children
-                _screenElement = screenElement
-                _modalElement = modalElement
+            const [screenElement, modalElement] = document.getElementById(wrapperId).children
+            _screenElement = screenElement
+            _modalElement = modalElement
 
-                resizeObserver.observe(screenElement)
-                handlers.click({initiator: 'memory-start'})
-            } catch (err) {
-                log('error', '11 (MemoryCards)', data.id, null, err)
-            }
+            resizeObserver.observe(screenElement)
+            handlers.click({initiator: 'memory-start'})
         },
         postRender: null
     }

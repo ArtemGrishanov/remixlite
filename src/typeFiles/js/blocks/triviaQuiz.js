@@ -384,18 +384,14 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
     return {
         render: data => {
             initialData = data
-            try {
-                const wrapperId = `tq_${data.id}`
-                const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
+            const wrapperId = `tq_${data.id}`
+            const wrapper = getParsedHTML(M, 'wrapper', {id: wrapperId})
 
-                methods.add(cnt, wrapper, data.t)
+            methods.add(cnt, wrapper, data.t)
 
-                wrapperElement = document.getElementById(wrapperId)
+            wrapperElement = document.getElementById(wrapperId)
 
-                handlers.click({initiator: 'start', payload: {}})
-            } catch (err) {
-                log('error', '9 (TriviaQuiz)', data.id, null, err)
-            }
+            handlers.click({initiator: 'start', payload: {}})
         },
         postRender: null
     }
