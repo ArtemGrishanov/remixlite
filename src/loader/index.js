@@ -449,7 +449,8 @@ window.RemixLoader = class RemixLoader {
                 payload: {
                     data: {
                         ...position,
-                        top: position.top - this.#additionalTopOffset
+                        top: position.top - this.#additionalTopOffset,
+                        windowBottom: position.top - window.innerHeight,
                     }
                 }
             }, this.#appOrigin)

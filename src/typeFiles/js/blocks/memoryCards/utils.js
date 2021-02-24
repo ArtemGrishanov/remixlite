@@ -50,6 +50,10 @@ export function CreateStopwatch() {
     }
     this.clearTimer = () => {
         clearInterval(this.timer)
+        this.isPaused = false
+        this.timer = null
+        this.second = 0
+        this.minute = 0
     }
     this.pauseTimer = () => {
         this.isPaused = true
@@ -102,9 +106,9 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
     }
 
     // Format to render specific view
-    const renderSet = []
+    const cardsSet = []
     if (tmpPairList.length) {
-        const tmpRenderSet = tmpPairList
+        const flatCardList = tmpPairList
             .reduce((acc, item) => {
                 acc.push({
                     isActive: false,
@@ -125,10 +129,53 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
             .sort(() => Math.random() - 0.5)
 
         for (let i = 0; i < rowCount; i++) {
-            const row = tmpRenderSet.splice(0, cellCount).sort(() => Math.random() - 0.5)
-            renderSet.push(row)
+            const row = flatCardList.splice(0, cellCount).sort(() => Math.random() - 0.5)
+            cardsSet.push(row)
         }
     }
 
-    return renderSet
+    return cardsSet
+}
+
+export const getMobileCardLayout = (webLayout) => {
+    switch (webLayout.value) {
+        case '6x6': {
+            return {
+                value: '4x9',
+                label: '4x9'
+            }
+        }
+        case '6x4': {
+            return {
+                value: '4x6',
+                label: '4x6'
+            }
+        }
+        default: {
+            return webLayout
+        }
+    }
+}
+
+export const updateCardsDataSet = (cardLayout, dataSet) => {
+    const [cellCount, rowCount] = cardLayout.split('x').map(x => Number(x))
+    const isValidProp = x => typeof x === 'number' && x > 0
+
+    if (!isValidProp(rowCount) && !isValidProp(cellCount)) {
+        return console.warn('[Memory]: Bad props from cardRowsCount!')
+    }
+
+    const flatCardList = dataSet.reduce((acc, row) => {
+        acc = [...acc, ...row]
+        return acc
+    },[])
+
+    const cardsSet = []
+    if (flatCardList.length) {
+        for (let i = 0; i < rowCount; i++) {
+            const row = flatCardList.splice(0, cellCount)
+            cardsSet.push(row)
+        }
+    }
+    return cardsSet
 }

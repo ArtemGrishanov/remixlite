@@ -10,6 +10,7 @@ const BLOCK = {
     quiz: 9,
     thenNow: 10,
     memoryCards: 11,
+    timeline: 12,
     cookies: 13,
     horoscope: 14,
 }
