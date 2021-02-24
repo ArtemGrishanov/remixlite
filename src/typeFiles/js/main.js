@@ -238,6 +238,17 @@ class Remix {
     }
 
     // Private methods
+
+    /**
+     * Adds a block
+     * @param container {HTMLElement}
+     * @param html {String}
+     * @param blockType {String}
+     * @param classes {Array}
+     * @param props {Object}
+     * @param navigationLabel {String}
+     * @returns {HTMLDivElement}
+     */
     #addBlock = (container, html, blockType, classes, props = null, navigationLabel = null) => {
         const div = document.createElement('div')
 
