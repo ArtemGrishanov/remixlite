@@ -430,12 +430,16 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                     })
 
                     window.addEventListener('click', evt => {
-                        for (const element of evt.path) {
-                            if (element.tagName === 'A') {
-                                const href = element.getAttribute('href')
-                                element.setAttribute('href', normalizeUrl(href, {}))
-                                break
+                        try {
+                            for (const element of evt.path) {
+                                if (element.tagName === 'A') {
+                                    const href = element.getAttribute('href')
+                                    element.setAttribute('href', normalizeUrl(href, {}))
+                                    break
+                                }
                             }
+                        } catch (err) {
+                            console.error(err)
                         }
                     }, false);
                 }
