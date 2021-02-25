@@ -4,7 +4,7 @@ import { setLanguage, getTranslation } from './i18n'
 
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
-import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum"
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -24,10 +24,12 @@ import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
 //Import Utils
-import throttle from "./utils/throttle";
-import getRandomId from "./utils/getRandomId";
+import throttle from "./utils/throttle"
+import getRandomId from "./utils/getRandomId"
 
-import BlocksNavigation from "./utils/navigation/blocksNavigation";
+import BlocksNavigation from "./utils/navigation/blocksNavigation"
+
+import { normalizeUrl } from './utils/normalizer'
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -426,6 +428,16 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                     ['mousemove', 'mousedown', 'keydown'].forEach(evt => {
                         window.addEventListener(evt, throttle(() => sendMessage('activity', {}), 5000))
                     })
+
+                    window.addEventListener('click', evt => {
+                        for (const element of evt.path) {
+                            if (element.tagName === 'A') {
+                                const href = element.getAttribute('href')
+                                element.setAttribute('href', normalizeUrl(href, {}))
+                                break
+                            }
+                        }
+                    }, false);
                 }
             } catch (err) {
                 console.error(err)

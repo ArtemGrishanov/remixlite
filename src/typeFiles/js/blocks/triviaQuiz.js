@@ -1,5 +1,6 @@
 import log from "../utils/log";
 import invertColor from "../utils/invertColor";
+import { normalizeUrl } from "../utils/normalizer";
 
 // Templates
 const templates = {
@@ -372,7 +373,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                             target: 'result.callToAction'
                         }
                     })
-                    window.open(initialData.callToActionLink,'_blank');
+                    window.open(normalizeUrl(initialData.callToActionLink, {}),'_blank');
                     break;
                 }
                 default:
