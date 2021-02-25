@@ -1,5 +1,6 @@
 import {throttle} from "../../../loader/utils";
 import invertColor from "../utils/invertColor";
+import {getTranslation} from "../i18n";
 
 const templates = {
     wrapper: `
@@ -29,7 +30,7 @@ const templates = {
                         </div>
                     {{/callToActionLink}}
                     <div class="button-block">
-                        <button class="is-handled" data-handlers="click" data-initiator="restart" style="background-color: {{colorTheme}}; color: {{buttonColor}}">Restart</button>
+                        <button class="is-handled" data-handlers="click" data-initiator="restart" style="background-color: {{colorTheme}}; color: {{buttonColor}}">{{restartButtonText}}</button>
                     </div>
                 </div>
             </div>
@@ -38,7 +39,7 @@ const templates = {
 }
 
 
-export default function (container, {M, methods, sendMessage}) {
+export default function (container, {M, methods, sendMessage, getTranslation}) {
     let _initialData = {}
     let _screenElement = null
     let _screenWidth = null
@@ -104,6 +105,7 @@ export default function (container, {M, methods, sendMessage}) {
                         callToActionLink: _initialData.callToActionLink,
                         callToActionText: _initialData.callToActionText,
                         _classes: !card.illustrationImage ? 'no-image' : '',
+                        restartButtonText: getTranslation('Restart'),
                     });
                     updateEventListeners(_screenElement)
                     _activeScreen = initiator

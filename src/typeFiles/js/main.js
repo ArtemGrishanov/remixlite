@@ -214,7 +214,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation
         }),
         [BLOCK.horoscope]: container => blockCards(container, {
             M: Mustache,
@@ -222,7 +223,8 @@ class Remix {
                 add: this.#addBlock,
                 parse: this.#parse,
             },
-            sendMessage
+            sendMessage,
+            getTranslation
         }),
     }
     #timelineLastBlockId;
