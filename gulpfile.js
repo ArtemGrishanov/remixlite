@@ -40,7 +40,7 @@ const gulp = require('gulp'),
     groupMedia = require('gulp-group-css-media-queries'),
     cleanCss = require('gulp-clean-css'),
     rename = require('gulp-rename'),
-    uglify = require('gulp-uglify'),
+    terser = require('gulp-terser'),
     htmlmin = require('gulp-htmlmin'),
     browserify = require('browserify'),
     babelify = require('babelify'),
@@ -145,8 +145,8 @@ const f = {
                     .bundle()
                     .pipe(source('main.js'))
                     .pipe(buffer())
-                    .pipe(uglify({
-                        output: {
+                    .pipe(terser({
+                        format: {
                             quote_style: 1
                         }
                     }))
@@ -179,8 +179,8 @@ const f = {
                 .bundle()
                 .pipe(source('loader.js'))
                 .pipe(buffer())
-                .pipe(uglify({
-                    output: {
+                .pipe(terser({
+                    format: {
                         quote_style: 1
                     }
                 }))
