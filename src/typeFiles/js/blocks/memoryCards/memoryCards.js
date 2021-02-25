@@ -10,6 +10,7 @@ import {
 } from "./utils";
 import throttle from "../../utils/throttle";
 import {START_WEB_PAGE_SIZE} from "../../utils/constants";
+import {normalizeUrl} from "../../utils/normalizer";
 
 const templates = {
     wrapper: `
@@ -446,7 +447,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
                     break;
                 }
                 case 'memory-final-screen-redirect': {
-                    window.open(_initialData.actionButtonLink, '_blank');
+                    window.open(normalizeUrl(_initialData.actionButtonLink, {}), '_blank');
                     sendAction('memory-final-screen-redirect')
                     break;
                 }
