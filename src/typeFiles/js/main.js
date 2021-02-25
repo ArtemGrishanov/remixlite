@@ -303,8 +303,7 @@ class Remix {
         })
     }
     #htmlDecode = str => {
-        const chars = [`\n`,`\r`,`\``,`'`,`"`,`<`,`>`]
-        chars.forEach(char => {
+        [`\n`, `\r`, `\t`, `\``, `'`, `"`, `<`, `>`].forEach(char => {
             const reg = new RegExp(`U\\+${char.charCodeAt(0)};`, 'g')
             str = str.replace(reg, char)
         })
