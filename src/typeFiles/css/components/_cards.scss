@@ -14,11 +14,12 @@
     padding: 2%;
     box-sizing: border-box;
     cursor: pointer;
-    width: 140px;
-    min-width: 60px;
+    width: 160px;
+    min-width: 50px;
     max-width: 200px;
-    @include maxWidth(799) {
-      max-width: 80px;
+    transition: all 1s ease;
+    @include maxWidth(599) {
+      max-width: 70px;
     }
   }
 
@@ -58,7 +59,7 @@
   background-position: center top;
   background-size: contain;
   padding-top: 40%;
-  transition: all 5s ease;
+  transition: all 1s ease;
 
   &.no-image {
     padding-top: 40px;
