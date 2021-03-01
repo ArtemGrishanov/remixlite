@@ -5,7 +5,7 @@
   align-content: stretch;
   align-items: stretch;
   padding: 5%;
-  transition: all 1s ease;
+  @include transition(0.1s, ease-in-out, 0s, (opacity));
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -17,7 +17,6 @@
     width: 160px;
     min-width: 50px;
     max-width: 200px;
-    transition: all 1s ease;
     @include maxWidth(599) {
       max-width: 70px;
     }
@@ -59,7 +58,7 @@
   background-position: center top;
   background-size: contain;
   padding-top: 40%;
-  transition: all 1s ease;
+  transition: all 0.5s ease;
 
   &.no-image {
     padding-top: 40px;

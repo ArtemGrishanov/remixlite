@@ -1,5 +1,6 @@
 import log from "../utils/log";
 import invertColor from "../utils/invertColor";
+import {updateEventListeners} from "../utils/events";
 
 // Templates
 const templates = {
@@ -125,29 +126,11 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
         M.parse(template)
     }
 
-    function updateEventListeners(additionalPayload = {}) {
-        if (wrapperElement) {
-            const handledElements = wrapperElement.getElementsByClassName("is-handled");
-            for (const el of handledElements) {
-                for (const handle of el.dataset.handlers.split('|')) {
-                    el.addEventListener(handle, evt => handlers[handle]({
-                        initiator: el.dataset.initiator,
-                        payload: {
-                            ...el.dataset,
-                            ...additionalPayload
-                        }
-                    }, evt))
-                }
-            }
-        }
-    }
-
-    function getCoords(elem) {
-        const box = elem.getBoundingClientRect();
-        return {
-            top: box.top,
-            left: box.left
-        };
+    function scrollToTop() {
+        const rect = wrapperElement.getBoundingClientRect();
+        sendMessage('scrollParent', {
+            top: rect.top - 20 // 20 = top offset
+        })
     }
 
     function setScreen(type, payload = {}) {
@@ -161,15 +144,11 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         box: initialData.struct.cover.image ? '' : 'no-image'
                     }
                 });
-
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollToTop()
                 break;
             }
             case 'question': {
                 const question = initialData.struct.questions[payload.index]
-
                 wrapperElement.innerHTML = getParsedHTML(M, 'question', {
                     question,
                     isText: question.isText,
@@ -187,15 +166,11 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         answer: !question.isText ? `is-image${(question.answers.length <= 3 || (question.answers.length >= 5 && question.answers.length <= 6)) ? ' is-big' : ''}` : '',
                     }
                 });
-
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollToTop()
                 break;
             }
             case 'result': {
                 const result = initialData.struct.results[payload.index]
-
                 wrapperElement.innerHTML = getParsedHTML(M, 'result', {
                     result,
                     header: initialData.struct._settings.showCover ? initialData.struct.cover.header : null,
@@ -214,15 +189,13 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         box: !result.image ? 'no-image' : '',
                     }
                 });
-
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollToTop()
                 break;
             }
             default:
                 break;
         }
+
     }
 
     const handlers = {
@@ -232,7 +205,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                     if (evt) evt.preventDefault()
 
                     setScreen('question', {index: 0})
-                    updateEventListeners({qIndex: 0})
+                    updateEventListeners(wrapperElement, handlers, {qIndex: 0})
 
                     sendMessage('action', {
                         block: 'triviaQuiz',
@@ -286,7 +259,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         buttonColor: invertColor(initialData.colorTheme, true)
                     }))
 
-                    updateEventListeners({qIndex: payload.qIndex})
+                    updateEventListeners(wrapperElement, handlers, {qIndex: payload.qIndex})
                     break;
                 }
                 case 'question.next': {
@@ -295,7 +268,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                     if (payload.qIndex === (initialData.struct.questions.length - 1)) {
                         const resultIndex = initialData.struct._settings.distribution.findIndex(el => el.from <= scores && el.to >= scores)
                         setScreen('result', {index: resultIndex})
-                        updateEventListeners()
+                        updateEventListeners(wrapperElement, handlers)
 
                         sendMessage('action', {
                             block: 'triviaQuiz',
@@ -312,7 +285,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         })
                     } else {
                         setScreen('question', {index: payload.qIndex + 1})
-                        updateEventListeners({qIndex: payload.qIndex + 1})
+                        updateEventListeners(wrapperElement, handlers, {qIndex: payload.qIndex + 1})
 
                         sendMessage('action', {
                             block: 'triviaQuiz',
@@ -341,7 +314,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                         additionalPayload.qIndex = 0
                     }
 
-                    updateEventListeners(additionalPayload)
+                    updateEventListeners(wrapperElement, handlers, additionalPayload)
 
                     switch (initiator) {
                         case 'start':

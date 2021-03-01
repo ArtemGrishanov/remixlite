@@ -1,6 +1,7 @@
 import {throttle} from "../../../loader/utils";
 import invertColor from "../utils/invertColor";
 import {getTranslation} from "../i18n";
+import {createResizeObserver, updateEventListeners} from "../utils/events";
 
 const templates = {
     wrapper: `
@@ -42,36 +43,11 @@ const templates = {
 export default function (container, {M, methods, sendMessage, getTranslation}) {
     let _initialData = {}
     let _screenElement = null
-    let _screenWidth = null
     let _activeScreen = null
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
         M.parse(template)
     }
-
-    function updateEventListeners(screenElement) {
-        if (screenElement) {
-            const handledElements = screenElement.getElementsByClassName("is-handled");
-            for (const el of handledElements) {
-                for (const handle of el.dataset.handlers.split('|')) {
-                    el.addEventListener(handle, evt => handlers[handle]({initiator: el.dataset.initiator}, evt))
-                }
-            }
-        }
-    }
-
-    function getTopCoords(elem) {
-        const box = elem.getBoundingClientRect();
-        return box.top
-    }
-
-    const resizeObserver = new ResizeObserver(throttle(() => {
-        if (_screenElement.offsetWidth !== _screenWidth && _activeScreen === 'start') {
-            _screenWidth = _screenElement.offsetWidth
-            renderStartPage()
-            updateEventListeners(_screenElement)
-        }
-    }, 300))
 
     function renderStartPage() {
         const cards = _initialData.struct.cards
@@ -82,12 +58,28 @@ export default function (container, {M, methods, sendMessage, getTranslation}) {
             backgroundImage: _initialData.backgroundImage,
             textColor:  invertColor(_initialData.colorTheme, true),
         });
-        updateEventListeners(_screenElement)
+        updateEventListeners(_screenElement, handlers)
+    }
+
+    function renderCardDetail(cardId) {
+        let cards = _initialData.struct.cards;
+        let card = cards.find(card => card.id === cardId);
+        _screenElement.innerHTML = M.render(templates.cardDetail, {
+            card: card,
+            colorTheme: _initialData.colorTheme,
+            buttonColor: invertColor(_initialData.colorTheme, true),
+            callToActionLink: _initialData.callToActionLink,
+            callToActionText: _initialData.callToActionText,
+            _classes: !card.illustrationImage ? 'no-image' : '',
+            restartButtonText: getTranslation('Restart'),
+        });
+        updateEventListeners(_screenElement, handlers)
     }
 
     const handlers = {
         click: ({initiator, payload}, evt) => {
             if (evt) evt.preventDefault()
+
             switch (initiator) {
                 case 'start': {
                     renderStartPage();
@@ -96,18 +88,7 @@ export default function (container, {M, methods, sendMessage, getTranslation}) {
                 }
                 case 'openCardDetail': {
                     const cardId = evt.currentTarget.dataset.cardid
-                    let cards = _initialData.struct.cards;
-                    let card = cards.find(card => card.id === cardId);
-                    _screenElement.innerHTML = M.render(templates.cardDetail, {
-                        card: card,
-                        colorTheme: _initialData.colorTheme,
-                        buttonColor: invertColor(_initialData.colorTheme, true),
-                        callToActionLink: _initialData.callToActionLink,
-                        callToActionText: _initialData.callToActionText,
-                        _classes: !card.illustrationImage ? 'no-image' : '',
-                        restartButtonText: getTranslation('Restart'),
-                    });
-                    updateEventListeners(_screenElement)
+                    renderCardDetail(cardId);
                     _activeScreen = initiator
                     break;
                 }
@@ -117,7 +98,7 @@ export default function (container, {M, methods, sendMessage, getTranslation}) {
                 }
                 case 'restart': {
                     renderStartPage()
-                    let top = getTopCoords(_screenElement);
+                    let top = _screenElement.getBoundingClientRect().top
                     sendMessage('scrollParent', {top: top})
                     break;
                 }
@@ -138,7 +119,6 @@ export default function (container, {M, methods, sendMessage, getTranslation}) {
 
             const [screenElement] = document.getElementById(wrapperId).children
             _screenElement = screenElement
-            resizeObserver.observe(_screenElement)
             handlers.click({initiator: 'start'})
         },
 

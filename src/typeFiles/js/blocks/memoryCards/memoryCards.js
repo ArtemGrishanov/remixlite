@@ -3,13 +3,12 @@ import invertColor from "../../utils/invertColor";
 import {
     getCardsDataSet,
     calculateCardSideSize,
-    updateEventListeners,
     CreateStopwatch,
     getMobileCardLayout,
     updateCardsDataSet
 } from "./utils";
-import throttle from "../../utils/throttle";
 import {START_WEB_PAGE_SIZE} from "../../utils/constants";
+import {createResizeObserver, updateEventListeners} from "../../utils/events";
 
 const templates = {
     wrapper: `
@@ -276,7 +275,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
         }
     }
 
-    const resizeObserver = new ResizeObserver(throttle(() => {
+    const resizeObserver = createResizeObserver(() => {
         if (_screenElement.offsetWidth !== _screenWidth && _activeScreen === templateTitles.playgroundScreen) {
             _screenWidth = _screenElement.offsetWidth
             if (_screenWidth < START_WEB_PAGE_SIZE) {
@@ -295,7 +294,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
             }
             updateEventListeners(_screenElement, handlers)
         }
-    }, 300))
+    })
 
     const renderTemplates = (type, payload = {}) => {
         const generalSetting = {
