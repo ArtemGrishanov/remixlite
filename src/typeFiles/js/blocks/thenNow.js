@@ -43,11 +43,18 @@ export default function(cnt, { methods }) {
             delimiterDiv = container.querySelector('.then-now-block__delimiter');
             delimiterSvg = delimiterDiv.querySelector('svg');
             imgPrp = data.imageProportions.value.split('|');
+
             const images = container.querySelectorAll('.then-now-block__img');
             const SVG64 = window.btoa(placeholderSVG);
             images[0].style.backgroundImage = `url(${data.leftSrc ? data.leftSrc : `'data:image/svg+xml;base64,${SVG64}'`})`;
-            images[1].style.backgroundImage = `url(${data.rightSrc ? data.rightSrc : `'data:image/svg+xml;base64,${SVG64}'`})`;
-            images[1].style.opacity = data.rightSrc ? '1' : '0.9';
+            if (data.rightSrc) {
+                imgParentDiv.style.backgroundColor = '#FFF';
+                images[1].style.backgroundImage = `url(${data.rightSrc})`;
+            } else {
+                imgParentDiv.style.backgroundColor = '#000';
+                images[1].style.backgroundImage = `url('data:image/svg+xml;base64,${SVG64}')`;
+                images[1].style.opacity = '0.9';
+            }
         },
         postRender: () => {
             const updateContainerHeight = () => {
