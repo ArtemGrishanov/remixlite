@@ -120,7 +120,7 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.secondImage.src ? item.firstImage.src : DEFAULT_IMAGE_BG_URL,
+                    src: item.secondImage.src ? item.secondImage.src : DEFAULT_IMAGE_BG_URL,
                     coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_BG_URL,
                     pairId: item.id,
                 });
