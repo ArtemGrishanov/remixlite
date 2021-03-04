@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "mustache": "^4.1.0",
-    "normalize-url": "^4.5.0",
+    "normalize-url": "4.5.0",
     "smoothscroll-polyfill": "^0.4.4"
   }
 }

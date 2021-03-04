@@ -121,6 +121,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
     let initialData = {}
     let scores = 0
     let lastAnsweredIndex = null
+    let isRendered = false
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -152,6 +153,14 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
         };
     }
 
+    function scrollWindow(top) {
+        if (isRendered) {
+            sendMessage('scrollParent', {
+                top
+            })
+        }
+    }
+
     function setScreen(type, payload = {}) {
         switch (type) {
             case 'cover': {
@@ -164,9 +173,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                     }
                 });
 
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollWindow(getCoords(wrapperElement).top - 20)
                 break;
             }
             case 'question': {
@@ -190,9 +197,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                     }
                 });
 
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollWindow(getCoords(wrapperElement).top - 20)
                 break;
             }
             case 'result': {
@@ -217,9 +222,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                     }
                 });
 
-                sendMessage('scrollParent', {
-                    top: getCoords(wrapperElement).top - 20 // 20 = top offset
-                })
+                scrollWindow(getCoords(wrapperElement).top - 20)
                 break;
             }
             default:
@@ -337,7 +340,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
                     let additionalPayload = {}
                     if (initialData.struct._settings.showCover) {
-                        setScreen('cover' )
+                        setScreen('cover')
                     } else {
                         setScreen('question', {index: 0})
                         additionalPayload.qIndex = 0
@@ -347,7 +350,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
                     switch (initiator) {
                         case 'start':
-                            // Quiz was rendered
+                            isRendered = true
                             break;
                         case 'result.restart':
                             sendMessage('action', {

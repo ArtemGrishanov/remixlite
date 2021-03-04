@@ -329,14 +329,17 @@
             border-radius: 4px;
             margin-bottom: 10px;
             position: relative;
+            outline: none;
             @include maxWidth(799) {
               padding: 20px 42px 20px 16px;
             }
             &:last-child {
               margin-bottom: 0;
             }
-            &:hover > .hover-border {
-              opacity: 1;
+            @include minWidth(800) {
+              &:hover > .hover-border {
+                opacity: 1;
+              }
             }
             > .hover-border {
               opacity: 0;
