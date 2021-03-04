@@ -46,6 +46,7 @@
     text-align: center;
     img {
       max-width: 100%;
+      transition: all 0.2s;
     }
     .cur {
       display: none;
@@ -152,7 +153,7 @@
                 animation: pulse 2s infinite;
                 &:hover {
                   opacity: .8;
-                  animation: unset;
+                  @include animationPaused();
                 }
                 @include maxWidth(799) {
                   height: 46px;
@@ -397,6 +398,9 @@
                   filter: drop-shadow(0 4px 20px rgba(0,0,0,.12));
                   border-radius: 4px;
                   overflow: hidden;
+                  &:hover {
+                    filter: drop-shadow(0 4px 20px rgba(0,0,0,.12));
+                  }
                   @include maxWidth(799) {
                     width: 100%;
                   }

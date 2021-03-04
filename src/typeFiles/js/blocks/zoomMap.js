@@ -16,7 +16,7 @@ export default function (cnt, {methods, ui}) {
                     pcl: data.pcl,
                     ind: i,
                     pimg: data.pimg,
-                    cl: data.pimg ? 'im' : ''
+                    cl: 'int' + (data.pimg ? ' im' : '')
                 }))
             }
             d = methods.add(cnt, methods.parse(ui.pins.wrapper, {
