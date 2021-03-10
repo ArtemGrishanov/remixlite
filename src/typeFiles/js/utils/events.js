@@ -1,4 +1,3 @@
-import log from "./log";
 import {throttle} from "../../../loader/utils";
 
 export const updateEventListeners = (domElement, handlers, additionalPayload = {}) => {
@@ -17,7 +16,7 @@ export const updateEventListeners = (domElement, handlers, additionalPayload = {
                 }
             }
         } catch (err) {
-            log('error', '', data.id, null, err)
+            console.error(err)
         }
     }
 }
