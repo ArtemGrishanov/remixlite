@@ -18,6 +18,7 @@ import blockTriviaQuiz from './blocks/triviaQuiz'
 import blockThenNow from './blocks/thenNow'
 import blockMemoryCards from './blocks/memoryCards/memoryCards'
 import blockTimeline from './blocks/timeline'
+import blockCards from './blocks/cards'
 
 // Import UI
 import uiModal from './ui/modal'
@@ -26,6 +27,7 @@ import uiButton from './ui/button'
 //Import Utils
 import throttle from "./utils/throttle"
 import getRandomId from "./utils/getRandomId"
+import log from "./utils/log"
 
 import BlocksNavigation from "./utils/navigation/blocksNavigation"
 
@@ -208,6 +210,24 @@ class Remix {
             },
             blockOptions,
         ),
+        [BLOCK.cookies]: container => blockCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage,
+            getTranslation
+        }),
+        [BLOCK.horoscope]: container => blockCards(container, {
+            M: Mustache,
+            methods: {
+                add: this.#addBlock,
+                parse: this.#parse,
+            },
+            sendMessage,
+            getTranslation
+        }),
     }
     #timelineLastBlockId;
     #navigator = new BlocksNavigation(sendMessage);
@@ -229,7 +249,12 @@ class Remix {
                 const block = this.#blocks[blockData.t];
                 if (block) {
                     const newBlock = new block(container, this.#getBlockOptions(blockData))
-                    newBlock.render(blockData)
+                    try {
+                        newBlock.render(blockData)
+                    }
+                    catch (err) {
+                        log('error', blockData.t, blockData.id, null, err)
+                    }
                     if (newBlock.postRender) newBlock.postRender()
                 } else {
                     console.warn(`Block type "${blockData.t}" not supported`)

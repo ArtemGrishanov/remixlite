@@ -1,35 +1,6 @@
 import getRandomId from "../../utils/getRandomId";
-import log from "../../utils/log";
 import {DEFAULT_IMAGE_BG_URL} from "../../utils/constants";
 
-export const getCoords = (elem) => {
-    const box = elem.getBoundingClientRect();
-    return {
-        top: box.top,
-        left: box.left
-    };
-}
-
-export const updateEventListeners = (domElement, handlers, additionalPayload = {}) => {
-    if (domElement) {
-        try {
-            const handledElements = domElement.getElementsByClassName("is-handled");
-            for (const el of handledElements) {
-                for (const handle of el.dataset.handlers.split('|')) {
-                    el.addEventListener(handle, evt => handlers[handle]({
-                        initiator: el.dataset.initiator,
-                        payload: {
-                            ...el.dataset,
-                            ...additionalPayload
-                        }
-                    }, evt))
-                }
-            }
-        } catch (err) {
-            log('error', '11 (MemoryCards)', data.id, null, err)
-        }
-    }
-}
 
 export function CreateStopwatch() {
     this.isPaused = false

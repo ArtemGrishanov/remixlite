@@ -3,14 +3,13 @@ import invertColor from "../../utils/invertColor";
 import {
     getCardsDataSet,
     calculateCardSideSize,
-    updateEventListeners,
     CreateStopwatch,
     getMobileCardLayout,
     updateCardsDataSet
 } from "./utils";
-import throttle from "../../utils/throttle";
 import {START_WEB_PAGE_SIZE} from "../../utils/constants";
 import {normalizeUrl} from "../../utils/normalizer";
+import {createResizeObserver, updateEventListeners} from "../../utils/events";
 
 const templates = {
     wrapper: `
@@ -277,7 +276,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
         }
     }
 
-    const resizeObserver = new ResizeObserver(throttle(() => {
+    const resizeObserver = createResizeObserver(() => {
         if (_screenElement.offsetWidth !== _screenWidth && _activeScreen === templateTitles.playgroundScreen) {
             _screenWidth = _screenElement.offsetWidth
             if (_screenWidth < START_WEB_PAGE_SIZE) {
@@ -296,7 +295,7 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
             }
             updateEventListeners(_screenElement, handlers)
         }
-    }, 300))
+    })
 
     const renderTemplates = (type, payload = {}) => {
         const generalSetting = {
@@ -459,23 +458,19 @@ export default function (cnt, {M, methods, sendMessage, getTranslation}) {
 
     return {
         render: data => {
-            try {
-                _initialData = data
-                const wrapperId = `mc_${data.id}`
-                const wrapper = M.render(templates.wrapper, {id: wrapperId})
+            _initialData = data
+            const wrapperId = `mc_${data.id}`
+            const wrapper = M.render(templates.wrapper, {id: wrapperId})
 
-                methods.add(cnt, wrapper, data.t)
+            methods.add(cnt, wrapper, data.t)
 
-                const [screenElement, modalElement] = document.getElementById(wrapperId).children
-                _screenWidth = screenElement.offsetWidth
-                _screenElement = screenElement
-                _modalElement = modalElement
+            const [screenElement, modalElement] = document.getElementById(wrapperId).children
+            _screenWidth = screenElement.offsetWidth
+            _screenElement = screenElement
+            _modalElement = modalElement
 
-                resizeObserver.observe(screenElement)
-                handlers.click({initiator: 'memory-start'})
-            } catch (err) {
-                log('error', '11 (MemoryCards)', data.id, null, err)
-            }
+            resizeObserver.observe(screenElement)
+            handlers.click({initiator: 'memory-start'})
         },
         postRender: null
     }

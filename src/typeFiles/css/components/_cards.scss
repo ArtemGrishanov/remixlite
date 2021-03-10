@@ -1,0 +1,177 @@
+.cards-block-area {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: stretch;
+  align-items: stretch;
+  padding: 5%;
+  @include transition(0.1s, ease-in-out, 0s, (opacity));
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  &__card {
+    padding: 2%;
+    box-sizing: border-box;
+    cursor: pointer;
+    width: 160px;
+    min-width: 50px;
+    max-width: 200px;
+    @include maxWidth(599) {
+      max-width: 70px;
+    }
+  }
+
+  &__card-cover-image {
+    object-fit: cover;
+    aspect-ratio: 1/1;
+    width: 100%;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    &:hover  {
+      transform: scale(1.05);
+    }
+  }
+
+  &__card-disclaimer {
+    width: 100%;
+    padding-top: 6px;
+    font-family: 'Roboto';
+    font-size: 20px;
+    line-height: 24px;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    color: #ffffff;
+    @include maxWidth(799) {
+      font-size: 16px;
+      line-height: 20px;
+    }
+  }
+}
+
+.card-detail {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: contain;
+  padding-top: 40%;
+  transition: all 0.5s ease;
+
+  &.no-image {
+    padding-top: 40px;
+  }
+
+  &__box {
+    width: 100%;
+    padding: 5% 5% 0;
+    margin: 0 20px 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    text-align: center;
+
+    @include maxWidth(799) {
+      margin: 0;
+      border-radius: 0;
+    }
+  }
+
+  &__header {
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 42px;
+    color: #000;
+    white-space: pre-line;
+
+    @include maxWidth(799) {
+      font-size: 24px;
+      line-height: 28px;
+    }
+  }
+
+  &__description {
+    margin-top: 16px;
+    font-size: 20px;
+    line-height: 28px;
+    color: #000;
+    white-space: pre-line;
+    @include maxWidth(799) {
+      font-size: 16px;
+      line-height: 24px;
+      text-align: left;
+    }
+  }
+
+  &__btn-wrap {
+    margin-top: 40px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    > div.link-block {
+      margin-bottom: 12px;
+
+      > button {
+        font-family: 'Roboto', sans-serif;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 20px;
+        display: flex;
+        outline: none;
+        cursor: pointer;
+        border: 0;
+        padding: 0 44px;
+        height: 52px;
+        align-items: center;
+        white-space: nowrap;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+        color: #fff;
+        @include transition(0.1s, ease-in-out, 0s, (opacity));
+        &:hover {
+          opacity: .8;
+        }
+
+        @include maxWidth(799) {
+          height: 46px;
+          font-size: 18px;
+        }
+      }
+    }
+
+    > div.button-block {
+      margin-bottom: 24px;
+
+      > button {
+        outline: none;
+        height: 50px;
+        background-color: #fff;
+        border: 1px solid #D8D8D8;
+        box-sizing: border-box;
+        border-radius: 4px;
+        font-size: 20px;
+        line-height: 24px;
+        color: #787878;
+        cursor: pointer;
+        padding: 0 40px 0 66px;
+        background-repeat: no-repeat;
+        background-position: 40px 50%;
+        background-image: url("data:image/svg+xml,%3Csvg width='16' height='20' viewBox='0 0 16 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 12C15 15.866 11.866 19 8 19C4.13401 19 1 15.866 1 12C1 8.13401 4.13401 5 8 5H10' stroke='%23787878' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M7 9L11 5L7 1' stroke='%23787878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+        @include transition(0.1s, ease-in-out, 0s, (opacity));
+
+        &:hover {
+          opacity: .8;
+        }
+
+        @include maxWidth(799) {
+          height: 46px;
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}

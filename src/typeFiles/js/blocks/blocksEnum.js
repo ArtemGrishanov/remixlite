@@ -11,7 +11,15 @@ const BLOCK = {
     thenNow: 10,
     memoryCards: 11,
     timeline: 12,
+    cookies: 13,
+    horoscope: 14,
 }
+
+const reversedBlocks = {}
+Object.keys(BLOCK).forEach((key) => { reversedBlocks[BLOCK[key]] = key})
+
+BLOCK.getLabel = function(value){ return reversedBlocks[value]}
+
 Object.freeze(BLOCK)
 
 export default BLOCK
