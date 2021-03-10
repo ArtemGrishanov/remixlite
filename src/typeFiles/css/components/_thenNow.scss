@@ -32,6 +32,9 @@
       position: absolute;
       left: -22px;
       animation: pulse 2s infinite;
+      &:hover {
+        @include animationPaused();
+      }
     }
   }
 }

@@ -7,6 +7,13 @@
   transition-property: $transition-property;
 }
 
+@mixin animationPaused() {
+  -webkit-animation-play-state: paused;
+  -moz-animation-play-state: paused;
+  -o-animation-play-state: paused;
+  animation-play-state: paused;
+}
+
 // Adaptation
 @mixin minWidth($screen) {
   @media (min-width: $screen+'px') {

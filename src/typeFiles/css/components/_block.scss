@@ -46,6 +46,7 @@
     text-align: center;
     img {
       max-width: 100%;
+      transition: all 0.2s;
     }
     .cur {
       display: none;
@@ -69,7 +70,16 @@
       }
     }
   }
-  &.__6, &.__7, &.__8 {
+  &.__6 {
+    text-align: center;
+    .btn.pulse {
+      animation: pulse 2s infinite;
+      &:hover {
+        @include animationPaused();
+      }
+    }
+  }
+  &.__7, &.__8 {
     text-align: center;
   }
   &.__9 {
@@ -152,7 +162,7 @@
                 animation: pulse 2s infinite;
                 &:hover {
                   opacity: .8;
-                  animation: unset;
+                  @include animationPaused();
                 }
                 @include maxWidth(799) {
                   height: 46px;
@@ -400,6 +410,9 @@
                   filter: drop-shadow(0 4px 20px rgba(0,0,0,.12));
                   border-radius: 4px;
                   overflow: hidden;
+                  &:hover {
+                    filter: drop-shadow(0 4px 20px rgba(0,0,0,.12));
+                  }
                   @include maxWidth(799) {
                     width: 100%;
                   }

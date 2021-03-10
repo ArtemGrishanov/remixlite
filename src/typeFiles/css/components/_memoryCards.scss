@@ -99,6 +99,10 @@
             transition: transform 0.6s;
             transform-style: preserve-3d;
 
+            &:hover {
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            }
+
             @include maxWidth(799) {
               border-radius: 8px;
             }
@@ -179,9 +183,10 @@
         border-radius: 4px;
         color: #fff;
         font-size: 20px;
-        @include transition(0.1s, ease-in-out, 0s, (opacity));
+        animation: pulse 2s infinite;
 
         &:hover {
+          @include animationPaused();
           opacity: .8;
         }
 
@@ -202,6 +207,7 @@
     top: 0;
     width: 100%;
     height: 100%;
+    animation: fadein 0.2s ease;
 
     .memory-playground__feedback {
       position: relative;

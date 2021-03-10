@@ -33,5 +33,11 @@
     &.rev {
       animation: pop 1s;
     }
+    &.int {
+      animation: pulse 2s infinite;
+      &:hover {
+        @include animationPaused();
+      }
+    }
   }
 }
