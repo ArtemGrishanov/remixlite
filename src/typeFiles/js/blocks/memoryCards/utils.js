@@ -1,5 +1,5 @@
 import getRandomId from "../../utils/getRandomId";
-import {DEFAULT_IMAGE_URL} from "../../utils/constants";
+import {DEFAULT_IMAGE_BG_URL} from "../../utils/constants";
 
 
 export function CreateStopwatch() {
@@ -84,15 +84,15 @@ export const getCardsDataSet = (cardLayout, pairList, coverSrc) => {
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.firstImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
-                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
+                    src: item.firstImage.src ? item.firstImage.src : DEFAULT_IMAGE_BG_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_BG_URL,
                     pairId: item.id,
                 });
                 acc.push({
                     isActive: false,
                     id: getRandomId(),
-                    src: item.secondImage.src ? item.firstImage.src : DEFAULT_IMAGE_URL,
-                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_URL,
+                    src: item.secondImage.src ? item.secondImage.src : DEFAULT_IMAGE_BG_URL,
+                    coverSrc: coverSrc ? coverSrc : DEFAULT_IMAGE_BG_URL,
                     pairId: item.id,
                 });
                 return acc

@@ -17,7 +17,7 @@ export default function({ methods, ui }) {
                     (o.i ? (`<div class="msgi {{cl}}" style="background-image:url({{i}})">`+ntc+`</div>`): ``) +
                     (tm ? tm: '') +
                     `</div>`
-                d = methods.add(cnt, methods.parse(t, o), null, 'mow')
+                d = methods.add(cnt, methods.parse(t, o), null, ['mow'])
                 if (!bl) {
                     // если ссылка на кнопке не задана, то поведение по умолчанию - закрыть модалку
                     const b = d.querySelector('.btn')

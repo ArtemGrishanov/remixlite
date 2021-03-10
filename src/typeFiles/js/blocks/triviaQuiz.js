@@ -1,5 +1,5 @@
-import log from "../utils/log";
 import invertColor from "../utils/invertColor";
+import { normalizeUrl } from "../utils/normalizer";
 import {updateEventListeners} from "../utils/events";
 
 // Templates
@@ -51,6 +51,7 @@ const templates = {
                 {{#question.answers}}
                     <li class="item is-handled {{_classes.answer}}" data-handlers="click" data-initiator="question.answer" data-answer-id="{{id}}">
                         {{#isText}}
+                            <div class="hover-border" style="border-color: {{colorTheme}}"></div>
                             <div class="text">{{text}}</div>
                         {{/isText}}
                         {{^isText}}
@@ -120,6 +121,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
     let initialData = {}
     let scores = 0
     let lastAnsweredIndex = null
+    let isRendered = false
 
     // Pre-parse (for high speed loading)
     for (const template of Object.values(templates)) {
@@ -128,9 +130,11 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
     function scrollToTop() {
         const rect = wrapperElement.getBoundingClientRect();
-        sendMessage('scrollParent', {
-            top: rect.top - 20 // 20 = top offset
-        })
+        if (isRendered) {
+            sendMessage('scrollParent', {
+                top: rect.top - 20 // 20 = top offset
+            })
+        }
     }
 
     function setScreen(type, payload = {}) {
@@ -308,7 +312,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
                     let additionalPayload = {}
                     if (initialData.struct._settings.showCover) {
-                        setScreen('cover' )
+                        setScreen('cover')
                     } else {
                         setScreen('question', {index: 0})
                         additionalPayload.qIndex = 0
@@ -318,7 +322,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
 
                     switch (initiator) {
                         case 'start':
-                            // Quiz was rendered
+                            isRendered = true
                             break;
                         case 'result.restart':
                             sendMessage('action', {
@@ -344,7 +348,7 @@ export default function(cnt, { M, methods, sendMessage, getTranslation }) {
                             target: 'result.callToAction'
                         }
                     })
-                    window.open(initialData.callToActionLink,'_blank');
+                    window.open(normalizeUrl(initialData.callToActionLink, {}),'_blank');
                     break;
                 }
                 default:

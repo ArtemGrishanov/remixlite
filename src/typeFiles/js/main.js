@@ -4,7 +4,7 @@ import { setLanguage, getTranslation } from './i18n'
 
 // Import blocks Enum
 import BLOCK from "./blocks/blocksEnum"
-import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum";
+import BLOCK_NAMES_DICTIONARY from "./blocks/blockNamesEnum"
 // Import blocks
 import blockText from './blocks/text'
 import blockImage from './blocks/image'
@@ -25,11 +25,13 @@ import uiModal from './ui/modal'
 import uiPin from './ui/pin'
 import uiButton from './ui/button'
 //Import Utils
-import throttle from "./utils/throttle";
-import getRandomId from "./utils/getRandomId";
-import log from "./utils/log";
+import throttle from "./utils/throttle"
+import getRandomId from "./utils/getRandomId"
+import log from "./utils/log"
 
-import BlocksNavigation from "./utils/navigation/blocksNavigation";
+import BlocksNavigation from "./utils/navigation/blocksNavigation"
+
+import { normalizeUrl } from './utils/normalizer'
 
 const replacesValues = {
     isScreenshot: '{{IS_SERVER_SCREENSHOT}}',
@@ -263,6 +265,17 @@ class Remix {
     }
 
     // Private methods
+
+    /**
+     * Adds a block
+     * @param container {HTMLElement}
+     * @param html {String}
+     * @param blockType {String}
+     * @param classes {Array}
+     * @param props {Object}
+     * @param navigationLabel {String}
+     * @returns {HTMLDivElement}
+     */
     #addBlock = (container, html, blockType, classes, props = null, navigationLabel = null) => {
         const div = document.createElement('div')
 
@@ -315,8 +328,7 @@ class Remix {
         })
     }
     #htmlDecode = str => {
-        const chars = [`\n`,`\r`,`\``,`'`,`"`,`<`,`>`]
-        chars.forEach(char => {
+        [`\n`, `\r`, `\t`, `\``, `'`, `"`, `<`, `>`].forEach(char => {
             const reg = new RegExp(`U\\+${char.charCodeAt(0)};`, 'g')
             str = str.replace(reg, char)
         })
@@ -440,6 +452,20 @@ function receiveMessage({origin = null, data = {}, source = null}) {
                     ['mousemove', 'mousedown', 'keydown'].forEach(evt => {
                         window.addEventListener(evt, throttle(() => sendMessage('activity', {}), 5000))
                     })
+
+                    window.addEventListener('click', evt => {
+                        try {
+                            for (const element of evt.path) {
+                                if (element.tagName === 'A') {
+                                    const href = element.getAttribute('href')
+                                    element.setAttribute('href', normalizeUrl(href, {}))
+                                    break
+                                }
+                            }
+                        } catch (err) {
+                            console.error(err)
+                        }
+                    }, false);
                 }
             } catch (err) {
                 console.error(err)
